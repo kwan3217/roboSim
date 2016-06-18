@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "RoboSimHeader.h"			//Why do I need main in this file when I haven't previously?
+#include "RoboSimHeader.h"
 using namespace std;
 
 const double PI = 2*acos(0.0);
@@ -8,19 +8,24 @@ const double PI = 2*acos(0.0);
 
 void control(Robot &r, clock_t t);
 
-Robot robo = Robot(0,0,0);			//Basic setup to make everything run the way it's supposed to
+Robot robo = Robot(0,0,0);
 clock_t totaltime = 0;
 clock_t updatetime = 0;
 
-clock_t timer;						//Main timer declaration
+clock_t timer;
 int main()
 {
-	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n";
+	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n"; //.csv headers
 
 	
-	timer = clock();				//Main timer.
+	timer = clock();//Main timer. In retrospect, while I used the time spent in the program
+			//to represent how the actual robot is going to have to work with the
+			//time passed since it last ran a given function, this might be a glaring
+			//flaw in this code because it makes receiving output from the sim slower.
+			//As it stands, it isn't fatal, so I'll worry about it when I'm working with
+			//larger courses.
 	
-	while(true)						//My little infini-loop to run the robot
+	while(true)
 	{
 		timer = clock() - timer;
 		double time = double(timer)/CLOCKS_PER_SEC;
@@ -81,7 +86,7 @@ Robot::Robot(double h, double lat, double lon)
 	throttle.Mode('t');
 }
 
-void Robot::readThrottle()
+void Robot::readThrottle()	//reads changes in throttle and directs new velocity target.
 {
 	if(throttle.read() != throttleVal)
 	{
@@ -109,11 +114,11 @@ void Robot::readThrottle()
 		currentVelocity = velocity;
 	}
 }
-void Robot::setVelocity(double t)								//okay, so how do I model the speed dropping to zero slowly as acceleration drops?
+void Robot::setVelocity(double t)	//Scales velocity towards target V according to acceleration rate
 {
 	double velocityChange = targetVelocity - currentVelocity;
 	if(velocityChange != 0.0)
-		{
+		{ //invisible "1" in this equation represents acceleration rate of 10 m/s/s
 			velocity += t * velocityChange;
 		}
 	if ((velocityChange < 0 && velocity < targetVelocity)||(velocityChange > 0 && velocity > targetVelocity))
@@ -121,13 +126,15 @@ void Robot::setVelocity(double t)								//okay, so how do I model the speed dro
 }
 void Robot::setPosition(double t)
 {
-	if(wheelAngle == 0)										//I need to use cos for latitude, sin for longitude. Make latitude like a negative x, remember that heading
-	{														//starts at 12:00 with 0 degrees and goes clockwise, because Renee Descartes apparently hates mathematicians
+	if(wheelAngle == 0) //Straight line position setting
+	{
 		latitude += sin(heading*PI/180)*velocity*t;
-		longitude += cos(heading*PI/180)*velocity*t;				//Convert degrees to radians --> ang*PI/180
+		longitude += cos(heading*PI/180)*velocity*t;
 	}
 	else
-	{
+	{	//Giant weird equations I figured at work one day. Just changes position along a circle according to turn
+		//radius, target heading, current heading, etc. As I look over it again, I don't see time used to determine
+		//the new position, only the new heading, so I'll need to comb through it.
 		double turnAngle = t * 180 * velocity/(PI * turnRadius);
 		if(wheelAngle < 0)
 		{
@@ -147,8 +154,8 @@ void Robot::setPosition(double t)
 		}
 	}
 }
-void Robot::setWheelAngle(double t)							//"t" is the time passed, so this takes the rotationSpeed and multiplies it
-{															//by time to check how the wheel is doing on turning to where it's supposed to
+void Robot::setWheelAngle(double t)
+{
 	double targetAngle = steering.read()-90;
 	if(targetAngle > wheelAngle)
 	{
@@ -168,7 +175,7 @@ void Robot::setWheelAngle(double t)							//"t" is the time passed, so this take
 		wheelAngle = 11.5;
 }
 void Robot::setTurnRadius()
-{
+{	//Pretty straight-forward, setting turn radius by wheel base.
 	if(wheelAngle == 0.0)
 		turnRadius = 0;
 	else if (wheelAngle > 0.0)
@@ -177,7 +184,8 @@ void Robot::setTurnRadius()
 		turnRadius = -wheelBase * tan( (90 - wheelAngle) * PI / 180);
 }
 void Robot::showPosition() const
-{
+{	//Made to be compatible with .csv format, very helpful for copy-pasting to a text document to be converted to csv.
+	//Will need to work with fstream to take a couple steps out of the process.
 	cout << latitude << ", " << longitude << ", , " << heading << ", " << velocity <<	", " << turnRadius << ", ";
 }
 void Robot::update(double t)
@@ -189,6 +197,7 @@ void Robot::update(double t)
 	setPosition(t);
 }
 
+//Servo class functions.
 
 Servo::Servo()
 {
@@ -197,12 +206,15 @@ Servo::Servo()
 }
 
 void Servo::Mode(char m)
-{
+{	//This shouldn't be a necessary function. Will change it when
+	//I don't have more important things to do; other functions
+	//currently depend upon this one.
 	mode = m;
 }
 
 void Servo::write(double n)
-{
+{	//Restricts based upon throttle or steering. Will probably change to 8-bit integer
+	//later in development, obviously on a basis of priority.
 	if (n <= 101.5 && n >= 78.5 && mode == 's')
 	{
 		setting = n;
