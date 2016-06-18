@@ -132,9 +132,8 @@ void Robot::setPosition(double t)
 		longitude += cos(heading*PI/180)*velocity*t;
 	}
 	else
-	{	//Giant weird equations I figured at work one day. Just changes position along a circle according to turn
-		//radius, target heading, current heading, etc. As I look over it again, I don't see time used to determine
-		//the new position, only the new heading, so I'll need to comb through it.
+	{	//Time is read and placed in turnAngle to represent the angle of the turn
+		//made since last position update.
 		double turnAngle = t * 180 * velocity/(PI * turnRadius);
 		if(wheelAngle < 0)
 		{
