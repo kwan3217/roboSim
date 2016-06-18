@@ -1,5 +1,5 @@
 # roboSim
-Simulation to build a robot's guidance system in.
+Simulation in which to build a robot's guidance system.
 
 Currently in development stages.
 
