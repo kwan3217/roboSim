@@ -16,9 +16,9 @@ class Servo
 class Robot
 {
 	private:
-		double throttleVal;
-		double currentVelocity;
-		double targetVelocity;
+		double throttleVal;	//Extra variables for throttle makes this feel bloated.
+		double currentVelocity;	//May need to refactor and change servo data memebers to public,
+		double targetVelocity;	//though my book frowns upon it.
 		double velocity;
 		double latitude;
 		double longitude;
