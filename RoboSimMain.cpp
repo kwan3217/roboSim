@@ -4,61 +4,160 @@
 using namespace std;
 
 const double PI = 2*acos(0.0);
-#include <ctime>
 
-void control(Robot &r, clock_t t);
+struct waypoint
+{
+	double latitude;
+	double longitude;
+};
 
-Robot robo = Robot(0,0,0);
-clock_t totaltime = 0;
-clock_t updatetime = 0;
+//double guide(waypoint &wp, Robot &r);
+//void control(Robot &r, double t);
 
-clock_t timer;
+//Robot robo = Robot(0,0,0);
+
 int main()
 {
-	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n"; //.csv headers
+/*	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n"; //.csv headers
 
+	waypoint goal = {30, 80};
 	
-	timer = clock();//Main timer. In retrospect, while I used the time spent in the program
-			//to represent how the actual robot is going to have to work with the
-			//time passed since it last ran a given function, this might be a glaring
-			//flaw in this code because it makes receiving output from the sim slower.
-			//As it stands, it isn't fatal, so I'll worry about it when I'm working with
-			//larger courses.
+	double totaltime = 0; //Epoch time; takes amount of time since program began
 	
 	while(true)
 	{
-		timer = clock() - timer;
-		double time = double(timer)/CLOCKS_PER_SEC;
-		updatetime += timer;
-		totaltime += timer;	
-		timer = clock();
-		
+		double time = .05; //Interval time; simulates amount of time between each function's call
 		
 		robo.update(time);
-		if(double(updatetime)/CLOCKS_PER_SEC > .05)
-		{
-			robo.showPosition();
-			cout << double(updatetime)/CLOCKS_PER_SEC << ", ";
-			cout << double(clock())/CLOCKS_PER_SEC << "\n";
-			updatetime = 0;
-		}
+
+		robo.showPosition();
+		cout << time << ", ";
+		cout << totaltime << "\n";
+			
 		//navigate();
-		//guide();
-		control(robo, totaltime);
-		if(totaltime >= 10000)
+		//double headingChange = guide(goal, robo);
+		control(robo,  totaltime);
+		
+		totaltime += time;
+		if(totaltime >= 10)
 			break;
 	}
-	cout << "END";
+	cout << "END";*/
+	
+	Simulator simtest = Simulator();
+	simtest.test();
+	
 	return 0;
 }
 
-void control(Robot &r, clock_t t)
+Simulator::Simulator(double h, double e, double n)
+: heading(h), easting(e), northing(n), turnRadius(0), wheelBase(.3)
+{}
+void Simulator::update(const Servo & s, const Servo & t, double c)
 {
-	if (t < 5000)
+	if(s.read() == 0.0)
+		turnRadius = 0;
+	else if (s.read() > 0.0)
+		turnRadius = wheelBase * tan( (90 - s.read()) * PI / 180);
+	else if (s.read() < 0.0)
+		turnRadius = -wheelBase * tan( (90 - s.read()) * PI / 180);
+	if(s.read() == 0) //Straight line position setting
+	{
+		easting += sin(heading*PI/180)*t.read()*c;
+		northing += cos(heading*PI/180)*t.read()*c;
+	}
+	else
+	{	//Time is read and placed in turnAngle to represent the angle of the turn
+		//made since last position update.
+		double turnAngle = c * 180 * t.read()/(PI * turnRadius);
+		if(s.read() < 0)
+		{
+			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
+			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+			heading -= c*180*t.read()/(PI * turnRadius);
+			if (heading < 0)
+				heading = 360 + heading;
+		}
+		else if(s.read() > 0)
+		{
+			easting += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
+			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+			heading += c*180*t.read()/(PI * turnRadius);
+			if (heading > 360)
+				heading = heading - 360;
+		}
+	}
+	
+}
+void Simulator::showVector() const
+{
+	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
+}
+void Simulator::test()
+{
+	cout << "easting, northing, , heading, turnRadius, velocity, T-U, T-T\n"; //.csv headers
+
+	//waypoint goal = {30, 80};
+	
+	double totaltime = 0; //Epoch time; takes amount of time since program began
+	
+	Servo steering = Servo(-128, 127, -15, 15, 10);
+	Servo throttle = Servo(-128, 127, -10, 10, 5);
+	
+	while(true)
+	{
+		const double time = .05; //Interval time; simulates amount of time between each function's call
+		
+		if (totaltime < 5)
+		{
+			throttle.write(127);
+		}
+		else if (totaltime >= 5 && totaltime <= 5.5)
+		{
+			steering.write(-128);
+		}
+		else if (totaltime > 5.5 && totaltime < 6.5)
+		{
+			steering.write(0);
+		}
+		else if (totaltime >= 6.5 && totaltime < 7.5)
+		{
+			steering.write(127);
+		}
+		else
+		{
+			steering.write(0);
+		}
+		
+		update(steering, throttle, time);
+
+		showVector();
+		cout << throttle.read() << ", " << time << ", ";
+		cout << totaltime << "\n";
+			
+		//navigate();
+		//double headingChange = guide(goal, robo);
+		steering.timeStep(time);
+		throttle.timeStep(time);
+		totaltime += time;
+		if(totaltime >= 10)
+			break;
+	}
+	cout << "END";
+}
+
+//double guide(waypoint &wp, Robot &r)
+//{
+//	return (-atan((wp.longitude - r.longitude)/(wp.latitude - r.latitude)) + 90) - r.heading;
+//}
+/*
+void control(Robot &r, double t)
+{
+	if (t < 5)
 	{
 		r.throttle.write(180);
 	}
-	else if (t >= 5000 && t <= 5500)
+	else if (t >= 5 && t <= 5.5)
 	{
 		r.steering.write(80);
 	}
@@ -68,7 +167,9 @@ void control(Robot &r, clock_t t)
 	}
 	
 }
-
+*/
+//+++++++++++++++++++++++++++Robot Class Methods
+/*
 Robot::Robot(double h, double lat, double lon)
 {
 	heading = h;
@@ -148,7 +249,7 @@ void Robot::setPosition(double t)
 			latitude += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
 			longitude += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
 			heading += t*180*velocity/(PI * turnRadius);
-			if (heading > 0)
+			if (heading > 360)
 				heading = heading - 360;
 		}
 	}
@@ -195,41 +296,65 @@ void Robot::update(double t)
 	setTurnRadius();
 	setPosition(t);
 }
+*/
+//++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 
-//Servo class functions.
-
-Servo::Servo()
+Servo::Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) : 
+cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(slewrate), commanded(0), physical(0)
 {
-	setting = 90;
-	mode = ' ';
-}
-
-void Servo::Mode(char m)
-{	//This shouldn't be a necessary function. Will change it when
-	//I don't have more important things to do; other functions
-	//currently depend upon this one.
-	mode = m;
-}
-
-void Servo::write(double n)
-{	//Restricts based upon throttle or steering. Will probably change to 8-bit integer
-	//later in development, obviously on a basis of priority.
-	if (n <= 101.5 && n >= 78.5 && mode == 's')
+	if(physmax < physmin || cmdmax < cmdmin)
 	{
-		setting = n;
+		cerr << "bad servo max/min -- set max greater than or equal to min";
+		exit(1);
 	}
-	else if (n <= 180 && n >= 0 && mode == 't')
+}
+void Servo::write(int n)
+{
+	if(n > cmdmax)
 	{
-		setting = n;
+		n = cmdmax;
+	}
+	else if (n < cmdmin)
+	{
+		n = cmdmin;
 	}
 	else
 	{
-		cerr << "Invalid servo setting or mode.\n";
-		exit(1);
+		commanded = n;
 	}
-	
 }
-double Servo::read() const
+void Servo::timeStep(double t)
 {
-	return setting;
+	double commandPhysical = (double(commanded - cmdmin)/(cmdmax - cmdmin)) * (physmax - physmin) + physmin;
+	if (physical < commandPhysical)				//physical vs command * command should be 8-bit int, make physical into a proportional double from -15 to 15 degrees
+	{
+		physical += t * slewrate;
+		if (physical > commandPhysical)
+			physical = commandPhysical;
+	}
+	else if (physical > commandPhysical)
+	{
+		physical -= t * slewrate;
+		if (physical < commandPhysical)
+			physical = commandPhysical;
+	}
+}
+void Servo::test()
+{
+	Servo Steering = Servo(1000, 2000, -15, 15, 5);
+	double time = 0;
+	while(time < 20)
+	{
+		cout << time << ", " << Steering.read() << endl;
+		if(time < 4)
+			Steering.write(2000);
+		else if(time < 14)
+			Steering.write(1000);
+		else if(time >= 14)
+		{
+			Steering.write(1500);
+		}
+		Steering.timeStep(.05);
+		time += .05;
+	}
 }

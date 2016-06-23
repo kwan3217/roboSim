@@ -4,40 +4,63 @@
 class Servo
 {
 	private:
-		double setting;
-		char mode;
+		int commanded;
+		const int cmdmin;
+		const int cmdmax;
+		double physical;
+		const double physmin;
+		const double physmax;
+		const double slewrate;
 	public:
-		Servo();
-		void Mode(char);
-		void write(double n);
-		double read() const;
+		Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate);
+		void write(int n);
+		double read() const {return physical;}
+		void timeStep(double t);
+		static void test();
 };
 
-class Robot
+class Simulator
 {
 	private:
-		double throttleVal;	//Extra variables for throttle makes this feel bloated.
-		double currentVelocity;	//May need to refactor and change servo data memebers to public,
-		double targetVelocity;	//though my book frowns upon it.
-		double velocity;
-		double latitude;
-		double longitude;
+		double easting;
+		double northing;
 		double heading;
-		double wheelAngle;
+		double turnRadius;
+		const double wheelBase;
+		
+		
+	public:
+		Simulator(double h = 0, double e = 0, double n = 0);
+		void update(const Servo & s, const Servo & t, double c);
+		void showVector() const;
+		void test();
+};
+
+class roboBrain
+{
+	private:
+		double velocity;
+		double easting;
+		double northing;
+		double heading;
 		double turnRadius;
 		double wheelBase;
-		double rotationSpeed;
 		void readThrottle();
-		void setVelocity(double);
 		void setPosition(double);
 		void setWheelAngle(double);
 		void setTurnRadius();
 	public:
-		Robot(double h = 0, double lat = 0, double lon = 0);
-		void update(double);
-		void showPosition() const;
+		Robot(double h = 0, double e = 0, double n = 0);
 		Servo throttle;
-		Servo steering;		
+		Servo steering;	
+		void update(double);
+		
+		void navigateCompass();
+		void navigateGps();
+		
+		double guide() const;
+		void control();
+		void log() const;
 };
 
 #endif
