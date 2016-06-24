@@ -89,34 +89,6 @@ void Simulator::update(const Servo & s, const Servo & t, double c)
 				heading = heading - 360;
 		}
 	}
-	/*
-	if(wheelAngle == 0) //Straight line position setting
-	{
-		latitude += sin(heading*PI/180)*velocity*t;
-		longitude += cos(heading*PI/180)*velocity*t;
-	}
-	else
-	{	//Time is read and placed in turnAngle to represent the angle of the turn
-		//made since last position update.
-		double turnAngle = t * 180 * velocity/(PI * turnRadius);
-		if(wheelAngle < 0)
-		{
-			latitude += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			longitude += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
-			heading -= t*180*velocity/(PI * turnRadius);
-			if (heading < 0)
-				heading = 360 + heading;
-		}
-		else if(wheelAngle > 0)
-		{
-			latitude += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			longitude += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
-			heading += t*180*velocity/(PI * turnRadius);
-			if (heading > 360)
-				heading = heading - 360;
-		}
-	}
-	*/
 }
 void Simulator::showVector() const
 {
