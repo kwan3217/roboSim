@@ -77,17 +77,46 @@ void Simulator::update(const Servo & s, const Servo & t, double c)
 			heading -= c*180*t.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
+			else if (heading > 350)
+				heading -= 360;
 		}
 		else if(s.read() > 0)
 		{
-			easting += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
+			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
 			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
 			heading += c*180*t.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
 		}
 	}
-	
+	/*
+	if(wheelAngle == 0) //Straight line position setting
+	{
+		latitude += sin(heading*PI/180)*velocity*t;
+		longitude += cos(heading*PI/180)*velocity*t;
+	}
+	else
+	{	//Time is read and placed in turnAngle to represent the angle of the turn
+		//made since last position update.
+		double turnAngle = t * 180 * velocity/(PI * turnRadius);
+		if(wheelAngle < 0)
+		{
+			latitude += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
+			longitude += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+			heading -= t*180*velocity/(PI * turnRadius);
+			if (heading < 0)
+				heading = 360 + heading;
+		}
+		else if(wheelAngle > 0)
+		{
+			latitude += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
+			longitude += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+			heading += t*180*velocity/(PI * turnRadius);
+			if (heading > 360)
+				heading = heading - 360;
+		}
+	}
+	*/
 }
 void Simulator::showVector() const
 {
@@ -101,8 +130,8 @@ void Simulator::test()
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
 	
-	Servo steering = Servo(-128, 127, -15, 15, 10);
-	Servo throttle = Servo(-128, 127, -10, 10, 5);
+	Servo steering = Servo(-128, 128, -15, 15, 10);
+	Servo throttle = Servo(-128, 128, -10, 10, 5);
 	
 	while(true)
 	{
@@ -110,7 +139,7 @@ void Simulator::test()
 		
 		if (totaltime < 5)
 		{
-			throttle.write(127);
+			throttle.write(128);
 		}
 		else if (totaltime >= 5 && totaltime <= 5.5)
 		{
@@ -120,9 +149,9 @@ void Simulator::test()
 		{
 			steering.write(0);
 		}
-		else if (totaltime >= 6.5 && totaltime < 7.5)
+		else if (totaltime >= 8.5 && totaltime <= 9.0)
 		{
-			steering.write(127);
+			steering.write(128);
 		}
 		else
 		{
@@ -140,7 +169,7 @@ void Simulator::test()
 		steering.timeStep(time);
 		throttle.timeStep(time);
 		totaltime += time;
-		if(totaltime >= 10)
+		if(totaltime >= 14)
 			break;
 	}
 	cout << "END";
@@ -227,6 +256,7 @@ void Robot::setVelocity(double t)	//Scales velocity towards target V according t
 }
 void Robot::setPosition(double t)
 {
+
 	if(wheelAngle == 0) //Straight line position setting
 	{
 		latitude += sin(heading*PI/180)*velocity*t;
@@ -253,6 +283,7 @@ void Robot::setPosition(double t)
 				heading = heading - 360;
 		}
 	}
+
 }
 void Robot::setWheelAngle(double t)
 {
