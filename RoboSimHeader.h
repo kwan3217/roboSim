@@ -19,7 +19,9 @@ class Servo
 		static void test();
 };
 
-class Simulator
+class roboBrain;
+
+class Simulator //where the robot actually is
 {
 	private:
 		double easting;
@@ -31,36 +33,36 @@ class Simulator
 		
 	public:
 		Simulator(double h = 0, double e = 0, double n = 0);
-		void update(const Servo & s, const Servo & t, double c);
-		void showVector() const;
-		void test();
+		void update(const Servo & s, const Servo & t, double c);	//only method needed to tell the sim where it is right now.
+		void showVector() const;									//reports data for storage in .csv file
+		void test();												//for... testing?
 };
 
-class roboBrain
+class roboBrain //where the robot thinks it is
 {
 	private:
-		double velocity;
 		double easting;
 		double northing;
 		double heading;
 		double turnRadius;
-		double wheelBase;
-		void readThrottle();
-		void setPosition(double);
-		void setWheelAngle(double);
-		void setTurnRadius();
+		const double wheelBase;
+		int wayTarget;
+		
 	public:
-		Robot(double h = 0, double e = 0, double n = 0);
+		Robot(double h = 0, double e = 0, double n = 0):throttle(-127, 127, -10, 10, 5),
+		steering(-127, 127, -15, 15, 10), heading(h), easting(e), northing(n), turnRadius(0),
+		wheelBase(.3), wayTarget(0) { }
+		
 		Servo throttle;
 		Servo steering;	
-		void update(double);
+		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
 		
-		void navigateCompass();
-		void navigateGps();
+		void navigateCompass();	//
+		void navigateGps();		//generate garbage data based on Simulation. For now, just take Simulation's data
 		
-		double guide() const;
-		void control();
-		void log() const;
+		double guide() const;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
+		void control();			//give data to servos, which will then be read by the simulation
+		void log() const;		//take data?
 };
 
 #endif
