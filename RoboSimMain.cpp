@@ -7,8 +7,8 @@ const double PI = 2*acos(0.0);
 
 struct waypoint
 {
-	double latitude;
-	double longitude;
+	double easting;
+	double northing;
 };
 
 //double guide(waypoint &wp, Robot &r);
@@ -16,36 +16,38 @@ struct waypoint
 
 //Robot robo = Robot(0,0,0);
 
+Simulator roboSim;
+
 int main()
 {
-/*	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n"; //.csv headers
-
-	waypoint goal = {30, 80};
+	cout << "easting, northing, , heading, turnRadius, T-U, T-T\n"; //.csv headers
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
+	
+	roboBrain robo;
+	
 	
 	while(true)
 	{
 		double time = .05; //Interval time; simulates amount of time between each function's call
 		
-		robo.update(time);
-
-		robo.showPosition();
+		robo.update(time); //contains simulation adjustment and timesteps the servos
+		
+		roboSim.showVector();
 		cout << time << ", ";
 		cout << totaltime << "\n";
 			
 		//navigate();
 		//double headingChange = guide(goal, robo);
-		control(robo,  totaltime);
+		robo.navigateCompass();
+		robo.navigateGPS();
+		robo.control(robo.guide(),  time);
 		
 		totaltime += time;
 		if(totaltime >= 10)
 			break;
 	}
-	cout << "END";*/
-	
-	Simulator simtest = Simulator();
-	simtest.test();
+	cout << "END";
 	
 	return 0;
 }
@@ -77,7 +79,7 @@ void Simulator::update(const Servo & s, const Servo & t, double c)
 			heading -= c*180*t.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
-			else if (heading > 350)
+			else if (heading > 360)
 				heading -= 360;
 		}
 		else if(s.read() > 0)
@@ -94,212 +96,130 @@ void Simulator::showVector() const
 {
 	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
 }
-void Simulator::test()
-{
-	cout << "easting, northing, , heading, turnRadius, velocity, T-U, T-T\n"; //.csv headers
 
-	//waypoint goal = {30, 80};
-	
-	double totaltime = 0; //Epoch time; takes amount of time since program began
-	
-	Servo steering = Servo(-128, 128, -15, 15, 10);
-	Servo throttle = Servo(-128, 128, -10, 10, 5);
-	
-	while(true)
+//+++++++++++++++++++++++++++roboBrain Class Methods
+
+roboBrain::roboBrain(double h, double e, double n)
+: throttle(-127, 127, -10, 10, 5), steering(-127, 127, -15, 15, 100),
+heading(h), easting(e), northing(n), turnRadius(0),
+wheelBase(.3), wayTarget(0) 
+{ }
+
+double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
+{
+	const int wpcount = 2;
+	static waypoint waypoints[wpcount] = {{0, 0},{30, 40}};
+	static int nowpoint = 1;
+	double headingChange;
+	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
+	//cout << " desiredHeading: " << desiredHeading;
+	if(waypoints[nowpoint].easting < easting)
+		desiredHeading += 180;
+	headingChange = desiredHeading - heading;
+	if(headingChange > 180)
 	{
-		const double time = .05; //Interval time; simulates amount of time between each function's call
-		
-		if (totaltime < 5)
+		//cout << " headingChange: " << headingChange - 360 << endl;
+		return headingChange - 360;
+	}
+	else if (headingChange < -180)
+	{
+	//	cout << " headingChange: " << headingChange + 360 << endl;
+		return headingChange + 360;
+	}
+	//cout << " headingChange: " << headingChange << endl;
+	return headingChange;
+}
+
+void roboBrain::control(double headingChange, double interval)
+{
+	static double turnTime = 0;
+	static double turnValue = 0;
+	throttle.write(127);
+	if (turnTime <= 0)
+	{
+		double maxTurnRad = wheelBase/tan(15);		//This will be changed later for proportional control
+		turnValue = headingChange;
+		if(headingChange > 0)
 		{
-			throttle.write(128);
+			turnTime = PI * maxTurnRad * headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(127);
 		}
-		else if (totaltime >= 5 && totaltime <= 5.5)
+		else if(headingChange < 0)
 		{
-			steering.write(-128);
-		}
-		else if (totaltime > 5.5 && totaltime < 6.5)
-		{
-			steering.write(0);
-		}
-		else if (totaltime >= 8.5 && totaltime <= 9.0)
-		{
-			steering.write(128);
+			turnTime = PI * maxTurnRad * -headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(-127);	
 		}
 		else
 		{
 			steering.write(0);
 		}
-		
-		update(steering, throttle, time);
-
-		showVector();
-		cout << throttle.read() << ", " << time << ", ";
-		cout << totaltime << "\n";
-			
-		//navigate();
-		//double headingChange = guide(goal, robo);
-		steering.timeStep(time);
-		throttle.timeStep(time);
-		totaltime += time;
-		if(totaltime >= 14)
-			break;
-	}
-	cout << "END";
-}
-
-//double guide(waypoint &wp, Robot &r)
-//{
-//	return (-atan((wp.longitude - r.longitude)/(wp.latitude - r.latitude)) + 90) - r.heading;
-//}
-/*
-void control(Robot &r, double t)
-{
-	if (t < 5)
-	{
-		r.throttle.write(180);
-	}
-	else if (t >= 5 && t <= 5.5)
-	{
-		r.steering.write(80);
 	}
 	else
 	{
-		r.steering.write(90);
+		turnTime -= interval;
 	}
+}
+
+void roboBrain::update(double t)
+{
 	
-}
-*/
-//+++++++++++++++++++++++++++Robot Class Methods
-/*
-Robot::Robot(double h, double lat, double lon)
-{
-	heading = h;
-	latitude = lat;
-	longitude = lon;
-	throttleVal = 0;
-	currentVelocity = 0;
-	targetVelocity = 0;
-	velocity = 0;
-	wheelAngle = 0;
-	wheelBase = .3;
-	turnRadius = 0;
-	rotationSpeed = 57.5;
-	steering.Mode('s');
-	throttle.Mode('t');
-}
-
-void Robot::readThrottle()	//reads changes in throttle and directs new velocity target.
-{
-	if(throttle.read() != throttleVal)
+	steering.timeStep(t);
+	throttle.timeStep(t);
+	roboSim.update(steering, throttle, t);
+	
+	/*
+	if(steering.read() == 0.0)
+		turnRadius = 0;
+	else if (steering.read() > 0.0)
+		turnRadius = wheelBase * tan( (90 - steering.read()) * PI / 180);
+	else if (steering.read() < 0.0)
+		turnRadius = -wheelBase * tan( (90 - steering.read()) * PI / 180);
+	if(steering.read() == 0) //Straight line position setting
 	{
-		throttleVal = throttle.read();
-		if(throttleVal < 103.5 && throttleVal > 76.5)
-		{
-			targetVelocity = 0;
-		}
-		else if (throttleVal >= 179.9)
-		{
-			targetVelocity = 10.0;
-		}
-		else if (throttleVal <= 0)
-		{
-			targetVelocity = -10.0;
-		}
-		else if (throttleVal >= 103.5)
-		{
-			targetVelocity = .1 + (10/76.5)*(throttleVal-103.5);
-		}
-		else if (throttleVal <= 76.5)
-		{
-			targetVelocity = -1 - (10/76.5)*(throttleVal+76.5);
-		}
-		currentVelocity = velocity;
-	}
-}
-void Robot::setVelocity(double t)	//Scales velocity towards target V according to acceleration rate
-{
-	double velocityChange = targetVelocity - currentVelocity;
-	if(velocityChange != 0.0)
-		{ //invisible "1" in this equation represents acceleration rate of 10 m/s/s
-			velocity += t * velocityChange;
-		}
-	if ((velocityChange < 0 && velocity < targetVelocity)||(velocityChange > 0 && velocity > targetVelocity))
-		velocity = currentVelocity = targetVelocity;
-}
-void Robot::setPosition(double t)
-{
-
-	if(wheelAngle == 0) //Straight line position setting
-	{
-		latitude += sin(heading*PI/180)*velocity*t;
-		longitude += cos(heading*PI/180)*velocity*t;
+		easting += sin(heading*PI/180)*throttle.read()*c;
+		northing += cos(heading*PI/180)*throttle.read()*c;
 	}
 	else
 	{	//Time is read and placed in turnAngle to represent the angle of the turn
 		//made since last position update.
-		double turnAngle = t * 180 * velocity/(PI * turnRadius);
-		if(wheelAngle < 0)
+		double turnAngle = c * 180 * throttle.read()/(PI * turnRadius);
+		if(steering.read() < 0)
 		{
-			latitude += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			longitude += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
-			heading -= t*180*velocity/(PI * turnRadius);
+			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
+			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+			heading -= c*180*throttle.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
+			else if (heading > 350)
+				heading -= 360;
 		}
-		else if(wheelAngle > 0)
+		else if(steering.read() > 0)
 		{
-			latitude += turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			longitude += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
-			heading += t*180*velocity/(PI * turnRadius);
+			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
+			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+			heading += c*180*throttle.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
 		}
 	}
+	*/
+}
 
-}
-void Robot::setWheelAngle(double t)
+void roboBrain::navigateCompass()
 {
-	double targetAngle = steering.read()-90;
-	if(targetAngle > wheelAngle)
-	{
-		wheelAngle += t * rotationSpeed;
-		if(wheelAngle > targetAngle)
-			wheelAngle = targetAngle;
-	}
-	else if (targetAngle < wheelAngle)
-	{
-		wheelAngle -= t * rotationSpeed;
-		if(wheelAngle < targetAngle)
-			wheelAngle = targetAngle;
-	}
-	if(wheelAngle < -11.5)
-		wheelAngle = -11.5;
-	else if(wheelAngle > 11.5)
-		wheelAngle = 11.5;
+	heading = roboSim.heading;
 }
-void Robot::setTurnRadius()
-{	//Pretty straight-forward, setting turn radius by wheel base.
-	if(wheelAngle == 0.0)
-		turnRadius = 0;
-	else if (wheelAngle > 0.0)
-		turnRadius = wheelBase * tan( (90 - wheelAngle) * PI / 180);
-	else if (wheelAngle < 0.0)
-		turnRadius = -wheelBase * tan( (90 - wheelAngle) * PI / 180);
-}
-void Robot::showPosition() const
-{	//Made to be compatible with .csv format, very helpful for copy-pasting to a text document to be converted to csv.
-	//Will need to work with fstream to take a couple steps out of the process.
-	cout << latitude << ", " << longitude << ", , " << heading << ", " << velocity <<	", " << turnRadius << ", ";
-}
-void Robot::update(double t)
+
+void roboBrain::navigateGPS()
 {
-	readThrottle();
-	setVelocity(t);
-	setWheelAngle(t);
-	setTurnRadius();
-	setPosition(t);
+	northing = roboSim.northing;
+	easting = roboSim.easting;
 }
-*/
+
+void roboBrain::showVector() const
+{
+	cout << easting << ", " << northing << ", , " << heading << ", " << throttle.read() <<	", " << turnRadius << ", ";
+}
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 
 Servo::Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) : 
