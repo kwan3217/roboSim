@@ -16,36 +16,38 @@ struct waypoint
 
 //Robot robo = Robot(0,0,0);
 
+Simulator roboSim;
+
 int main()
 {
-/*	cout << "latitude, longitude, , heading, velocity, turnRadius, T-U, T-T\n"; //.csv headers
-
-	waypoint goal = {30, 80};
+	cout << "easting, northing, , heading, turnRadius, T-U, T-T\n"; //.csv headers
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
+	
+	roboBrain robo;
+	
 	
 	while(true)
 	{
 		double time = .05; //Interval time; simulates amount of time between each function's call
 		
-		robo.update(time);
-
-		robo.showPosition();
+		robo.update(time); //contains simulation adjustment and timesteps the servos
+		
+		roboSim.showVector();
 		cout << time << ", ";
 		cout << totaltime << "\n";
 			
 		//navigate();
 		//double headingChange = guide(goal, robo);
-		control(robo,  totaltime);
+		robo.navigateCompass();
+		robo.navigateGPS();
+		robo.control(robo.guide(),  time);
 		
 		totaltime += time;
 		if(totaltime >= 10)
 			break;
 	}
-	cout << "END";*/
-	
-	Simulator simtest = Simulator();
-	simtest.test();
+	cout << "END";
 	
 	return 0;
 }
@@ -77,7 +79,7 @@ void Simulator::update(const Servo & s, const Servo & t, double c)
 			heading -= c*180*t.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
-			else if (heading > 350)
+			else if (heading > 360)
 				heading -= 360;
 		}
 		else if(s.read() > 0)
@@ -94,80 +96,78 @@ void Simulator::showVector() const
 {
 	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
 }
-void Simulator::test()
-{
-	cout << "easting, northing, , heading, turnRadius, velocity, T-U, T-T\n"; //.csv headers
 
-	//waypoint goal = {30, 80};
-	
-	double totaltime = 0; //Epoch time; takes amount of time since program began
-	
-	Servo steering = Servo(-128, 128, -15, 15, 10);
-	Servo throttle = Servo(-128, 128, -10, 10, 5);
-	
-	while(true)
+//+++++++++++++++++++++++++++roboBrain Class Methods
+
+roboBrain::roboBrain(double h, double e, double n)
+: throttle(-127, 127, -10, 10, 5), steering(-127, 127, -15, 15, 100),
+heading(h), easting(e), northing(n), turnRadius(0),
+wheelBase(.3), wayTarget(0) 
+{ }
+
+double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
+{
+	const int wpcount = 2;
+	static waypoint waypoints[wpcount] = {{0, 0},{30, 40}};
+	static int nowpoint = 1;
+	double headingChange;
+	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
+	//cout << " desiredHeading: " << desiredHeading;
+	if(waypoints[nowpoint].easting < easting)
+		desiredHeading += 180;
+	headingChange = desiredHeading - heading;
+	if(headingChange > 180)
 	{
-		const double time = .05; //Interval time; simulates amount of time between each function's call
-		
-		if (totaltime < 5)
+		//cout << " headingChange: " << headingChange - 360 << endl;
+		return headingChange - 360;
+	}
+	else if (headingChange < -180)
+	{
+	//	cout << " headingChange: " << headingChange + 360 << endl;
+		return headingChange + 360;
+	}
+	//cout << " headingChange: " << headingChange << endl;
+	return headingChange;
+}
+
+void roboBrain::control(double headingChange, double interval)
+{
+	static double turnTime = 0;
+	static double turnValue = 0;
+	throttle.write(127);
+	if (turnTime <= 0)
+	{
+		double maxTurnRad = wheelBase/tan(15);		//This will be changed later for proportional control
+		turnValue = headingChange;
+		if(headingChange > 0)
 		{
-			throttle.write(128);
+			turnTime = PI * maxTurnRad * headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(127);
 		}
-		else if (totaltime >= 5 && totaltime <= 5.5)
+		else if(headingChange < 0)
 		{
-			steering.write(-128);
-		}
-		else if (totaltime > 5.5 && totaltime < 6.5)
-		{
-			steering.write(0);
-		}
-		else if (totaltime >= 8.5 && totaltime <= 9.0)
-		{
-			steering.write(128);
+			turnTime = PI * maxTurnRad * -headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(-127);	
 		}
 		else
 		{
 			steering.write(0);
 		}
-		
-		update(steering, throttle, time);
-
-		showVector();
-		cout << throttle.read() << ", " << time << ", ";
-		cout << totaltime << "\n";
-			
-		//navigate();
-		//double headingChange = guide(goal, robo);
-		steering.timeStep(time);
-		throttle.timeStep(time);
-		totaltime += time;
-		if(totaltime >= 14)
-			break;
 	}
-	cout << "END";
-}
-
-//+++++++++++++++++++++++++++roboBrain Class Methods
-
-double roboBrain::guide(waypoint &wp, Robot &r)
-{
-	const int wpcount = 2;
-	static waypoint waypoints[wpcount] = {{50, 50},{-50, -50}};
-	return (-atan((wp.longitude - r.longitude)/(wp.latitude - easting)) + 90) - r.heading;
-}
-
-void roboBrain::control(double ac)
-{
-	static turnTime = 0;
-	if (turnTime = 0)
+	else
 	{
-		
+		turnTime -= interval;
 	}
 }
 
 void roboBrain::update(double t)
 {
-
+	
+	steering.timeStep(t);
+	throttle.timeStep(t);
+	roboSim.update(steering, throttle, t);
+	
+	/*
 	if(steering.read() == 0.0)
 		turnRadius = 0;
 	else if (steering.read() > 0.0)
@@ -202,14 +202,24 @@ void roboBrain::update(double t)
 				heading = heading - 360;
 		}
 	}
+	*/
+}
 
+void roboBrain::navigateCompass()
+{
+	heading = roboSim.heading;
+}
+
+void roboBrain::navigateGPS()
+{
+	northing = roboSim.northing;
+	easting = roboSim.easting;
 }
 
 void roboBrain::showVector() const
 {
 	cout << easting << ", " << northing << ", , " << heading << ", " << throttle.read() <<	", " << turnRadius << ", ";
 }
-*/
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 
 Servo::Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) : 
