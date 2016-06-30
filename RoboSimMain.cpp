@@ -44,7 +44,7 @@ int main()
 		robo.control(robo.guide(),  time);
 		
 		totaltime += time;
-		if(totaltime >= 10)
+		if(totaltime >= 60)
 			break;
 	}
 	cout << "END";
@@ -107,17 +107,19 @@ wheelBase(.3), wayTarget(0)
 
 double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
-	const int wpcount = 2;
-	static waypoint waypoints[wpcount] = {{0, 0},{30, 40}};
+	const int wpcount = 5;
+	static waypoint waypoints[wpcount] = {{0, 0},{30, 40}, {-30, 40}, {-30, -40}, {30, -40}};
 	static int nowpoint = 1;
 	double headingChange;
 	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + (waypoints[nowpoint].easting - waypoints[nowpoint - 1].easting)*(waypoints[nowpoint].easting - easting)) < 0)	//dot product -> vector1.northing*vector2.northing + vector1.easting*vector2.easting
 	{
 		nowpoint += 1;
+		cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
 	}
 	if(nowpoint >= wpcount)
 	{
 		return 400;
+		cout << endl << "RETURN STOP SIGNAL" << endl;
 	}
 	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
 	
@@ -144,9 +146,10 @@ void roboBrain::control(double headingChange, double interval)
 	static double turnTime = 0;
 	static double turnValue = 0;
 	throttle.write(127);
-	if(headingChange == 300)
+	if(headingChange >= 300)
 	{
 		throttle.write(0);
+		steering.write(0);
 	}
 	else if (turnTime <= 0)
 	{
