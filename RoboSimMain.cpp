@@ -108,7 +108,7 @@ wheelBase(.3), wayTarget(0)
 double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
 	const int wpcount = 5;
-	static waypoint waypoints[wpcount] = {{0, 0},{30, 40}, {-30, 40}, {-30, -40}, {30, -40}};
+	static waypoint waypoints[wpcount] = {{0, 0},{-30, 40}, {30, 50}, {-20, 60}, {0, 20}};
 	static int nowpoint = 1;
 	double headingChange;
 	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + (waypoints[nowpoint].easting - waypoints[nowpoint - 1].easting)*(waypoints[nowpoint].easting - easting)) < 0)	//dot product -> vector1.northing*vector2.northing + vector1.easting*vector2.easting
@@ -119,7 +119,6 @@ double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.e
 	if(nowpoint >= wpcount)
 	{
 		return 400;
-		cout << endl << "RETURN STOP SIGNAL" << endl;
 	}
 	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
 	
