@@ -107,8 +107,8 @@ wheelBase(.3), wayTarget(0)
 
 double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
-	const int wpcount = 6;
-	static waypoint waypoints[wpcount] = {{0, 0},{0, 40}, {-30, 40}, {-30, -40}, {0, -40}, {0,0}};
+	const int wpcount = 7;
+	static waypoint waypoints[wpcount] = {{0, 0},{0, 40}, {-30, 40}, {-30, -40}, {-60, -40}, {-60,0}, {0,0}};
 	static int nowpoint = 1;
 	double headingChange;
 	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + 
@@ -152,11 +152,17 @@ void roboBrain::control(double headingChange, double interval)
 	}
 	if(headingChange > 0)
 	{
-		steering.write(2*headingChange * double (127)/180);
+		if(headingChange > 15)
+			steering.write(127);
+		else
+			steering.write(2*headingChange * double (127)/180);
 	}
 	else if(headingChange < 0)
 	{
-		steering.write(2*headingChange * double (127)/180);	
+		if(headingChange < -15)
+			steering.write(-127);
+		else
+			steering.write(2*headingChange * double (127)/180);
 	}
 	else
 	{
