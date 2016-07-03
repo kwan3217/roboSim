@@ -111,7 +111,8 @@ double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.e
 	static waypoint waypoints[wpcount] = {{0, 0},{-30, 40}, {30, 50}, {-20, 60}, {0, 20}};
 	static int nowpoint = 1;
 	double headingChange;
-	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + (waypoints[nowpoint].easting - waypoints[nowpoint - 1].easting)*(waypoints[nowpoint].easting - easting)) < 0)	//dot product -> vector1.northing*vector2.northing + vector1.easting*vector2.easting
+	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + 
+	(waypoints[nowpoint].easting - waypoints[nowpoint - 1].easting)*(waypoints[nowpoint].easting - easting)) < 0)	//dot product -> vector1.northing*vector2.northing + vector1.easting*vector2.easting
 	{
 		nowpoint += 1;
 		cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
@@ -142,37 +143,38 @@ double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.e
 
 void roboBrain::control(double headingChange, double interval)
 {
-	static double turnTime = 0;
-	static double turnValue = 0;
+	//static double turnTime = 0;
+	//static double turnValue = 0;
 	throttle.write(127);
 	if(headingChange >= 300)
 	{
 		throttle.write(0);
 		steering.write(0);
+		return;
 	}
-	else if (turnTime <= 0)
-	{
-		double maxTurnRad = wheelBase/tan(15);		//This will be changed later for proportional control
-		turnValue = headingChange;
+//	else if (turnTime <= 0)
+//	{
+	//	double maxTurnRad = wheelBase/tan(headingChange * double (15)/180);
+	//	turnValue = headingChange;
 		if(headingChange > 0)
 		{
-			turnTime = PI * maxTurnRad * headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
-			steering.write(127);
+		//	turnTime = PI * maxTurnRad * headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(headingChange * double (127)/180); //steering.write(headingChange((error)) * 127/180 ((If my heading change is 180, then I have a full turn. Otherwise, much smaller.)) )
 		}
 		else if(headingChange < 0)
 		{
-			turnTime = PI * maxTurnRad * -headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
-			steering.write(-127);	
+		//	turnTime = PI * maxTurnRad * -headingChange / (throttle.read() * 180);	//This will fail if velocity is changing and should be fixed
+			steering.write(headingChange * double (127)/180);	
 		}
 		else
 		{
 			steering.write(0);
 		}
-	}
-	else
-	{
-		turnTime -= interval;
-	}
+//	}
+//	else
+//	{
+//		turnTime -= interval;
+//	}
 }
 
 void roboBrain::update(double t)
