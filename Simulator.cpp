@@ -54,7 +54,12 @@ void Simulator::generateNewFix() {
   double speed=0.0*1.94384449; // Eventually we will read this from the throttle servo, whose physical value is m/s
 
   sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*",h,m,s,lat,ns,lon,ew,speed,heading);
-//  cout << nmea << endl;
+  char checksum=0;
+  for(int i=1;i<strlen(nmea)-1;i++) {
+	checksum ^= nmea[i];
+  }
+  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,lat,ns,lon,ew,speed,heading,checksum);
+  cout << nmea << endl;
 }
 
 /** Update the actual position and heading of the robot
@@ -106,6 +111,21 @@ void Simulator::showVector() const
 {
 	printf("%10.2lf, %10.2lf", easting + 484150.0, northing + 4437810.0);
 	cout << /*double (easting + 484150.0) << ", " << double (northing + 4437810.0) <<*/ ", , " << heading << ", " << turnRadius << ", ";
+}
+
+void Simulator::testNMEA() {
+  roboBrain robo;
+  double totaltime=0;
+  robo.throttle.write(127);
+  while(true) {
+	double time = .05; //Interval time; simulates amount of time between each function's call
+
+	robo.update(time); //contains simulation adjustment and timesteps the servos
+
+	totaltime += time;
+	if(totaltime >= 60)
+	  break;
+	}
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
@@ -169,3 +189,4 @@ void Servo::test()
 		time += .05;
 	}
 }
+

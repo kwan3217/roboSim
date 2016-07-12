@@ -72,6 +72,8 @@ class Simulator : public Interface //where the robot actually is
 		virtual bool checkNavChar(); 
 		virtual char readChar();
 		virtual void readGyro(double []);
+
+		static void testNMEA(); ///< Test the NMEA generation code
 				
 		friend roboBrain;
 };
