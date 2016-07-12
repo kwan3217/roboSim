@@ -16,7 +16,7 @@ struct waypoint
 
 //Robot robo = Robot(0,0,0);
 
-Simulator roboSim;
+Simulator roboSim = Simulator(343.4, 22.48, 17.64);
 
 int main()
 {
@@ -24,7 +24,7 @@ int main()
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
 	
-	roboBrain robo;
+	roboBrain robo = roboBrain(343.4, 22.48, 17.64);
 	
 	
 	while(true)
@@ -41,7 +41,7 @@ int main()
 		//double headingChange = guide(goal, robo);
 		robo.navigateCompass();
 		robo.navigateGPS();
-		robo.control(robo.guide(),  time);
+		robo.control(robo.guide());
 		
 		totaltime += time;
 		if(totaltime >= 60)
@@ -94,21 +94,22 @@ void Simulator::update(const Servo & s, const Servo & t, double c)
 }
 void Simulator::showVector() const
 {
-	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
+	printf("%10.2lf, %10.2lf", easting + 484150.0, northing + 4437810.0);
+	cout << /*double (easting + 484150.0) << ", " << double (northing + 4437810.0) <<*/ ", , " << heading << ", " << turnRadius << ", ";
 }
 
 //+++++++++++++++++++++++++++roboBrain Class Methods
 
 roboBrain::roboBrain(double h, double e, double n)
-: throttle(-127, 127, -10, 10, 5), steering(-127, 127, -15, 15, 100),
+: throttle(-127, 127, -10, 10, 5), steering(-127, 127, -15, 15, 75),
 heading(h), easting(e), northing(n), turnRadius(0),
 wheelBase(.3), wayTarget(0) 
 { }
 
 double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
-	const int wpcount = 7;
-	static waypoint waypoints[wpcount] = {{0, 0},{0, 40}, {-30, 40}, {-30, -40}, {-60, -40}, {-60,0}, {0,0}};
+	const int wpcount = 6;
+	static waypoint waypoints[wpcount] = {{12.48, 17.64},{9.03, 29.21}, {63.81, 95.25}, {91.81, 71.44}, {37.80, 6.18}, {15.84, 21.98}};
 	static int nowpoint = 1;
 	double headingChange;
 	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) + 
@@ -122,7 +123,6 @@ double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.e
 		return 400;
 	}
 	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
-	
 	
 	if(waypoints[nowpoint].easting < easting)
 		desiredHeading += 180;
@@ -141,33 +141,34 @@ double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.e
 	return headingChange;
 }
 
-void roboBrain::control(double headingChange, double interval)
+void roboBrain::control(double headingChange)
 {
-	throttle.write(127);
+
 	if(headingChange >= 300)
 	{
 		throttle.write(0);
 		steering.write(0);
 		return;
 	}
-	if(headingChange > 0)
-	{
-		if(headingChange > 15)
-			steering.write(127);
-		else
+	throttle.write(64);
+//	if(headingChange > 0)
+//	{
+	//	if(headingChange > 15)
+	//		steering.write(127);
+	//	else
 			steering.write(headingChange * double (127)/180);
-	}
-	else if(headingChange < 0)
-	{
-		if(headingChange < -15)
-			steering.write(-127);
-		else
-			steering.write(headingChange * double (127)/180);
-	}
-	else
-	{
-		steering.write(0);
-	}
+//	}
+//	else if(headingChange < 0)
+//	{
+	//	if(headingChange < -15)
+	//		steering.write(-127);
+	//	else
+//			steering.write(headingChange * double (127)/180);
+//	}
+//	else
+//	{
+//		steering.write(0);
+//	}
 }
 
 void roboBrain::update(double t)
