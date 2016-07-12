@@ -28,10 +28,10 @@ class Interface
 		virtual bool checkNavChar() = 0; 
 		virtual char readChar() = 0;
 		
-		virtual void readGyro(double & []) = 0;
+		virtual void readGyro(double[]) = 0;
 };
 
-class Simulator : public interface //where the robot actually is
+class Simulator : public Interface //where the robot actually is
 {
 	private:
 		double easting;
@@ -47,10 +47,10 @@ class Simulator : public interface //where the robot actually is
 		void showVector() const;									//reports data for storage in .csv file
 		void test();												//for... testing?
 		
-		double checkPPS();
-		bool checkNavChar(); 
-		char readChar();
-		void readGyro(double & []);
+		virtual double checkPPS();
+		virtual bool checkNavChar(); 
+		virtual char readChar();
+		virtual void readGyro(double []);
 				
 		friend roboBrain;
 };
@@ -72,7 +72,7 @@ class roboBrain //where the robot thinks it is
 		Servo steering;	
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
 		
-		void navigateGyro();	//
+		void navigateCompass();	//
 		void navigateGPS();		//generate garbage data based on Simulation. For now, just take Simulation's data
 		
 		double guide() const;	//return a heading change, work with current object data. Determine if previous waypoint has been passed

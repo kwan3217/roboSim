@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include "HeaderSimRobo.h"
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 
 const double PI = 2*acos(0.0);
@@ -39,7 +41,7 @@ int main()
 			
 		//navigate();
 		//double headingChange = guide(goal, robo);
-		robo.navigateCompass();
+//		robo.navigateCompass();
 		robo.navigateGPS();
 		robo.control(robo.guide());
 		
@@ -55,6 +57,14 @@ int main()
 Simulator::Simulator(double h, double e, double n)
 : heading(h), easting(e), northing(n), turnRadius(0), wheelBase(.3)
 {}
+
+
+//Implement the robot Interface
+double Simulator::checkPPS() {}
+bool Simulator::checkNavChar() {}
+char Simulator::readChar() {}
+void Simulator::readGyro(double []) {}
+
 void Simulator::update(const Servo & s, const Servo & t, double c)
 {
 	if(s.read() == 0.0)
