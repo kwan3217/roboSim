@@ -6,7 +6,7 @@
 using namespace std;
 
 //Create the Simulator instance for the other classes
-Simulator roboSim = Simulator(343.4, 22.48, 17.64);
+Simulator roboSim = Simulator(343.4, 40.090586, -105.185485);
 
 int main()
 {
