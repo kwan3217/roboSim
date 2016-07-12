@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <stdio.h>
+#include <stdlib.h>
 #include "HeaderSimRobo.h"
 
 using namespace std;
@@ -59,3 +60,64 @@ void Simulator::showVector() const
 	cout << /*double (easting + 484150.0) << ", " << double (northing + 4437810.0) <<*/ ", , " << heading << ", " << turnRadius << ", ";
 }
 
+//++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
+
+Servo::Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) :
+cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(slewrate), commanded(0), physical(0)
+{
+	if(physmax < physmin || cmdmax < cmdmin)
+	{
+		cerr << "bad servo max/min -- set max greater than or equal to min";
+		exit(1);
+	}
+}
+void Servo::write(int n)
+{
+	if(n > cmdmax)
+	{
+		n = cmdmax;
+	}
+	else if (n < cmdmin)
+	{
+		n = cmdmin;
+	}
+	else
+	{
+		commanded = n;
+	}
+}
+void Servo::timeStep(double t)
+{
+	double commandPhysical = (double(commanded - cmdmin)/(cmdmax - cmdmin)) * (physmax - physmin) + physmin;
+	if (physical < commandPhysical)				//physical vs command * command should be 8-bit int, make physical into a proportional double from -15 to 15 degrees
+	{
+		physical += t * slewrate;
+		if (physical > commandPhysical)
+			physical = commandPhysical;
+	}
+	else if (physical > commandPhysical)
+	{
+		physical -= t * slewrate;
+		if (physical < commandPhysical)
+			physical = commandPhysical;
+	}
+}
+void Servo::test()
+{
+	Servo Steering = Servo(1000, 2000, -15, 15, 5);
+	double time = 0;
+	while(time < 20)
+	{
+		cout << time << ", " << Steering.read() << endl;
+		if(time < 4)
+			Steering.write(2000);
+		else if(time < 14)
+			Steering.write(1000);
+		else if(time >= 14)
+		{
+			Steering.write(1500);
+		}
+		Steering.timeStep(.05);
+		time += .05;
+	}
+}

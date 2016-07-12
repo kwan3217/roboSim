@@ -3,6 +3,11 @@
 #define ALL_MY_BOTS
 const double PI = 2*acos(0.0);
 
+struct waypoint {
+	double easting;
+	double northing;
+};
+
 class Servo
 {
 	private:
@@ -56,6 +61,8 @@ class Simulator : public Interface //where the robot actually is
 				
 		friend roboBrain;
 };
+
+extern Simulator roboSim; //This is just temporary, we should restructure roboBrain so it holds a reference to an Interface
 
 class roboBrain //where the robot thinks it is
 {
