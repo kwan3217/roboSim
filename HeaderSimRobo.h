@@ -1,6 +1,8 @@
 
 #ifndef ALL_MY_BOTS
 #define ALL_MY_BOTS
+const double PI = 2*acos(0.0);
+
 class Servo
 {
 	private:
