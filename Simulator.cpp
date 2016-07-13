@@ -8,7 +8,7 @@
 using namespace std;
 
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0)
+: Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75)
 {
     generateNewFix();
 }
@@ -67,41 +67,44 @@ void Simulator::generateNewFix() {
  * @param t throttle servo
  * @param dt update time interval in seconds
  */
-void Simulator::update(const Servo & s, const Servo & t, double dt) {
+void Simulator::update(double dt) {
+	simSteering.timeStep(dt);
+	simThrottle.timeStep(dt);
+
 	time+=dt; //Update current time
 	if((time-pps)>dpps) {
 		generateNewFix();
 	}
-	if(s.read() == 0.0)
+	if(simSteering.read() == 0.0)
 		turnRadius = 0;
-	else if (s.read() > 0.0)
-		turnRadius = wheelBase * tan( (90 - s.read()) * PI / 180);
-	else if (s.read() < 0.0)
-		turnRadius = -wheelBase * tan( (90 - s.read()) * PI / 180);
-	if(s.read() == 0) //Straight line position setting
+	else if (simSteering.read() > 0.0)
+		turnRadius = wheelBase * tan( (90 - simSteering.read()) * PI / 180);
+	else if (simSteering.read() < 0.0)
+		turnRadius = -wheelBase * tan( (90 - simSteering.read()) * PI / 180);
+	if(simSteering.read() == 0) //Straight line position setting
 	{
-		easting += sin(heading*PI/180)*t.read()*dt;
-		northing += cos(heading*PI/180)*t.read()*dt;
+		easting += sin(heading*PI/180)*simThrottle.read()*dt;
+		northing += cos(heading*PI/180)*simThrottle.read()*dt;
 	}
 	else
 	{	//Time is read and placed in turnAngle to represent the angle of the turn
 		//made since last position update.
-		double turnAngle = dt * 180 * t.read()/(PI * turnRadius);
-		if(s.read() < 0)
+		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
+		if(simSteering.read() < 0)
 		{
 			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
 			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
-			heading -= dt*180*t.read()/(PI * turnRadius);
+			heading -= dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
 			else if (heading > 360)
 				heading -= 360;
 		}
-		else if(s.read() > 0)
+		else if(simSteering.read() > 0)
 		{
 			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
 			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
-			heading += dt*180*t.read()/(PI * turnRadius);
+			heading += dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
 		}
@@ -114,13 +117,13 @@ void Simulator::showVector() const
 }
 
 void Simulator::testNMEA() {
-  roboBrain robo;
+  Simulator testSim;
   double totaltime=0;
-  robo.throttle.write(127);
+  testSim.throttle.write(127);
   while(true) {
 	double time = .05; //Interval time; simulates amount of time between each function's call
 
-	robo.update(time); //contains simulation adjustment and timesteps the servos
+	testSim.update(time); //contains simulation adjustment and timesteps the servos
 
 	totaltime += time;
 	if(totaltime >= 60)
@@ -130,7 +133,7 @@ void Simulator::testNMEA() {
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 
-Servo::Servo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) :
+SimServo::SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) :
 cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(slewrate), commanded(0), physical(0)
 {
 	if(physmax < physmin || cmdmax < cmdmin)
@@ -139,7 +142,7 @@ cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(sle
 		exit(1);
 	}
 }
-void Servo::write(int n)
+void SimServo::write(int n)
 {
 	if(n > cmdmax)
 	{
@@ -154,7 +157,7 @@ void Servo::write(int n)
 		commanded = n;
 	}
 }
-void Servo::timeStep(double t)
+void SimServo::timeStep(double t)
 {
 	double commandPhysical = (double(commanded - cmdmin)/(cmdmax - cmdmin)) * (physmax - physmin) + physmin;
 	if (physical < commandPhysical)				//physical vs command * command should be 8-bit int, make physical into a proportional double from -15 to 15 degrees
@@ -170,9 +173,9 @@ void Servo::timeStep(double t)
 			physical = commandPhysical;
 	}
 }
-void Servo::test()
+void SimServo::test()
 {
-	Servo Steering = Servo(1000, 2000, -15, 15, 5);
+	SimServo Steering = SimServo(1000, 2000, -15, 15, 5);
 	double time = 0;
 	while(time < 20)
 	{

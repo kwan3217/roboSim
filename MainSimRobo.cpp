@@ -5,8 +5,6 @@
 #include <stdlib.h>
 using namespace std;
 
-//Create the Simulator instance for the other classes
-Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
 
 int main()
 {
@@ -14,8 +12,9 @@ int main()
 	cout << "easting, northing, , heading, turnRadius, T-U, T-T\n"; //.csv headers
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
+	Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
 	
-	roboBrain robo = roboBrain(309.63,0,0);
+	roboBrain robo = roboBrain(309.63,0,0,roboSim);
 	
 	
 	while(true)
