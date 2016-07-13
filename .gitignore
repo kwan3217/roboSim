@@ -1,4 +1,9 @@
 *~
 *.o
 *.exe
+html
+latex
+.cproject
+.project
+.settings
 

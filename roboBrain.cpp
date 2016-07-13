@@ -82,42 +82,6 @@ void roboBrain::control(double headingChange)
 void roboBrain::update(double t)
 {
 
-	/*
-	if(steering.read() == 0.0)
-		turnRadius = 0;
-	else if (steering.read() > 0.0)
-		turnRadius = wheelBase * tan( (90 - steering.read()) * PI / 180);
-	else if (steering.read() < 0.0)
-		turnRadius = -wheelBase * tan( (90 - steering.read()) * PI / 180);
-	if(steering.read() == 0) //Straight line position setting
-	{
-		easting += sin(heading*PI/180)*throttle.read()*c;
-		northing += cos(heading*PI/180)*throttle.read()*c;
-	}
-	else
-	{	//Time is read and placed in turnAngle to represent the angle of the turn
-		//made since last position update.
-		double turnAngle = c * 180 * throttle.read()/(PI * turnRadius);
-		if(steering.read() < 0)
-		{
-			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
-			heading -= c*180*throttle.read()/(PI * turnRadius);
-			if (heading < 0)
-				heading = 360 + heading;
-			else if (heading > 350)
-				heading -= 360;
-		}
-		else if(steering.read() > 0)
-		{
-			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
-			heading += c*180*throttle.read()/(PI * turnRadius);
-			if (heading > 360)
-				heading = heading - 360;
-		}
-	}
-	*/
 }
 
 void roboBrain::navigateCompass()

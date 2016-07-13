@@ -8,7 +8,7 @@
 using namespace std;
 
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75)
+: Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0)
 {
     generateNewFix();
 }
@@ -19,7 +19,7 @@ double Simulator::checkPPS() {
   return pps;
 }
 bool Simulator::checkNavChar() {
-  int nCharsShouldTransmit=((time-pps)-nmeaDelay)/charTime;
+  int nCharsShouldTransmit=((epochTime-pps)-nmeaDelay)/charTime;
   if(nCharsShouldTransmit<0) nCharsShouldTransmit=0;
   if(nCharsShouldTransmit>strlen(nmea)) nCharsShouldTransmit=strlen(nmea);
   return nCharsShouldTransmit<charsSent;
@@ -37,42 +37,36 @@ void Simulator::readGyro(double []) {}
 
 /** Generate a new GPS fix. Update the PPS value, create the RMC sentence, set the pointers for spooling out the sentence */
 void Simulator::generateNewFix() {
-  pps=floor(time/dpps+0.5);
+  pps=floor(epochTime/dpps+0.5);
   int s=pps;
   int m=s/60;
   s=s%60;
   int h=m/60;
   m=m%60;
-  double lat=lat0+(northing/re)*180.0/PI;
-  char ns=lat>0?'N':'S';
-  lat=fabs(lat);
-  lat=floor(lat)*100+(lat-floor(lat))*60; //convert to NMEA DDMM.MMMM format
-  double lon=lon0+(easting/cos(lat*PI/180.0)/re)*180.0/PI;
-  char ew=lon>0?'E':'W';
-  lon=fabs(lon);
-  lon=floor(lon)*100+(lon-floor(lon))*60; //convert to NMEA DDMM.MMMM format
-  double speed=0.0*1.94384449; // Eventually we will read this from the throttle servo, whose physical value is m/s
+  char ns=lat()>0?'N':'S';
+  double latdm=deg2dm(fabs(lat()));
+  char ew=lon()>0?'E':'W';
+  double londm=deg2dm(fabs(lon()));
+  double speed=simSteering.read()*1.94384449; // Convert throttle servo value (speed of robot in m/s) to knots
 
-  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*",h,m,s,lat,ns,lon,ew,speed,heading);
+  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*",h,m,s,latdm,ns,londm,ew,speed,heading);
   char checksum=0;
   for(int i=1;i<strlen(nmea)-1;i++) {
 	checksum ^= nmea[i];
   }
-  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,lat,ns,lon,ew,speed,heading,checksum);
+  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
   cout << nmea << endl;
 }
 
 /** Update the actual position and heading of the robot
- * @param s steering servo
- * @param t throttle servo
  * @param dt update time interval in seconds
  */
 void Simulator::update(double dt) {
 	simSteering.timeStep(dt);
 	simThrottle.timeStep(dt);
 
-	time+=dt; //Update current time
-	if((time-pps)>dpps) {
+	epochTime+=dt; //Update current time
+	if((epochTime-pps)>dpps) {
 		generateNewFix();
 	}
 	if(simSteering.read() == 0.0)
@@ -112,21 +106,18 @@ void Simulator::update(double dt) {
 }
 void Simulator::showVector() const
 {
-	printf("%10.2lf, %10.2lf", easting + 484150.0, northing + 4437810.0);
-	cout << /*double (easting + 484150.0) << ", " << double (northing + 4437810.0) <<*/ ", , " << heading << ", " << turnRadius << ", ";
+	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", easting, northing, simThrottle.read(), heading,  turnRadius );
 }
 
 void Simulator::testNMEA() {
   Simulator testSim;
-  double totaltime=0;
   testSim.throttle.write(127);
   while(true) {
-	double time = .05; //Interval time; simulates amount of time between each function's call
+	double dt = .05; //Interval time; simulates amount of time between each function's call
 
-	testSim.update(time); //contains simulation adjustment and timesteps the servos
+	testSim.update(dt); //contains simulation adjustment and timesteps the servos
 
-	totaltime += time;
-	if(totaltime >= 60)
+	if(testSim.time() >= 60)
 	  break;
 	}
 }
