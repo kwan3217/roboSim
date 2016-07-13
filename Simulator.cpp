@@ -7,6 +7,11 @@
 
 using namespace std;
 
+/** Construct a simulator
+ * @param h initial heading in degrees east of true north
+ * @param Llat0 initial latitude in degrees north of WGS84 equator
+ * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
+ */
 Simulator::Simulator(double h, double Llat0, double Llon0)
 : Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0)
 {
@@ -33,7 +38,7 @@ char Simulator::readChar() {
   charsSent++;
   return result;
 }
-void Simulator::readGyro(double []) {}
+void Simulator::readGyro(int []) {}
 
 /** Generate a new GPS fix. Update the PPS value, create the RMC sentence, set the pointers for spooling out the sentence */
 void Simulator::generateNewFix() {
@@ -104,6 +109,8 @@ void Simulator::update(double dt) {
 		}
 	}
 }
+
+/** Print information related to the current stat in CSV format */
 void Simulator::showVector() const
 {
 	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", easting, northing, simThrottle.read(), heading,  turnRadius );
