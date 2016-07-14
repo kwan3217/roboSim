@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 //	Simulator::testNMEA();
-	cout << "t,easting, northing, spped, heading, turnRadius, desiredHeading,headingChange\n"; //.csv headers
+	//cout << "t,easting, northing, spped, heading, turnRadius, desiredHeading,headingChange\n"; //.csv headers
 	
 	Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
 	
@@ -25,14 +25,16 @@ int main()
 
 		//navigate();
 		//double headingChange = guide(goal, robo);
+		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
+		//printf(roboSim.nmea);
 		robo.navigateCompass();
 		robo.navigateGPS();
 		robo.control(robo.guide());
 		
-		printf("%05.2f, ",roboSim.time());
-		roboSim.showVector();
-		robo.showVector();
-		cout << endl;
+		//printf("%05.2f, ",roboSim.time());
+		//roboSim.showVector();
+		//robo.showVector();
+		//cout << endl;
 
 		if(roboSim.time() >= 60)
 			break;

@@ -13,16 +13,27 @@ roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
 heading(h), pos(e, n),  wayTarget(0),interface(Linterface),headingChange(0),desiredHeading(0)
 { }
 
-const waypoint roboBrain::waypoints[] = {{12.48, 17.64},{9.03, 29.21}, {63.81, 95.25}, {91.81, 71.44}, {37.80, 6.18}, {15.84, 21.98}};
-
+const waypoint roboBrain::waypoints[] = {
+		{   0.00,   0.00},
+		{- 45.14,  21.83},
+		{- 33.36,  30.55},
+		{   0.50,  14.32},
+		{  20.02,  28.72},
+		{  40.71,  19.39},
+		{  16.57,   2.77},
+		{  10.66,   5.57},
+		{   5.74,   2.49},
+		{  11.81,-  0.11},
+		{   6.72,-  3.28},
+};
 
 double roboBrain::guide() 		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
-	const int wpcount = 6;
+	const int wpcount = sizeof(waypoints)/sizeof(waypoint);
 	if((waypoints[nowpoint]- waypoints[nowpoint - 1]).dot(waypoints[nowpoint] - pos) < 0)
 	{
 		nowpoint += 1;
-		cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
+		//cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
 	}
 	if(nowpoint >= wpcount)
 	{

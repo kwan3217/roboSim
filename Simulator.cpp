@@ -27,7 +27,7 @@ bool Simulator::checkNavChar() {
   int nCharsShouldTransmit=((epochTime-pps)-nmeaDelay)/charTime;
   if(nCharsShouldTransmit<0) nCharsShouldTransmit=0;
   if(nCharsShouldTransmit>strlen(nmea)) nCharsShouldTransmit=strlen(nmea);
-  return nCharsShouldTransmit<charsSent;
+  return nCharsShouldTransmit>charsSent;
 }
 char Simulator::readChar() {
   if(!checkNavChar()) {
@@ -59,7 +59,8 @@ void Simulator::generateNewFix() {
   for(int i=1;i<strlen(nmea)-1;i++) {
 	checksum ^= nmea[i];
   }
-  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
+  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X\x0d\x0a",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
+  charsSent=0;
 //  cout << nmea << endl;
 }
 
