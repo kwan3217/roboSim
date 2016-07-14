@@ -9,10 +9,9 @@ using namespace std;
 
 //+++++++++++++++++++++++++++roboBrain Class Methods
 
-roboBrain::roboBrain(double h, double e, double n)
-: throttle(-127, 127, -10, 10, 5), steering(-127, 127, -15, 15, 75),
+roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
 heading(h), easting(e), northing(n), turnRadius(0),
-wheelBase(.3), wayTarget(0)
+wheelBase(.3), wayTarget(0),interface(Linterface)
 { }
 
 double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
@@ -55,17 +54,17 @@ void roboBrain::control(double headingChange)
 
 	if(headingChange >= 300)
 	{
-		throttle.write(0);
-		steering.write(0);
+		interface.throttle.write(0);
+		interface.steering.write(0);
 		return;
 	}
-	throttle.write(64);
+	interface.throttle.write(64);
 //	if(headingChange > 0)
 //	{
 	//	if(headingChange > 15)
 	//		steering.write(127);
 	//	else
-			steering.write(headingChange * double (127)/180);
+	interface.steering.write(headingChange * double (127)/180);
 //	}
 //	else if(headingChange < 0)
 //	{
@@ -83,60 +82,22 @@ void roboBrain::control(double headingChange)
 void roboBrain::update(double t)
 {
 
-	steering.timeStep(t);
-	throttle.timeStep(t);
-	roboSim.update(steering, throttle, t);
-
-	/*
-	if(steering.read() == 0.0)
-		turnRadius = 0;
-	else if (steering.read() > 0.0)
-		turnRadius = wheelBase * tan( (90 - steering.read()) * PI / 180);
-	else if (steering.read() < 0.0)
-		turnRadius = -wheelBase * tan( (90 - steering.read()) * PI / 180);
-	if(steering.read() == 0) //Straight line position setting
-	{
-		easting += sin(heading*PI/180)*throttle.read()*c;
-		northing += cos(heading*PI/180)*throttle.read()*c;
-	}
-	else
-	{	//Time is read and placed in turnAngle to represent the angle of the turn
-		//made since last position update.
-		double turnAngle = c * 180 * throttle.read()/(PI * turnRadius);
-		if(steering.read() < 0)
-		{
-			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
-			heading -= c*180*throttle.read()/(PI * turnRadius);
-			if (heading < 0)
-				heading = 360 + heading;
-			else if (heading > 350)
-				heading -= 360;
-		}
-		else if(steering.read() > 0)
-		{
-			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
-			heading += c*180*throttle.read()/(PI * turnRadius);
-			if (heading > 360)
-				heading = heading - 360;
-		}
-	}
-	*/
 }
 
 void roboBrain::navigateCompass()
 {
-	heading = roboSim.heading;
+	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
+	heading = (static_cast<Simulator&>(interface)).heading;
 }
 
 void roboBrain::navigateGPS()
 {
-	northing = roboSim.northing;
-	easting = roboSim.easting;
+	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
+	northing = (static_cast<Simulator&>(interface)).northing;
+	easting = (static_cast<Simulator&>(interface)).easting;
 }
 
 void roboBrain::showVector() const
 {
-	cout << easting << ", " << northing << ", , " << heading << ", " << throttle.read() <<	", " << turnRadius << ", ";
+	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
 }
