@@ -6,15 +6,16 @@
 using namespace std;
 
 //Create the Simulator instance for the other classes
-Simulator roboSim = Simulator(343.4, 22.48, 17.64);
+Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
 
 int main()
 {
+//	Simulator::testNMEA();
 	cout << "easting, northing, , heading, turnRadius, T-U, T-T\n"; //.csv headers
 	
 	double totaltime = 0; //Epoch time; takes amount of time since program began
 	
-	roboBrain robo = roboBrain(343.4, 22.48, 17.64);
+	roboBrain robo = roboBrain(309.63,0,0);
 	
 	
 	while(true)
@@ -26,7 +27,7 @@ int main()
 		roboSim.showVector();
 		cout << time << ", ";
 		cout << totaltime << "\n";
-			
+
 		//navigate();
 		//double headingChange = guide(goal, robo);
 //		robo.navigateCompass();
@@ -38,7 +39,6 @@ int main()
 			break;
 	}
 	cout << "END";
-	
 	return 0;
 }
 
