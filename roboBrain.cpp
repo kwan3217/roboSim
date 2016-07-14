@@ -15,16 +15,16 @@ heading(h), pos(e, n),  wayTarget(0),interface(Linterface),headingChange(0),desi
 
 const waypoint roboBrain::waypoints[] = {
 		{   0.00,   0.00},
-		{- 45.14,  21.83},
-		{- 33.36,  30.55},
-		{   0.50,  14.32},
-		{  20.02,  28.72},
-		{  40.71,  19.39},
-		{  16.57,   2.77},
-		{  10.66,   5.57},
-		{   5.74,   2.49},
-		{  11.81,-  0.11},
-		{   6.72,-  3.28},
+		{- 26.42,  21.83},
+		{- 19.53,  30.55},
+		{   0.29,  14.32},
+		{  11.72,  28.72},
+		{  23.83,  19.39},
+		{   9.70,   2.77},
+		{   6.24,   5.57},
+		{   3.36,   2.49},
+		{   6.91,-  0.11},
+		{   3.93,-  3.28},
 };
 
 double roboBrain::guide() 		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
