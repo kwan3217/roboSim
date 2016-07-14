@@ -25,7 +25,7 @@ int main()
 
 		//navigate();
 		//double headingChange = guide(goal, robo);
-//		robo.navigateCompass();
+		robo.navigateCompass();
 		robo.navigateGPS();
 		robo.control(robo.guide());
 		

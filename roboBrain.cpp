@@ -10,14 +10,15 @@ using namespace std;
 //+++++++++++++++++++++++++++roboBrain Class Methods
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
-heading(h), pos(e, n),  wayTarget(0),interface(Linterface)
+heading(h), pos(e, n),  wayTarget(0),interface(Linterface),headingChange(0),desiredHeading(0)
 { }
+
+const waypoint roboBrain::waypoints[] = {{12.48, 17.64},{9.03, 29.21}, {63.81, 95.25}, {91.81, 71.44}, {37.80, 6.18}, {15.84, 21.98}};
+
 
 double roboBrain::guide() 		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
 	const int wpcount = 6;
-	static waypoint waypoints[wpcount] = {{12.48, 17.64},{9.03, 29.21}, {63.81, 95.25}, {91.81, 71.44}, {37.80, 6.18}, {15.84, 21.98}};
-	static int nowpoint = 1;
 	if((waypoints[nowpoint]- waypoints[nowpoint - 1]).dot(waypoints[nowpoint] - pos) < 0)
 	{
 		nowpoint += 1;
@@ -94,5 +95,5 @@ void roboBrain::navigateGPS()
 
 void roboBrain::showVector() const
 {
-	printf("%06.2f, %07.2f, ",desiredHeading,headingChange);
+	printf("%i,%06.2f,%06.2f,%06.2f, %07.2f, ",nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange);
 }
