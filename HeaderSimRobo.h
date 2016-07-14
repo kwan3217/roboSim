@@ -3,10 +3,41 @@
 const double PI = 2*acos(0.0); ///< Circle constant
 const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
 
-struct waypoint {
+class waypoint {
+public:
 	double easting;
 	double northing;
+	waypoint& operator+=(const waypoint& rhs) {
+	   easting+=rhs.easting;
+	   northing+=rhs.northing;
+	   return *this;
+	}
+	waypoint& operator-=(const waypoint& rhs) {
+	   easting-=rhs.easting;
+	   northing-=rhs.northing;
+	   return *this;
+	}
+	double dot(const waypoint& b) {
+		return northing*b.northing+easting*b.easting;
+	}
+	double heading() {
+		double result=atan2(northing,easting)*180/PI;
+		if(result<0) result+=360;
+		return result;
+	}
+	waypoint(double e, double n):easting(e),northing(n) {};
 };
+
+inline waypoint operator+(waypoint lhs, const waypoint& rhs) {
+  lhs += rhs;
+  return lhs;
+}
+
+inline waypoint operator-(waypoint lhs, const waypoint& rhs) {
+  lhs -= rhs;
+  return lhs;
+}
+
 
 /** Abstract interface to a servo. This is write-only, because a real physical servo is write-only */
 class Servo {
@@ -107,11 +138,10 @@ private:
 class roboBrain //where the robot thinks it is
 {
 	private:
-		double easting;
-		double northing;
+	    waypoint pos;
 		double heading;
-		double turnRadius;
-		const double wheelBase;
+		double desiredHeading;
+		double headingChange;
 		int wayTarget;
 		Interface& interface;
 
@@ -127,7 +157,7 @@ class roboBrain //where the robot thinks it is
 		void navigateCompass();	//
 		void navigateGPS();		//generate garbage data based on Simulation. For now, just take Simulation's data
 
-		double guide() const;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
+		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
 		void control(double);			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
 

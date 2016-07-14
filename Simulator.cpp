@@ -60,7 +60,7 @@ void Simulator::generateNewFix() {
 	checksum ^= nmea[i];
   }
   sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
-  cout << nmea << endl;
+//  cout << nmea << endl;
 }
 
 /** Update the actual position and heading of the robot
