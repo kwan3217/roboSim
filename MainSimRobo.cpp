@@ -26,7 +26,6 @@ int main()
 		//navigate();
 		//double headingChange = guide(goal, robo);
 		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
-		//printf(roboSim.nmea);
 		robo.navigateCompass();
 		robo.navigateGPS();
 		robo.control(robo.guide());
