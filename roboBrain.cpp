@@ -87,14 +87,13 @@ void roboBrain::update(double t)
 void roboBrain::navigateCompass()
 {
 	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	heading = (static_cast<Simulator&>(interface)).heading;
+	(static_cast<Simulator&>(interface)).cheatHeading(heading);
 }
 
 void roboBrain::navigateGPS()
 {
 	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	northing = (static_cast<Simulator&>(interface)).northing;
-	easting = (static_cast<Simulator&>(interface)).easting;
+	(static_cast<Simulator&>(interface)).cheatNavigate(easting,northing);
 }
 
 void roboBrain::showVector() const

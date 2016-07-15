@@ -29,6 +29,13 @@ private:
 	const double physmax; ///< Physical value corresponding to maximum possible command
 	const double slewrate; ///< Rate of change of physical value in response to command changes, in physical units/second
 public:
+	/** Construct a servo
+	 * @param cmdmin value for cmdmin field
+	 * @param cmdmax value for cmdmax field
+	 * @param physmin value for physmin field
+	 * @param physmax value for physmax field
+	 * @param slewrate value for slewrate field
+	 */
 	SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate);
 	virtual void write(int n);
 	/** Read the current value of the servo
@@ -39,8 +46,14 @@ public:
 	 * @param t Interval since last timestep in seconds
 	 */
 	void timeStep(double t);
+	/** Run the test case for the servo. This test case can't be evaluated automatically. It should be run through
+	 * a chart on a spreadsheet in order for a human to evaluate it.
+	 */
 	static void test();
-	virtual ~SimServo() {};
+	/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
+	 * for any class which has virtual methods.
+	 */
+    virtual ~SimServo() {};
 
 };
 
@@ -71,10 +84,23 @@ private:
 		 */
 		virtual double time()=0;
 
-		virtual void readGyro(double[]) = 0;
+		/** Read the gyroscope
+		 * @param g [out] vector of gyroscope readings, in DN. One DN typically represents
+		 * a constant fraction of a degree per second rotation rate around each axis. Number
+		 * is a raw readout of the sensor, in two's complement integer, in proper axis order,
+		 * IE element 0 is X, 1 is Y, and 2 is Z.
+		 */
+		virtual void readGyro(int g[]) = 0;
 		Servo& steering; ///< Reference to steering servo object
 		Servo& throttle; ///< Reference to throttle servo object
+		/** Construct a robot interface
+		 * @param Lsteering reference to servo object which controls steering
+		 * @param Lthrottle reference to servo object which controls throttle
+		 */
 		Interface(Servo& Lsteering, Servo& Lthrottle):steering(Lsteering),throttle(Lthrottle) {};
+		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
+		 * for any class which has virtual methods.
+		 */
 		virtual ~Interface() {};
 };
 
@@ -91,6 +117,9 @@ class roboBrain //where the robot thinks it is
 
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
+		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
+		 * for any class which has virtual methods.
+		 */
 		virtual ~roboBrain() {};
 
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
@@ -146,27 +175,36 @@ class Simulator : public Interface
 		 */
 		double lon() const {return lon0+(easting/cos(lat0*PI/180.0)/re)*180.0/PI;}
 		/** Convert a measurement in degrees to a measurement in degrees and minutes, appropriate for NMEA output
-		 * @param Angle in decimal degrees
+		 * @param deg Angle in decimal degrees
 		 * @return Same angle in degrees*100+minutes, so when printed in decimal, the format is DDMM.MMMMM, IE the units and
 		 * tens digits are minutes, the higher digits are degrees, and the fractional digits are fraction of minutes.
 		 */
 		static double deg2dm(double deg) {return floor(deg)*100+(deg-floor(deg))*60;}
 	public:
 		Simulator(double Lh = 0, double lat = 0, double lon = 0);
+		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
+		 * for any class which has virtual methods.
+		 */
         virtual ~Simulator() {};
 		void update(double dt);
 		void showVector() const;									//reports data for storage in .csv file
-		void test();
+		static void testNMEA(); ///< Test the NMEA generation code
 		
 		virtual double checkPPS();
 		virtual bool checkNavChar(); 
 		virtual char readChar();
-		virtual void readGyro(double []);
+		virtual void readGyro(int g[]);
 		virtual double time() {return epochTime;};
-
-		static void testNMEA(); ///< Test the NMEA generation code
+		/** Back-door direct access to navigation state
+		 * @param e [out] easting in meters east of initial longitude
+		 * @param n [out] northing in meters east of initial latitude
+		 */
+        void cheatNavigate(double& e, double& n) {e=easting; n=northing;};
+		/** Back-door direct access to heading
+		 * @param h [out] heading in degrees east of true north
+		 */
+        void cheatHeading(double& h) {h=heading;};
 				
-		friend roboBrain;
 };
 
 #endif
