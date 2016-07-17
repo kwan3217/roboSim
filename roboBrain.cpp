@@ -10,40 +10,48 @@ using namespace std;
 //+++++++++++++++++++++++++++roboBrain Class Methods
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
-heading(h), easting(e), northing(n), turnRadius(0),
-wheelBase(.3), wayTarget(0),interface(Linterface)
+heading(h), pos(e, n),  wayTarget(0),interface(Linterface),headingChange(0),desiredHeading(0)
 { }
 
-double roboBrain::guide() const		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
+const waypoint roboBrain::waypoints[] = {
+		{   0.00,   0.00},
+		{- 26.42,  21.83},
+		{- 19.53,  30.55},
+		{   0.29,  14.32},
+		{  11.72,  28.72},
+		{  23.83,  19.39},
+		{   9.70,   2.77},
+		{   6.24,   5.57},
+		{   3.36,   2.49},
+		{   6.91,-  0.11},
+		{   3.93,-  3.28},
+};
+
+double roboBrain::guide() 		//-atan(waypoint.northing - northing/waypoint.easting - easting) + 90
 {
-	const int wpcount = 6;
-	static waypoint waypoints[wpcount] = {{12.48, 17.64},{9.03, 29.21}, {63.81, 95.25}, {91.81, 71.44}, {37.80, 6.18}, {15.84, 21.98}};
-	static int nowpoint = 1;
-	double headingChange;
-	if(((waypoints[nowpoint].northing - waypoints[nowpoint - 1].northing)*(waypoints[nowpoint].northing - northing) +
-	(waypoints[nowpoint].easting - waypoints[nowpoint - 1].easting)*(waypoints[nowpoint].easting - easting)) < 0)	//dot product -> vector1.northing*vector2.northing + vector1.easting*vector2.easting
+	const int wpcount = sizeof(waypoints)/sizeof(waypoint);
+	if((waypoints[nowpoint]- waypoints[nowpoint - 1]).dot(waypoints[nowpoint] - pos) < 0)
 	{
 		nowpoint += 1;
-		cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
+		//cout << endl << "NOWPOINT CHANGE: " << nowpoint << endl;
 	}
 	if(nowpoint >= wpcount)
 	{
-		return 400;
+		headingChange=400;
+		return headingChange;
 	}
-	double desiredHeading = -(atan((waypoints[nowpoint].northing - northing)/(waypoints[nowpoint].easting - easting))*180/PI) + 90;
+    desiredHeading = (waypoints[nowpoint]-pos).heading();
 
-	if(waypoints[nowpoint].easting < easting)
-		desiredHeading += 180;
 	headingChange = desiredHeading - heading;
 	if(headingChange > 180)
 	{
 		//cout << " headingChange: " << headingChange - 360 << endl;
-		return headingChange - 360;
+		headingChange -= 360;
 	}
 	else if (headingChange < -180)
 	{
 	//	cout << " headingChange: " << headingChange + 360 << endl;
-		return headingChange + 360;
+		headingChange += 360;
 	}
 	//cout << " headingChange: " << headingChange << endl;
 	return headingChange;
@@ -93,10 +101,10 @@ void roboBrain::navigateCompass()
 void roboBrain::navigateGPS()
 {
 	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	(static_cast<Simulator&>(interface)).cheatNavigate(easting,northing);
+	(static_cast<Simulator&>(interface)).cheatNavigate(pos.easting,pos.northing);
 }
 
 void roboBrain::showVector() const
 {
-	cout << easting << ", " << northing << ", , " << heading << ", " << turnRadius << ", ";
+	printf("%i,%06.2f,%06.2f,%06.2f, %07.2f, ",nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange);
 }
