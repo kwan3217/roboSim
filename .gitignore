@@ -6,4 +6,7 @@ latex
 .cproject
 .project
 .settings
+*.csv
+*.nmea
+*.ods
 

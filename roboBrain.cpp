@@ -88,7 +88,7 @@ void roboBrain::navigateGPS(){
 		if(ch == '$') sentenceStart = true;
 		if(!sentenceStart) break;
 
-		nmeaReceived[charsReceived] = ch //interface.readChar(); //<--Maybe uncomment this later if ch stops being our character tester
+		nmeaReceived[charsReceived] = ch; //interface.readChar(); //<--Maybe uncomment this later if ch stops being our character tester
 		if(nmeaReceived[charsReceived])
 		if(nmeaReceived[charsReceived] == ',' || nmeaReceived[charsReceived] == '*' || nmeaReceived[charsReceived] == '$'){
 			partitions[partCount] = charsReceived;
