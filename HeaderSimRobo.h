@@ -3,10 +3,71 @@
 const double PI = 2*acos(0.0); ///< Circle constant
 const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
 
-struct waypoint {
-	double easting;
-	double northing;
+/** Two-dimensional vector, implementing Northing and Easting concept. This should probably be called Vector instead of waypoint */
+class waypoint {
+public:
+	double easting;  ///< Easting coordinate in meters east of origin
+	double northing; ///< Northing coordinate in meters north of origin
+	/** Add another waypoint to this waypoint, in the vector addition sense
+	 * @param rhs the other waypoint
+	 * @return a reference to this waypoint, which is now incremented by rhs
+	 */
+	waypoint& operator+=(const waypoint& rhs) {
+	   easting+=rhs.easting;
+	   northing+=rhs.northing;
+	   return *this;
+	}
+	/** Subtract another waypoint from this waypoint, in the vector subtraction sense
+	 * @param rhs the other waypoint
+	 * @return a reference to this waypoint, which is now decremented by rhs
+	 */
+	waypoint& operator-=(const waypoint& rhs) {
+	   easting-=rhs.easting;
+	   northing-=rhs.northing;
+	   return *this;
+	}
+	/** Compute the dot product of this waypoint and another waypoint
+	 * @param b the other waypoint
+	 * @return dot product value
+	 */
+	double dot(const waypoint& b) {
+		return northing*b.northing+easting*b.easting;
+	}
+	/** Compute the heading of this waypoint relative to the origin.
+	 * @return Heading in degrees east of true north, from 0 to almost 360
+	 */
+	double heading() {
+		double result=atan2(easting,northing)*180/PI;
+		if(result<0) result+=360;
+		return result;
+	}
+	/** Construct a waypoint
+	 * @param e easting value
+	 * @param n northing value
+	 */
+	waypoint(double e, double n):easting(e),northing(n) {};
+	waypoint():easting(0),northing(0) {};
 };
+
+/** Add two waypoints (vectors) together to produce a new waypoint (vector)
+ * @param lhs left-hand-side waypoint
+ * @param rhs right-hand-side waypoint
+ * @return a new waypoint which is the vector sum of the two input waypoints
+ */
+inline waypoint operator+(waypoint lhs, const waypoint& rhs) {
+  lhs += rhs;
+  return lhs;
+}
+
+/** Subtract two waypoints (vectors) together to produce a new waypoint (vector)
+ * @param lhs left-hand-side waypoint
+ * @param rhs right-hand-side waypoint
+ * @return a new waypoint which is the vector difference of the two input waypoints
+ */
+inline waypoint operator-(waypoint lhs, const waypoint& rhs) {
+  lhs -= rhs;
+  return lhs;
+}
 
 /** Abstract interface to a servo. This is write-only, because a real physical servo is write-only */
 class Servo {
@@ -107,30 +168,44 @@ private:
 class roboBrain //where the robot thinks it is
 {
 	private:
-		double easting;
-		double northing;
-		double heading;
-		double turnRadius;
-		const double wheelBase;
-		int wayTarget;
-		Interface& interface;
+		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
+			nameSpot,
+			timeSpot,		///< UTC time
+			statusSpot,		///< Active/Void
+			latSpot,		///< latitude
+			nsSpot,			///< north or south of equator
+			longSpot,		///< longitude
+			ewSpot,			///< east or west of the prime meridian
+			speedSpot, 		///< space for speed in knots
+			headingSpot, 	///< heading
+			dateSpot, 		///< current date in ddmmyyyy
+			magSpot,		///< magnetic variation I DON'T KNOW WHAT THIS MEANS YET
+			checksumSpot	///< checksum
+		};
 
+		double lat0 = 100;		///< latitude at time 0, initialized to 100 for navigateGPS to set, then compare with new GPS data
+		double long0 = 200;		///< longitude at time 0, initialized to 200 for navigateGPS to set, then compare with new GPS data
+	    waypoint pos;		///< perceived position
+		double heading;		///< Perceived heading
+		double desiredHeading;	///< Heading needed for the robot to be on course
+		double headingChange;	///< Heading change needed for the robot to be on course
+		Interface& interface;	///< Interface for the robot, either simulated or actual hardware
+		int nowpoint = 1;	///< Current waypoint for robot to navigate to
+		static const waypoint waypoints[];	///< Array of waypoints for the robot
+		char nmeaReceived[256];	///< NMEA sentence received by robot
+		int charsReceived;	///< Number of characters in NMEA sentence currently received
+		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
+		bool sentenceStart;	///< begin status of the latest NMEA sentence
+		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
+		int partitions[12];	///< locations of the partitions in the NMEA sentence
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
-		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
-		 * for any class which has virtual methods.
-		 */
-		virtual ~roboBrain() {};
-
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
-
 		void navigateCompass();	//
-		void navigateGPS();		//generate garbage data based on Simulation. For now, just take Simulation's data
-
-		double guide() const;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
+		void navigateGPS();
+		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
 		void control(double);			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
-
 		void showVector() const;
 };
 
@@ -142,8 +217,7 @@ class Simulator : public Interface
 	private:
 	    double lat0;            ///< Origin latitude in degrees north of WGS84 equator
 	    double lon0;            ///< Origin longitude in degrees east of WGS84 prime meridian
-		double easting;         ///< Actual easting coordinate of robot in meters east of lon0
-		double northing;        ///< Actual northing coordinate of robot in meters north of lat0
+		waypoint pos;           ///< Actual position of robot relative to lat0 and lon0
 		double heading;         ///< Actual heading in degrees east of True North
 		double turnRadius;      ///< Turning radius in meters, but 0 means straight ahead
 		const double wheelBase=0.3; ///< Wheelbase coefficient in meters
@@ -166,14 +240,14 @@ class Simulator : public Interface
 		/** Return the current latitude. This is calculated from the current northing and the initial latitude.
 		 * @return Latitude in degrees north of WGS84 equator
 		 */
-		double lat() const {return lat0+(northing/re)*180.0/PI;};
+		double lat() const {return lat0+(pos.northing/re)*180.0/PI;};
 		/** Return the current longitude. This is calculated from the current easting and the initial latitude and longitude.
 		 * Note that the cosine factor necessary for converting easting to longitude is calculated from the initial latitude,
 		 * not the current latitude. This doesn't matter at the small scale of an AVC course. If you are considering an
 		 * area big enough for the change in latitude to make a difference, easting and northing are no longer valid concepts.
 		 * @return Longitude in degrees east of WGS84 prime meridian (Note that all longitudes in continental USA are negative).
 		 */
-		double lon() const {return lon0+(easting/cos(lat0*PI/180.0)/re)*180.0/PI;}
+		double lon() const {return lon0+(pos.easting/cos(lat0*PI/180.0)/re)*180.0/PI;}
 		/** Convert a measurement in degrees to a measurement in degrees and minutes, appropriate for NMEA output
 		 * @param deg Angle in decimal degrees
 		 * @return Same angle in degrees*100+minutes, so when printed in decimal, the format is DDMM.MMMMM, IE the units and
@@ -199,7 +273,7 @@ class Simulator : public Interface
 		 * @param e [out] easting in meters east of initial longitude
 		 * @param n [out] northing in meters east of initial latitude
 		 */
-        void cheatNavigate(double& e, double& n) {e=easting; n=northing;};
+        void cheatNavigate(double& e, double& n) {e=pos.easting; n=pos.northing;};
 		/** Back-door direct access to heading
 		 * @param h [out] heading in degrees east of true north
 		 */

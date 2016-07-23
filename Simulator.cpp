@@ -27,7 +27,7 @@ bool Simulator::checkNavChar() {
   int nCharsShouldTransmit=((epochTime-pps)-nmeaDelay)/charTime;
   if(nCharsShouldTransmit<0) nCharsShouldTransmit=0;
   if(nCharsShouldTransmit>strlen(nmea)) nCharsShouldTransmit=strlen(nmea);
-  return nCharsShouldTransmit<charsSent;
+  return nCharsShouldTransmit>charsSent;
 }
 char Simulator::readChar() {
   if(!checkNavChar()) {
@@ -59,7 +59,8 @@ void Simulator::generateNewFix() {
   for(int i=1;i<strlen(nmea)-1;i++) {
 	checksum ^= nmea[i];
   }
-  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
+  sprintf(nmea,"$GPRMC,%02d%02d%02d,A,%010.5f,%c,%011.5f,%c,%05.1f,%05.1f,170916,000.0,W*%02X\x0d\x0a",h,m,s,latdm,ns,londm,ew,speed,heading,checksum);
+  charsSent=0;
 //  cout << nmea << endl;
 }
 
@@ -82,17 +83,17 @@ void Simulator::update(double dt) {
 		turnRadius = -wheelBase * tan( (90 - simSteering.read()) * PI / 180);
 	if(simSteering.read() == 0) //Straight line position setting
 	{
-		easting += sin(heading*PI/180)*simThrottle.read()*dt;
-		northing += cos(heading*PI/180)*simThrottle.read()*dt;
+		pos.easting += sin(heading*PI/180)*simThrottle.read()*dt;
+		pos.northing += cos(heading*PI/180)*simThrottle.read()*dt;
 	}
 	else
-	{	//Time is read and placed in turnAngle to represent the angle of the turn
-		//made since last position update.
+	{	//  Time is read and placed in turnAngle to represent the angle of the turn
+		//  made since last position update.
 		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
 		if(simSteering.read() < 0)
 		{
-			easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+			pos.easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
+			pos.northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
 			heading -= dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
@@ -101,8 +102,8 @@ void Simulator::update(double dt) {
 		}
 		else if(simSteering.read() > 0)
 		{
-			easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+			pos.easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
+			pos.northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
 			heading += dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
@@ -113,7 +114,7 @@ void Simulator::update(double dt) {
 /** Print information related to the current stat in CSV format */
 void Simulator::showVector() const
 {
-	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", easting, northing, simThrottle.read(), heading,  turnRadius );
+	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting, pos.northing, simThrottle.read(), heading,  turnRadius );
 }
 
 void Simulator::testNMEA() {
