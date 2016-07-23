@@ -168,31 +168,44 @@ private:
 class roboBrain //where the robot thinks it is
 {
 	private:
-	    waypoint pos;
-		double heading;
-		double desiredHeading;
-		double headingChange;
-		int wayTarget;
-		Interface& interface;
-		int nowpoint = 1;
-		static const waypoint waypoints[];
+		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
+			nameSpot,
+			timeSpot,		///< UTC time
+			statusSpot,		///< Active/Void
+			latSpot,		///< latitude
+			nsSpot,			///< north or south of equator
+			longSpot,		///< longitude
+			ewSpot,			///< east or west of the prime meridian
+			speedSpot, 		///< space for speed in knots
+			headingSpot, 	///< heading
+			dateSpot, 		///< current date in ddmmyyyy
+			magSpot,		///< magnetic variation I DON'T KNOW WHAT THIS MEANS YET
+			checksumSpot	///< checksum
+		};
 
+		double lat0 = 100;		///< latitude at time 0, initialized to 100 for navigateGPS to set, then compare with new GPS data
+		double long0 = 200;		///< longitude at time 0, initialized to 200 for navigateGPS to set, then compare with new GPS data
+	    waypoint pos;		///< perceived position
+		double heading;		///< Perceived heading
+		double desiredHeading;	///< Heading needed for the robot to be on course
+		double headingChange;	///< Heading change needed for the robot to be on course
+		Interface& interface;	///< Interface for the robot, either simulated or actual hardware
+		int nowpoint = 1;	///< Current waypoint for robot to navigate to
+		static const waypoint waypoints[];	///< Array of waypoints for the robot
+		char nmeaReceived[256];	///< NMEA sentence received by robot
+		int charsReceived;	///< Number of characters in NMEA sentence currently received
+		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
+		bool sentenceStart;	///< begin status of the latest NMEA sentence
+		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
+		int partitions[12];	///< locations of the partitions in the NMEA sentence
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
-		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
-		 * for any class which has virtual methods.
-		 */
-		virtual ~roboBrain() {};
-
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
-
 		void navigateCompass();	//
-		void navigateGPS();		//generate garbage data based on Simulation. For now, just take Simulation's data
-
+		void navigateGPS();
 		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
 		void control(double);			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
-
 		void showVector() const;
 };
 
@@ -266,6 +279,35 @@ class Simulator : public Interface
 		 */
         void cheatHeading(double& h) {h=heading;};
 				
+};
+
+/** Abstract class representing the interface between the robot navigation, guidance, and control (GNC) software
+ * and the real or virtual robot it is controlling.
+ */
+class NMEAPlayback: public Interface {
+private:
+	FILE* inf;
+	double t=0;
+	int pps=0;
+	char c; ///< Next character to give to robot
+	SimServo nullSteering;
+	SimServo nullThrottle;
+public:
+	virtual double checkPPS();
+	virtual bool checkNavChar();
+	virtual char readChar();
+	virtual double time();
+
+	/** (Null) Read the gyroscope
+	 */
+	virtual void readGyro(int g[]) {};
+	/** Construct a robot interface
+	 * @param infn
+	 * @param Lthrottle reference to servo object which controls throttle
+	 */
+	NMEAPlayback(char* infn):nullSteering(0,0,0,0,0),nullThrottle(0,0,0,0,0),Interface(nullSteering,nullThrottle) {inf=fopen(infn,"r");};
+	/** Destructor */
+	virtual ~NMEAPlayback() {fclose(inf);};
 };
 
 #endif

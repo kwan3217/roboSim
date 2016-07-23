@@ -87,8 +87,8 @@ void Simulator::update(double dt) {
 		pos.northing += cos(heading*PI/180)*simThrottle.read()*dt;
 	}
 	else
-	{	//Time is read and placed in turnAngle to represent the angle of the turn
-		//made since last position update.
+	{	//  Time is read and placed in turnAngle to represent the angle of the turn
+		//  made since last position update.
 		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
 		if(simSteering.read() < 0)
 		{
@@ -128,6 +128,22 @@ void Simulator::testNMEA() {
 	if(testSim.time() >= 60)
 	  break;
 	}
+}
+
+double NMEAPlayback::checkPPS(){
+  return t;
+}
+bool NMEAPlayback::checkNavChar(){
+  bool result=feof(inf)==0;
+  return result;
+}
+char NMEAPlayback::readChar(){
+  char c;
+  fread(&c,1,1,inf);
+  return c;
+}
+double NMEAPlayback::time(){
+  return t;
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
