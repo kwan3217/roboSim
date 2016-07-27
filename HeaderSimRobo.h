@@ -169,7 +169,6 @@ class roboBrain //where the robot thinks it is
 {
 	private:
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
-			nameSpot,
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void
 			latSpot,		///< latitude
@@ -197,7 +196,7 @@ class roboBrain //where the robot thinks it is
 		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
 		bool sentenceStart;	///< begin status of the latest NMEA sentence
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
-		int partitions[12];	///< locations of the partitions in the NMEA sentence
+		int partitions[11];	///< locations of the partitions in the NMEA sentence
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.

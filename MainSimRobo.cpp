@@ -16,7 +16,7 @@ int main()
 	
 	roboBrain robo = roboBrain(309.63,0,0,roboSim);
 	
-	
+	printf(", easting, northing\n");
 	while(true)
 	{
 		double dt = .05; //Interval time; simulates amount of time between each function's call
@@ -26,14 +26,14 @@ int main()
 
 		//navigate();
 		//double headingChange = guide(goal, robo);
-		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
+//		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
 //		robo.navigateCompass();
-//		robo.navigateGPS();
+		robo.navigateGPS();
 //		robo.control(robo.guide());
 		
 		//printf("%05.2f, ",roboSim.time());
 		//roboSim.showVector();
-		//robo.showVector();
+		robo.showVector();
 		//cout << endl;
 
 		if(!roboSim.checkNavChar()) break;
