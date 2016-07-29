@@ -21,7 +21,7 @@ int main()
 	{
 		double dt = .05; //Interval time; simulates amount of time between each function's call
 //		roboSim.update(dt);
-		robo.update(dt); //contains simulation adjustment and timesteps the servos
+//		robo.update(dt); //contains simulation adjustment and timesteps the servos
 		
 
 		//navigate();

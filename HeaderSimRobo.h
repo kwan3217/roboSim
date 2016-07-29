@@ -179,6 +179,8 @@ class roboBrain //where the robot thinks it is
 			headingSpot, 	///< heading
 			dateSpot, 		///< current date in ddmmyyyy
 			magSpot,		///< magnetic variation I DON'T KNOW WHAT THIS MEANS YET
+			magewSpot,		///< magnetic variation east or west
+			modeSpot,		///< mode of nmea sentence
 			checksumSpot	///< checksum
 		};
 
@@ -196,7 +198,7 @@ class roboBrain //where the robot thinks it is
 		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
 		bool sentenceStart;	///< begin status of the latest NMEA sentence
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
-		int partitions[11];	///< locations of the partitions in the NMEA sentence
+		int partitions[20];	///< locations of the partitions in the NMEA sentence
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
