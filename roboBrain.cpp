@@ -96,6 +96,7 @@ void roboBrain::navigateGPS(){
 			partCount += 1;
 		}
 		charsReceived += 1;
+		if (charsReceived > 256) printf("stack smashing in nmea");
 		if(partCount == timeSpot + 1 && charsReceived == partitions[timeSpot] + 1 && strncmp(nmeaReceived, "$GPRMC", 6) != 0){
  			sentenceStart = false;
  			charsReceived = 0;
