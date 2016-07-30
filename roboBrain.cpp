@@ -96,7 +96,6 @@ void roboBrain::navigateGPS(){
 			partCount += 1;
 		}
 		charsReceived += 1;
-		if (charsReceived > 256) printf("stack smashing in nmea");
 		if(partCount == timeSpot + 1 && charsReceived == partitions[timeSpot] + 1 && strncmp(nmeaReceived, "$GPRMC", 6) != 0){
  			sentenceStart = false;
  			charsReceived = 0;
@@ -117,9 +116,7 @@ void roboBrain::navigateGPS(){
   				checksum ^= nmeaReceived[i];
   			}
   			nmeaReceived[partitions[checksumSpot] + 3] = '\0';
-  			puts(nmeaReceived);
   			if(checksum == strtol(nmeaReceived + partitions[checksumSpot] + 1, NULL, 16)){	//validate checksum
-  				cout << partCount << " " << strlen(nmeaReceived) << " " << charsReceived << " " << partitions[12] << " ";
 				printf("Parsing RMC data...");
 				for(int i = 0; i < charsReceived; i++){
 					if(nmeaReceived[i] == ',' || nmeaReceived[i] == '*')
