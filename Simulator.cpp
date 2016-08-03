@@ -23,6 +23,19 @@ Simulator::Simulator(double h, double Llat0, double Llon0)
 double Simulator::checkPPS() {
   return pps;
 }
+
+void Simulator::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt){
+	if(timeStamp == 0){ //using timeStamp and dt as milliseconds, not whole seconds. /Might/ have to change this to microseconds, depending.
+		dt = time();
+	}
+	else{
+		timeStamp = dt;
+		dt = time() - timeStamp;
+	}
+	wheelCount = floor(simThrottle.read() * double(dt / 1000) / (.0635 * PI/2) ); //.0635 is my stand-in value for the wheel's radius in meters, assuming 2.5 inches as radius
+	//with this assumed radius, the wheel spins at about 25Hz when traveling at 10mps.
+}
+
 bool Simulator::checkNavChar() {
   int nCharsShouldTransmit=((epochTime-pps)-nmeaDelay)/charTime;
   if(nCharsShouldTransmit<0) nCharsShouldTransmit=0;
@@ -127,6 +140,14 @@ void Simulator::testNMEA() {
 
 	if(testSim.time() >= 60)
 	  break;
+	}
+}
+void Simulator::testOdometer(double t){ //virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
+	simThrottle.write(127);
+	int wheelCount = 0;
+	int timeStamp = 0;
+	while(t > 0){
+
 	}
 }
 

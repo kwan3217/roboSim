@@ -164,11 +164,6 @@ void roboBrain::navigateGPS(){
 	}
 }
 
-	
-
-	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	//(static_cast<Simulator&>(interface)).cheatNavigate(pos.easting,pos.northing);
-
 
 void roboBrain::showVector() const{
 	printf(",%06.2f,%06.2f,,%i,%06.2f,%06.2f,%06.2f, %07.2f\n",pos.easting, pos.northing, nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange);
