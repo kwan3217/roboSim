@@ -12,33 +12,33 @@ int main()
 	//cout << "t,easting, northing, spped, heading, turnRadius, desiredHeading,headingChange\n"; //.csv headers
 	
 	//Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
-	NMEAPlayback roboSim=NMEAPlayback("testInputData/PhoneSittingStill.nmea");
+	Simulator roboSim;
 	
 	roboBrain robo = roboBrain(309.63,0,0,roboSim);
 	
-	
-	while(true)
-	{
+//	while(true)
+//	{
 		double dt = .05; //Interval time; simulates amount of time between each function's call
 //		roboSim.update(dt);
-		robo.update(dt); //contains simulation adjustment and timesteps the servos
+//		robo.update(dt); //contains simulation adjustment and timesteps the servos
 		
+		roboSim.testOdometer(10000);
 
 		//navigate();
 		//double headingChange = guide(goal, robo);
-		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
+//		while(roboSim.checkNavChar()) printf("%c",roboSim.readChar());
 //		robo.navigateCompass();
 //		robo.navigateGPS();
 //		robo.control(robo.guide());
-		
+//
 		//printf("%05.2f, ",roboSim.time());
 		//roboSim.showVector();
-		//robo.showVector();
+//		robo.showVector();
 		//cout << endl;
 
-		if(!roboSim.checkNavChar()) break;
-	}
-	cout << "END";
+//		if(!roboSim.checkNavChar()) break;
+//	}
+	cout << "\nEND";
 	return 0;
 }
 

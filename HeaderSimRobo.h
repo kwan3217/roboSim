@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifndef ALL_MY_BOTS
 #define ALL_MY_BOTS
 const double PI = 2*acos(0.0); ///< Circle constant
@@ -144,7 +146,12 @@ private:
 		 * @return Current epoch time in seconds
 		 */
 		virtual double time()=0;
-
+		/**	Read the odometer
+		 * @param timeStamp [out] time of last time readOdometer was called in microseconds
+		 * @param wheelCount [out] number of sectors read since the odometer was reset
+		 * @param dt [out] time since last call of readOdometer in microseconds
+		 * 		 */
+		virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt)=0;
 		/** Read the gyroscope
 		 * @param g [out] vector of gyroscope readings, in DN. One DN typically represents
 		 * a constant fraction of a degree per second rotation rate around each axis. Number
@@ -169,7 +176,6 @@ class roboBrain //where the robot thinks it is
 {
 	private:
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
-			nameSpot,
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void
 			latSpot,		///< latitude
@@ -180,6 +186,8 @@ class roboBrain //where the robot thinks it is
 			headingSpot, 	///< heading
 			dateSpot, 		///< current date in ddmmyyyy
 			magSpot,		///< magnetic variation I DON'T KNOW WHAT THIS MEANS YET
+			magewSpot,		///< magnetic variation east or west
+			modeSpot,		///< mode of nmea sentence
 			checksumSpot	///< checksum
 		};
 
@@ -197,7 +205,7 @@ class roboBrain //where the robot thinks it is
 		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
 		bool sentenceStart;	///< begin status of the latest NMEA sentence
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
-		int partitions[12];	///< locations of the partitions in the NMEA sentence
+		int partitions[20];	///< locations of the partitions in the NMEA sentence
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
@@ -230,7 +238,8 @@ class Simulator : public Interface
 		const double bitsPerChar=10.0; ///< Number of bit times required to send one char, 10 because we have one start bit, 8 data bits, and one stop bit
 		const double charTime=1.0/(baudRate/bitsPerChar); ///< Time required to send one char in seconds
 		int charsSent;          ///<Number of characters in this sentence which have already been transmitted
-		double epochTime;               ///< epoch time - current time relative to start of simulation in seconds
+		double epochTime;       ///< epoch time - current time relative to start of simulation in seconds
+		double distanceTraveled; ///< distance traveled since startup
 
 		SimServo simSteering;  ///<Actual instance of SimServo. Constructor points Interface::steering at this.
 		SimServo simThrottle;  ///<Actual instance of SimServo. Constructor points Interface::throttle at this.
@@ -267,6 +276,7 @@ class Simulator : public Interface
 		virtual double checkPPS();
 		virtual bool checkNavChar(); 
 		virtual char readChar();
+		virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
 		virtual void readGyro(int g[]);
 		virtual double time() {return epochTime;};
 		/** Back-door direct access to navigation state
@@ -278,6 +288,7 @@ class Simulator : public Interface
 		 * @param h [out] heading in degrees east of true north
 		 */
         void cheatHeading(double& h) {h=heading;};
+        void testOdometer(double t);
 				
 };
 
