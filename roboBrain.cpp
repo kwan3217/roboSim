@@ -89,49 +89,44 @@ void roboBrain::navigateGPS(){
 		if(ch == '$') sentenceStart = true;
 		if(!sentenceStart) continue;
 
-		nmeaReceived[charsReceived] = ch; //interface.readChar(); //<--Maybe uncomment this later if ch stops being our character tester
+		nmeaReceived[charsReceived] = ch; //interface.readChar(); //<--Maybe decomment this later if ch stops being our character tester
 		if(nmeaReceived[charsReceived])
 		if(nmeaReceived[charsReceived] == ',' || nmeaReceived[charsReceived] == '*'){
 			partitions[partCount] = charsReceived;
 			partCount += 1;
 		}
 		charsReceived += 1;
-		if(partCount == timeSpot + 1 && charsReceived == partitions[timeSpot] + 1){
-			if(strncmp(nmeaReceived, "$GPRMC", 6) != 0){	//if the name is wrong, then I can throw away the data so far and keep moving forward in the data
-				sentenceStart = false;
-				charsReceived = 0;
-				partCount = 0;
-				continue;
-			}
+		if(partCount == timeSpot + 1 && charsReceived == partitions[timeSpot] + 1 && strncmp(nmeaReceived, "$GPRMC", 6) != 0){
+ 			sentenceStart = false;
+ 			charsReceived = 0;
+ 			partCount = 0;
+ 			continue;
+
 		}
 		if(partCount == statusSpot + 1 && nmeaReceived[partitions[statusSpot] + 1] == 'V'){
-					sentenceStart = false;
-					charsReceived = 0;
-					partCount = 0;
+		  	sentenceStart = false;	//if status is void, throw away the received data and move forward
+		  	charsReceived = 0;
+		  	partCount = 0;
+		  	continue;
 		}
-		if(partCount == checksumSpot + 1 && charsReceived == partitions[checksumSpot] + 1){// IGNORING CHECKSUM FOR NOW, REMOVE THIS AND DECOMMENT FOLLOWING BLOCK OF COMMENTS LATER
+		if(partCount == checksumSpot + 1 && charsReceived == partitions[checksumSpot] + 3){	//there should be just two characters received after the checksum asterisk if sentence is done
 			sentenceStart = false;
-			charsReceived = 0;
-			partCount = 0;
-//		if(partCount == checksumSpot && charsReceived == partitions[checksumSpot] + 3){	//there should be just two characters received after the checksum asterisk if sentence is done
-//			sentenceDone = true;
-//			sentenceStart = false;
-//			char checksum = 0;
-//			for(int i=1;i<checksumSpot;i++) {
-//				checksum ^= nmeaReceived[i];
-//			}
-//			nmeaReceived[checksumSpot + 3] = '\0';
-//			if(nmeaReceived[statusSpot + 1] == 'A' && checksum == strtol(nmeaReceived + checksumSpot + 1, NULL, 16)){	//validate checksum
-//
-				else printf("Parsing RMC data...");
-				for(int i = 0; i < charsReceived + 1 /*REMOVE +1 AFTER DECOMMENT*/; i++){
+  			char checksum = 0;
+  			for(int i = 1; i < partitions[checksumSpot]; i++) {
+  				checksum ^= nmeaReceived[i];
+  			}
+  			nmeaReceived[partitions[checksumSpot] + 3] = '\0';
+  			if(checksum == strtol(nmeaReceived + partitions[checksumSpot] + 1, NULL, 16)){	//validate checksum
+				printf("Parsing RMC data...");
+				for(int i = 0; i < charsReceived; i++){
 					if(nmeaReceived[i] == ',' || nmeaReceived[i] == '*')
 						nmeaReceived[i] = '\0';
 				}
+				charsReceived = 0;
+				partCount = 0;
 
 
-
-				//Take data from the desired partitions and use atod functions to translate them into numbers I can use
+				//Take data from the desired partitions and use atod function to translate them into numbers I can use
 				double latpos = atof(nmeaReceived + partitions[latSpot] + 1);
 				int degrees = floor(latpos)/100;
 				double minutes = (latpos - degrees * 100);
@@ -161,14 +156,13 @@ void roboBrain::navigateGPS(){
 				}
 				break;
 			}
-		//	}		DECOMMENT WHEN REINTRODUCING CHECKSUM VALIDATION
+  			else{	//if checksum is invalid, throw away the sentence and keep going
+  				charsReceived = 0;
+  				partCount = 0;
+  			}
 		}
+	}
 }
-
-	
-
-	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	//(static_cast<Simulator&>(interface)).cheatNavigate(pos.easting,pos.northing);
 
 
 void roboBrain::showVector() const{
