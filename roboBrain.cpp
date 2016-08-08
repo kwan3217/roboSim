@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "HeaderSimRobo.h"
 
 using namespace std;
@@ -68,6 +69,12 @@ void roboBrain::navigateCompass(){
 	
 	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
 	(static_cast<Simulator&>(interface)).cheatHeading(heading);
+}
+
+void roboBrain::navigateOdometer(){
+	interface.readOdometer(timeStamp, wheelCount, dt);
+	pos.northing += (wheelRadius * (PI / 2) * wheelCount) * cos(heading*PI/180);
+	pos.easting += (wheelRadius * (PI / 2) * wheelCount) * sin(heading*PI/180);
 }
 
 void roboBrain::navigateGPS(){
