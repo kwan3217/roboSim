@@ -13,7 +13,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -27,9 +27,10 @@ double Simulator::checkPPS() {
 void Simulator::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt){
 	//using timeStamp and dt as milliseconds, not whole seconds. /Might/ have to change this to microseconds, depending.
 	dt = floor(epochTime * 1000)- timeStamp;
+	double oldDistanceTraveled = distanceTraveled;
 	distanceTraveled += simThrottle.read() * double(dt) / 1000;
-	wheelCount = floor(distanceTraveled/(.03175*PI/2)); //.03175 is my stand-in value for the wheel's radius in meters, assuming 2.5in diameter
-	//with this assumed radius, the wheel spins at about 25Hz when traveling at 10mps.
+	int32_t totalWheelCount = floor(distanceTraveled/(wheelRadius*PI/2)); //.03175 is my stand-in value for the wheel's radius in meters, assuming 2.5in diameter
+	wheelCount = totalWheelCount - floor(oldDistanceTraveled/(wheelRadius*PI/2));
 	timeStamp += dt;
 }
 
@@ -144,12 +145,14 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 	int32_t wheelCount = 0;
 	uint32_t timeStamp = 0;
 	uint32_t dt = 0;
+	double predictedNorthing = 0;
 	while(et > 0){
 		update(.05);
 		readOdometer(timeStamp, wheelCount, dt);
 		et -= .05;
+		predictedNorthing += wheelCount * PI * .03175 / 2;
 	}
-	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, wheelCount * PI * .03175 / 2, distanceTraveled);
+	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, predictedNorthing, distanceTraveled);
 }
 
 double NMEAPlayback::checkPPS(){

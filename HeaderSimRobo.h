@@ -4,6 +4,7 @@
 #define ALL_MY_BOTS
 const double PI = 2*acos(0.0); ///< Circle constant
 const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
+const double wheelRadius = .03175;
 
 /** Two-dimensional vector, implementing Northing and Easting concept. This should probably be called Vector instead of waypoint */
 class waypoint {
@@ -206,11 +207,16 @@ class roboBrain //where the robot thinks it is
 		bool sentenceStart;	///< begin status of the latest NMEA sentence
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
 		int partitions[20];	///< locations of the partitions in the NMEA sentence
+
+		int32_t wheelCount; ///< count of sector changes taken last time by the odometer
+		uint32_t timeStamp; ///< epoch time(CURRENTLY IN MILLISECONDS) of last time readOdometer() was used
+		uint32_t dt;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
 		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
 		void navigateCompass();	//
 		void navigateGPS();
+		void navigateOdometer();
 		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
 		void control(double);			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
