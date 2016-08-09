@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <cmath>
+#include <iostream>
 
 #ifndef ALL_MY_BOTS
 #define ALL_MY_BOTS
@@ -278,9 +280,9 @@ class Simulator : public Interface
 		void update(double dt);
 		void showVector() const;									//reports data for storage in .csv file
 		static void testNMEA(); ///< Test the NMEA generation code
-		
+
 		virtual double checkPPS();
-		virtual bool checkNavChar(); 
+		virtual bool checkNavChar();
 		virtual char readChar();
 		virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
 		virtual void readGyro(int g[]);
@@ -295,7 +297,7 @@ class Simulator : public Interface
 		 */
         void cheatHeading(double& h) {h=heading;};
         void testOdometer(double t);
-				
+
 };
 
 /** Abstract class representing the interface between the robot navigation, guidance, and control (GNC) software

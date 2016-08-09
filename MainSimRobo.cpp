@@ -1,5 +1,3 @@
-#include <iostream>
-#include <cmath>
 #include "HeaderSimRobo.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,4 +1,4 @@
-all: RoboSim.exe
+all: RoboSim.exe RoboPi.exe
 
 #wildcard rule - whenever we need to (re)build a .o file, use this rule to make it from the matching .cpp file
 %.o: %.cpp
@@ -9,6 +9,9 @@ all: RoboSim.exe
 RoboSim.exe: MainSimRobo.o Simulator.o roboBrain.o
 	g++ -g -o $@ $^ # Link in debug mode to an executable, output name from $@, input is all named .o files ($^) 
 
+RoboPi.exe: RoboPiMain.o RoboPiSetupLoop.o HardwarePiInterface.o roboBrain.o
+	g++ -g -o $@ $^ 
+
 #Remove all compiled files
 clean:
-	$(RM) RoboSim.exe *.o
+	$(RM) RoboSim.exe RoboPi.exe *.o
