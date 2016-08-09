@@ -3,11 +3,24 @@
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 
+/**
+ * @copydoc Servo::write(int)
+ * \internal
+ * Implemented using the ServoBlaster user-space driver. That driver program sets up a named pipe in /dev/servoblaster. Commands
+ * to it are written in the form of <channel>=<value> where channel is a number between 0 and 7, and value is the pulse time of the servo
+ * command, in 10us units.
+ */
 void HardwarePiServoBlaster::write(int n) {
   fprintf(ouf,"%d=%d\n",channel,n);
   fflush(ouf);
 }
 
+/**
+ * @copydoc Servo::write(int)
+ * \internal
+ * Implemented by writing to the correct registers in the Arduino serving as the odometer. The value written is a 16-bit unsigned integer
+ * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
+ */
 void HardwarePiServoArduino::write(int n) {
   ioctl(fileno(bus),I2C_SLAVE,ADDRESS);
   char buf[3];
@@ -16,7 +29,6 @@ void HardwarePiServoArduino::write(int n) {
   buf[2]=(n >> 8) & 0xFF;
   fwrite(buf,1,3,bus);
 }
-
 
 /**
  * @copydoc Interface::checkPPS()
