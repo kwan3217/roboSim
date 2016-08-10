@@ -72,9 +72,11 @@ void roboBrain::navigateCompass(){
 }
 
 void roboBrain::navigateOdometer(){
+	int oldWheelCount = wheelCount;
 	interface.readOdometer(timeStamp, wheelCount, dt);
-	pos.northing += (wheelRadius * (PI / 2) * wheelCount) * cos(heading*PI/180);
-	pos.easting += (wheelRadius * (PI / 2) * wheelCount) * sin(heading*PI/180);
+	int newWheelCount = wheelCount - oldWheelCount;
+	pos.northing += (wheelRadius * (PI / 2) * newWheelCount) * cos(heading*PI/180);
+	pos.easting += (wheelRadius * (PI / 2) * newWheelCount) * sin(heading*PI/180);
 }
 
 void roboBrain::navigateGPS(){

@@ -26,7 +26,7 @@ double Simulator::checkPPS() {
 
 void Simulator::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt){
 	//All time is in units of microseconds
-	wheelCount = floor(oldDistanceTraveled/(wheelRadius*PI/2)); //Since it is PI/2 instead of PI*2, this is in quarter-turns, as appropriate.
+	wheelCount = floor(distanceTraveled/(wheelRadius*PI/2)); //Since it is PI/2 instead of PI*2, this is in quarter-turns, as appropriate.
 	timeStamp =time()*10000000; //Not quite accurate, should be the time that the last click happened, but roboBrain doesn't care.
 	dt=0; //We will eventually fake this from the current wheel speed. Not quite accurate, but it will do for now, especially as the roboBrain doesn't currently use it.
 }
