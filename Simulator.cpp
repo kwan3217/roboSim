@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "HeaderSimRobo.h"
+#include "robot.h"
+#include "Simulator.h"
 
 using namespace std;
 
@@ -155,21 +156,6 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, predictedNorthing, distanceTraveled);
 }
 
-double NMEAPlayback::checkPPS(){
-  return t;
-}
-bool NMEAPlayback::checkNavChar(){
-  bool result=feof(inf)==0;
-  return result;
-}
-char NMEAPlayback::readChar(){
-  char c;
-  fread(&c,1,1,inf);
-  return c;
-}
-double NMEAPlayback::time(){
-  return t;
-}
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 

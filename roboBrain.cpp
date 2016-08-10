@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "HeaderSimRobo.h"
+//#include "HeaderSimRobo.h"
+#include "robot.h"
+#include "roboBrain.h"
+#include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
 
 using namespace std;
 
