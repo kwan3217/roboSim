@@ -1,8 +1,9 @@
-#ifndef HardwarePiInterface_h
-#define HardwarePiInterface_h
+#ifndef HardwarePi_h
+#define HardwarePi_h
 
-#include "HeaderSimRobo.h"
+#include "robot.h"
 #include <sys/timepps.h>
+#include <cstdio>
 
 /** Physical servo interface, via the /dev/servoblaster driver
  *
