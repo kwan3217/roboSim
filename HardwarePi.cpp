@@ -1,5 +1,5 @@
 #include <time.h>
-#include "HardwarePiInterface.h"
+#include "HardwarePi.h"
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 
