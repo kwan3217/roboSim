@@ -4,7 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "HeaderSimRobo.h"
+//#include "HeaderSimRobo.h"
+#include "robot.h"
+#include "roboBrain.h"
+#include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
 
 using namespace std;
 
@@ -12,7 +15,7 @@ using namespace std;
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
 heading(h), pos(e, n),interface(Linterface),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false)
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0)
 { }
 
 const waypoint roboBrain::waypoints[] = {
@@ -72,9 +75,11 @@ void roboBrain::navigateCompass(){
 }
 
 void roboBrain::navigateOdometer(){
+	uint32_t oldWheelCount = wheelCount;
 	interface.readOdometer(timeStamp, wheelCount, dt);
-	pos.northing += (wheelRadius * (PI / 2) * wheelCount) * cos(heading*PI/180);
-	pos.easting += (wheelRadius * (PI / 2) * wheelCount) * sin(heading*PI/180);
+	uint32_t newWheelCount = wheelCount - oldWheelCount;
+	pos.northing += (wheelRadius * (PI / 2) * newWheelCount) * cos(heading*PI/180);
+	pos.easting += (wheelRadius * (PI / 2) * newWheelCount) * sin(heading*PI/180);
 }
 
 void roboBrain::navigateGPS(){

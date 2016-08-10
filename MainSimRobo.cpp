@@ -1,4 +1,8 @@
-#include "HeaderSimRobo.h"
+#include <iostream>
+#include <cmath>
+#include "robot.h"
+#include "Simulator.h"
+#include "roboBrain.h"
 #include <stdio.h>
 #include <stdlib.h>
 using namespace std;

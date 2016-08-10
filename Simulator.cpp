@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "HeaderSimRobo.h"
+#include "robot.h"
+#include "Simulator.h"
 
 using namespace std;
 
@@ -24,13 +25,10 @@ double Simulator::checkPPS() {
 }
 
 void Simulator::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt){
-	//using timeStamp and dt as milliseconds, not whole seconds. /Might/ have to change this to microseconds, depending.
-	dt = floor(epochTime * 1000)- timeStamp;
-	double oldDistanceTraveled = distanceTraveled;
-	distanceTraveled += simThrottle.read() * double(dt) / 1000;
-	int32_t totalWheelCount = floor(distanceTraveled/(wheelRadius*PI/2)); //.03175 is my stand-in value for the wheel's radius in meters, assuming 2.5in diameter
-	wheelCount = totalWheelCount - floor(oldDistanceTraveled/(wheelRadius*PI/2));
-	timeStamp += dt;
+	//All time is in units of microseconds
+	wheelCount = floor(distanceTraveled/(wheelRadius*PI/2)); //Since it is PI/2 instead of PI*2, this is in quarter-turns, as appropriate.
+	timeStamp =time()*10000000; //Not quite accurate, should be the time that the last click happened, but roboBrain doesn't care.
+	dt=0; //We will eventually fake this from the current wheel speed. Not quite accurate, but it will do for now, especially as the roboBrain doesn't currently use it.
 }
 
 bool Simulator::checkNavChar() {
@@ -39,6 +37,7 @@ bool Simulator::checkNavChar() {
   if(nCharsShouldTransmit>strlen(nmea)) nCharsShouldTransmit=strlen(nmea);
   return nCharsShouldTransmit>charsSent;
 }
+
 char Simulator::readChar() {
   if(!checkNavChar()) {
 	cout << "Not allowed to read when nothing available" << endl;
@@ -82,6 +81,8 @@ void Simulator::update(double dt) {
 	simThrottle.timeStep(dt);
 
 	epochTime+=dt; //Update current time
+	distanceTraveled += simThrottle.read() * double(dt);
+
 	if((epochTime-pps)>dpps) {
 		generateNewFix();
 	}
@@ -154,21 +155,6 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, predictedNorthing, distanceTraveled);
 }
 
-double NMEAPlayback::checkPPS(){
-  return t;
-}
-bool NMEAPlayback::checkNavChar(){
-  bool result=feof(inf)==0;
-  return result;
-}
-char NMEAPlayback::readChar(){
-  char c;
-  fread(&c,1,1,inf);
-  return c;
-}
-double NMEAPlayback::time(){
-  return t;
-}
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++Servo methods.
 
