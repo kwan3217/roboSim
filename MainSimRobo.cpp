@@ -11,7 +11,7 @@ using namespace std;
 int main()
 {
 //	Simulator::testNMEA();
-	//cout << "t,easting, northing, spped, heading, turnRadius, desiredHeading,headingChange\n"; //.csv headers
+	cout << "pos.easting, pos.northing, simThrottle.read(), heading,  turnRadius ,,nav.easting, nav.northing,, nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange" << endl; //.csv headers
 	
 	Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
 	
