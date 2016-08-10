@@ -9,4 +9,5 @@ latex
 *.csv
 *.nmea
 *.ods
+.~lock*
 
