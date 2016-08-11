@@ -38,12 +38,13 @@ void HardwarePiServoArduino::write(int n) {
  *
  */
 double HardwarePiInterface::checkPPS() {
-  pps_info_t info;
-  static const struct timespec timeout={0,0};
-  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
-  double t=ts2t(info.assert_timestamp);
-  if(t0<t) t0=t;
-  return t-t0;
+//  pps_info_t info;
+//  static const struct timespec timeout={0,0};
+//  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
+//  double t=ts2t(info.assert_timestamp);
+//  if(t0<t) t0=t;
+//  return t-t0;
+	return 0; //Comment out PPS stuff because no PPS source is plugged in
 }
 
 /** Makes sure that GPS buffer has data to read. If there is still data in the buffer that hasn't been spooled out, return immediately. If
@@ -51,9 +52,9 @@ double HardwarePiInterface::checkPPS() {
  * The file has been opened with O_NONBLOCK so it should return immediately even if there isn't a full buffer worth of data to read.
  */
 void HardwarePiInterface::fillGpsBuf() {
-  if(gpsPtr<gpsLen) return;
-  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
-  gpsPtr=0;
+//  if(gpsPtr<gpsLen) return;
+//  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
+//  gpsPtr=0;
 }
 
 /**
@@ -166,17 +167,17 @@ void HardwarePiInterface::readGyro(int g[]) {
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
-  ppsf=fopen("/dev/pps0","r");
-  time_pps_create(fileno(ppsf), &pps);
+//  ppsf=fopen("/dev/pps0","r");
+//  time_pps_create(fileno(ppsf), &pps);
   bus=fopen("/dev/i2c-1","w");
-  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
-  gpsf=fdopen(gps,"rb");
+//  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
+//  gpsf=fdopen(gps,"rb");
 }
 
 HardwarePiInterface::~HardwarePiInterface() {
-  time_pps_destroy(pps);
-  fclose(ppsf);
-  fclose(bus);
+//  time_pps_destroy(pps);
+//  fclose(ppsf);
+//  fclose(bus);
 }
 
 HardwarePiInterfaceBlaster::HardwarePiInterfaceBlaster():hardSteering(0),hardThrottle(4),HardwarePiInterface(hardSteering,hardThrottle) {
