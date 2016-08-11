@@ -81,7 +81,6 @@ private:
 public:
   HardwarePiInterfaceBlaster();
   virtual ~HardwarePiInterfaceBlaster();
-  void begin(FILE* Lbus) {bus=Lbus;};
 };
 
 /** Hardware interface for Raspberry Pi, using the Arduino servo interface
@@ -89,13 +88,11 @@ public:
  */
 class HardwarePiInterfaceArduino: public HardwarePiInterface {
 private:
-  FILE* bus; ///< Stream for I2C bus. This will be passed to both servos
   HardwarePiServoArduino hardSteering; ///< Steering servo interface
   HardwarePiServoArduino hardThrottle; ///< Throttle servo interface
 public:
   HardwarePiInterfaceArduino();
   virtual ~HardwarePiInterfaceArduino();
-  void begin(FILE* Lbus) {bus=Lbus;};
 };
 
 #endif
