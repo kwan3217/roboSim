@@ -81,6 +81,7 @@ private:
 public:
   HardwarePiInterfaceBlaster();
   virtual ~HardwarePiInterfaceBlaster();
+  void begin(FILE* Lbus) {bus=Lbus;};
 };
 
 /** Hardware interface for Raspberry Pi, using the Arduino servo interface
@@ -94,6 +95,7 @@ private:
 public:
   HardwarePiInterfaceArduino();
   virtual ~HardwarePiInterfaceArduino();
+  void begin(FILE* Lbus) {bus=Lbus;};
 };
 
 #endif
