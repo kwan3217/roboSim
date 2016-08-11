@@ -2,6 +2,7 @@
  * robot.h
  */
 #include<stdint.h>
+#include <cmath>
 
 #ifndef ROBOT_H_
 #define ROBOT_H_
