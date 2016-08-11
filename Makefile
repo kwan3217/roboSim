@@ -20,10 +20,10 @@ HardwarePi.o: HardwarePi.cpp HardwarePi.h robot.h
 RoboPiMain.o: RoboPiMain.cpp HardwarePi.h robot.h
 	g++ -g -c -std=c++14 -o $@ $<
 
-RoboPiSetupLoop.o: RoboPiSetupLoop.cpp HardwarePi.h robot.h
+OpenLoopGuidance.o: OpenLoopGuidance.cpp OpenLoopGuidance.h HardwarePi.h robot.h
 	g++ -g -c -std=c++14 -o $@ $<
 
-RoboPi.exe: RoboPiMain.o RoboPiSetupLoop.o HardwarePi.o roboBrain.o
+RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o
 	g++ -g -o $@ $^
 
 html: Doxyfile
