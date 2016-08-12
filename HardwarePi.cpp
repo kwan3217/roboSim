@@ -170,6 +170,7 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
 //  ppsf=fopen("/dev/pps0","r");
 //  time_pps_create(fileno(ppsf), &pps);
   bus=fopen("/dev/i2c-1","w");
+  setbuf(bus,nullptr);
   if(bus==nullptr) printf("Couldn't open bus: errno %d",errno);
 //  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
 //  gpsf=fdopen(gps,"rb");
