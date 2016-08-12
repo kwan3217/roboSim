@@ -21,7 +21,7 @@ void HardwarePiServoBlaster::write(int n) {
  * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
  */
 void HardwarePiServoArduino::write(int n) {
-  writeI2Creg_le(bus,ADDRESS,0x2C+2*channel,n);
+  writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
 }
 
 /**
@@ -99,22 +99,15 @@ bool HardwarePiInterface::button(int pin) {
   return 0==digitalRead(pin);
 }
 
-static inline uint32_t buf_uint32_le(char buf[], int ofs) {
-  return ((uint32_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 ((uint32_t(buf[ofs+1]) & 0xFF)<< 8) |
-		 ((uint32_t(buf[ofs+2]) & 0xFF)<<16) |
-	     ((uint32_t(buf[ofs+3]) & 0xFF)<<24);
-}
-
 void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
   ioctl(fileno(bus),I2C_SLAVE,ODOMETER_ADDRESS);
   char buf[0x0C];
   buf[0]=0x00;
   fwrite(buf,1,1,bus);
   fread(buf,1,12,bus);
-  wheelCount=buf_int32_le(buf,0);
-  dt        =buf_uint32_le(buf,4);
-  timeStamp =buf_uint32_le(buf,8);
+  wheelCount=readBuf_le<int32_t>(buf,0);
+  dt        =readBuf_le<uint32_t>(buf,4);
+  timeStamp =readBuf_le<uint32_t>(buf,8);
 }
 
 void HardwarePiInterface::readGyro(int g[]) {
