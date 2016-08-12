@@ -1,7 +1,5 @@
 #include <time.h>
 #include "HardwarePi.h"
-#include <linux/i2c-dev.h>
-#include <fcntl.h>
 #include <wiringPi.h>
 
 /**
@@ -23,12 +21,7 @@ void HardwarePiServoBlaster::write(int n) {
  * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
  */
 void HardwarePiServoArduino::write(int n) {
-  ioctl(fileno(bus),I2C_SLAVE,ADDRESS);
-  char buf[3];
-  buf[0]=0x2C+2*channel;
-  buf[1]=(n >> 0) & 0xFF;
-  buf[2]=(n >> 8) & 0xFF;
-  fwrite(buf,1,3,bus);
+  writeI2Creg_le(bus,ADDRESS,0x2C+2*channel,n);
 }
 
 /**
@@ -113,47 +106,6 @@ static inline uint32_t buf_uint32_le(char buf[], int ofs) {
 	     ((uint32_t(buf[ofs+3]) & 0xFF)<<24);
 }
 
-static inline int32_t buf_int32_le(char buf[], int ofs) {
-  return (( int32_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 (( int32_t(buf[ofs+1]) & 0xFF)<< 8) |
-		 (( int32_t(buf[ofs+2]) & 0xFF)<<16) |
-	     (( int32_t(buf[ofs+3]) & 0xFF)<<24);
-}
-
-static inline uint32_t buf_uint32_be(char buf[], int ofs) {
-  return ((uint32_t(buf[ofs+0]) & 0xFF)<<24) |
-		 ((uint32_t(buf[ofs+1]) & 0xFF)<<16) |
-		 ((uint32_t(buf[ofs+2]) & 0xFF)<< 8) |
-	     ((uint32_t(buf[ofs+3]) & 0xFF)<< 0);
-}
-
-static inline int32_t buf_int32_be(char buf[], int ofs) {
-  return ( (int32_t(buf[ofs+0]) & 0xFF)<<24) |
-		 ( (int32_t(buf[ofs+1]) & 0xFF)<<16) |
-		 ( (int32_t(buf[ofs+2]) & 0xFF)<< 8) |
-	     ( (int32_t(buf[ofs+3]) & 0xFF)<< 0);
-}
-
-static inline uint16_t buf_uint16_le(char buf[], int ofs) {
-  return ((uint16_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 ((uint16_t(buf[ofs+1]) & 0xFF)<< 8) ;
-}
-
-static inline int16_t buf_int16_le(char buf[], int ofs) {
-  return (( int16_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 (( int16_t(buf[ofs+1]) & 0xFF)<< 8) ;
-}
-
-static inline uint16_t buf_uint16_be(char buf[], int ofs) {
-  return ((uint16_t(buf[ofs+0]) & 0xFF)<< 8) |
-		 ((uint16_t(buf[ofs+1]) & 0xFF)<< 0) ;
-}
-
-static inline int16_t buf_int16_be(char buf[], int ofs) {
-  return (( int16_t(buf[ofs+0]) & 0xFF)<< 8) |
-		 (( int16_t(buf[ofs+1]) & 0xFF)<< 0) ;
-}
-
 void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
   ioctl(fileno(bus),I2C_SLAVE,ODOMETER_ADDRESS);
   char buf[0x0C];
@@ -166,23 +118,22 @@ void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount,
 }
 
 void HardwarePiInterface::readGyro(int g[]) {
-  char buf[6];
-  ioctl(fileno(bus),I2C_SLAVE,GYROSCOPE_ADDRESS);
-  buf[0]=0x43;
-  fwrite(buf,1,1,bus);
-  fread(buf,1,6,bus);
-  g[0]=buf_int16_be(buf,0);
-  g[1]=buf_int16_be(buf,2);
-  g[2]=buf_int16_be(buf,4);
+
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
+  //Setup for GPIO (for buttons)
   wiringPiSetupGpio();
 //  ppsf=fopen("/dev/pps0","r");
 //  time_pps_create(fileno(ppsf), &pps);
+  //Open the I2C bus
   bus=fopen("/dev/i2c-1","w");
+  //Turn off buffering, so that the data actually flows in a timely manner
   setbuf(bus,nullptr);
   if(bus==nullptr) printf("Couldn't open bus: errno %d",errno);
+
+  //Initialize the MPU9250
+  mpu.begin(bus,0,0);
 //  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
 //  gpsf=fdopen(gps,"rb");
 }

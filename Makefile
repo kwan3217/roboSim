@@ -15,16 +15,19 @@ RoboSim.exe: MainSimRobo.o Simulator.o roboBrain.o
 	g++ -g -o $@ $^ # Link in debug mode to an executable, output name from $@, input is all named .o files ($^)
 
 HardwarePi.o: HardwarePi.cpp HardwarePi.h robot.h
-	g++ -g -c -std=c++14 -o $@ $<
+	clang++ -g -c -std=c++14 -o $@ $<
+
+MPU.o: MPU.cpp HardwarePi.h robot.h
+	clang++ -g -c -std=c++14 -o $@ $<
 
 RoboPiMain.o: RoboPiMain.cpp HardwarePi.h robot.h
-	g++ -g -c -std=c++14 -o $@ $<
+	clang++ -g -c -std=c++14 -o $@ $<
 
 OpenLoopGuidance.o: OpenLoopGuidance.cpp OpenLoopGuidance.h HardwarePi.h robot.h
-	g++ -g -c -std=c++14 -o $@ $<
+	clang++ -g -c -std=c++14 -o $@ $<
 
-RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o
-	g++ -g -o $@ $^ -lwiringPi
+RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o MPU.o
+	clang++ -g -o $@ $^ -lwiringPi
 
 html: Doxyfile
 	doxygen
