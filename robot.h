@@ -110,6 +110,11 @@ private:
 		 * @return Current epoch time in seconds
 		 */
 		virtual double time()=0;
+		/** Check whether a button is pushed
+                 * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17
+		 * @return true if the button is pushed (pin is low voltage)
+		 */
+		virtual bool button(int pin=17)=0;
 		/**	Read the odometer
 		 * @param timeStamp [out] time of last time readOdometer was called in microseconds
 		 * @param wheelCount [out] number of sectors read since the odometer was reset

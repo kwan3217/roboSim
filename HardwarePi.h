@@ -60,11 +60,12 @@ protected:
   FILE* bus; ///< I2C bus stream
 public:
   virtual double checkPPS();
-  virtual bool checkNavChar(); 
+  virtual bool checkNavChar();
   virtual char readChar();
   virtual double time();
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
   virtual void readGyro(int g[]);
+  virtual bool button(int pin=17);
   HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
 
   virtual ~HardwarePiInterface();

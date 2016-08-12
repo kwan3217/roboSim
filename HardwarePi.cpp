@@ -2,6 +2,7 @@
 #include "HardwarePi.h"
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
+#include <wiringPi.h>
 
 /**
  * @copydoc Servo::write(int)
@@ -96,6 +97,15 @@ double HardwarePiInterface::time() {
   return t-t0;
 }
 
+/** @copydoc Interface::button(int)
+ *  \internal
+ *  Since we use WiringPiSetupGpio(), we use the Broadcom numbers. This happens to match the numbers printed
+ *  on our Pi header.
+ */
+bool HardwarePiInterface::button(int pin) {
+  return 0==digitalRead(pin);
+}
+
 static inline uint32_t buf_uint32_le(char buf[], int ofs) {
   return ((uint32_t(buf[ofs+0]) & 0xFF)<< 0) |
 		 ((uint32_t(buf[ofs+1]) & 0xFF)<< 8) |
@@ -167,6 +177,7 @@ void HardwarePiInterface::readGyro(int g[]) {
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
+  wiringPiSetupGpio();
 //  ppsf=fopen("/dev/pps0","r");
 //  time_pps_create(fileno(ppsf), &pps);
   bus=fopen("/dev/i2c-1","w");

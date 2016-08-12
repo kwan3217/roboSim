@@ -10,4 +10,5 @@ latex
 *.nmea
 *.ods
 .~lock*
+*.log
 

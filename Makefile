@@ -24,7 +24,7 @@ OpenLoopGuidance.o: OpenLoopGuidance.cpp OpenLoopGuidance.h HardwarePi.h robot.h
 	g++ -g -c -std=c++14 -o $@ $<
 
 RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o
-	g++ -g -o $@ $^
+	g++ -g -o $@ $^ -lwiringPi
 
 html: Doxyfile
 	doxygen

@@ -20,11 +20,13 @@ void loop() {
 
 int main() {
   setup();
-  while(interface.time()<15) {
+//  while(guide.time()<15) {
+  for(;;) {
 //	interface.update(0.05);
 	loop();
 //	std::cout << interface.time() << ',';
 //	interface.showVector();
 //	std::cout << std::endl;
+        if(guide.time()>10) guide.reset();
   }
 }
