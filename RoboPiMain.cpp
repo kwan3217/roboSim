@@ -11,24 +11,27 @@ int servoCommand[]  {150,150,140,200,150,150,150};
 OpenLoopGuidance guide(interface,t,servoChannel,servoCommand);
 
 void setup() {
+//  int whoami=interface.mpu.whoami();
+//  printf("whoami: %02x",whoami);
+//  while(guide.time()<15) {
+  printf("t,ax,ay,az,gx,gy,gz,T\n");
 
 }
 
 void loop() {
-  guide.control();
+//	interface.update(0.05);
+//  guide.control();
+//	std::cout << interface.time() << ',';
+//	interface.showVector();
+//	std::cout << std::endl;
+  int16_t gx,gy,gz;
+  interface.mpu.readGyro(gx,gy,gz);
+  printf("%0.4f,%d,%d,%d\n",interface.time(),gx,gy,gz);
 }
 
 int main() {
   setup();
-//  int whoami=interface.mpu.whoami();
-//  printf("whoami: %02x",whoami);
-//  while(guide.time()<15) {
   for(;;) {
-//	interface.update(0.05);
-	loop();
-//	std::cout << interface.time() << ',';
-//	interface.showVector();
-//	std::cout << std::endl;
-        if(guide.time()>10) guide.reset();
+    loop();
   }
 }
