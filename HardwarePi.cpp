@@ -5,18 +5,6 @@
 /**
  * @copydoc Servo::write(int)
  * \internal
- * Implemented using the ServoBlaster user-space driver. That driver program sets up a named pipe in /dev/servoblaster. Commands
- * to it are written in the form of <channel>=<value> where channel is a number between 0 and 7, and value is the pulse time of the servo
- * command, in 10us units.
- */
-void HardwarePiServoBlaster::write(int n) {
-  fprintf(ouf,"%d=%d\n",channel,n);
-  fflush(ouf);
-}
-
-/**
- * @copydoc Servo::write(int)
- * \internal
  * Implemented by writing to the correct registers in the Arduino serving as the odometer. The value written is a 16-bit unsigned integer
  * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
  */
@@ -100,11 +88,11 @@ bool HardwarePiInterface::button(int pin) {
 }
 
 void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
-  ioctl(fileno(bus),I2C_SLAVE,ODOMETER_ADDRESS);
+  ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS);
   char buf[0x0C];
   buf[0]=0x00;
-  fwrite(buf,1,1,bus);
-  fread(buf,1,12,bus);
+  write(bus,buf,1);
+  read(bus,buf,12);
   wheelCount=readBuf_le<int32_t>(buf,0);
   dt        =readBuf_le<uint32_t>(buf,4);
   timeStamp =readBuf_le<uint32_t>(buf,8);
@@ -120,10 +108,8 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
 //  ppsf=fopen("/dev/pps0","r");
 //  time_pps_create(fileno(ppsf), &pps);
   //Open the I2C bus
-  bus=fopen("/dev/i2c-1","w");
-  //Turn off buffering, so that the data actually flows in a timely manner
-  setbuf(bus,nullptr);
-  if(bus==nullptr) printf("Couldn't open bus: errno %d",errno);
+  bus=open("/dev/i2c-1",O_RDWR);
+  if(bus<0) printf("Couldn't open bus: errno %d",errno);
 
   //Initialize the MPU9250
   mpu.begin(bus,0,0);
@@ -135,16 +121,6 @@ HardwarePiInterface::~HardwarePiInterface() {
 //  time_pps_destroy(pps);
 //  fclose(ppsf);
 //  fclose(bus);
-}
-
-HardwarePiInterfaceBlaster::HardwarePiInterfaceBlaster():hardSteering(0),hardThrottle(4),HardwarePiInterface(hardSteering,hardThrottle) {
-  blaster=fopen("/dev/servoblaster","w");
-  hardSteering.begin(blaster);
-  hardThrottle.begin(blaster);
-};
-
-HardwarePiInterfaceBlaster::~HardwarePiInterfaceBlaster() {
-  fclose(blaster);
 }
 
 HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1),HardwarePiInterface(hardSteering,hardThrottle) {

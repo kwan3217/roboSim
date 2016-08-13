@@ -6,7 +6,7 @@ libwiringPi.so: wiringPi.o
 	sudo ln -sv ${PWD}/wiringPi.h /usr/local/include
 
 wiringPi.o: wiringPi.c wiringPi.h
-	gcc -c $< -o $@
+	gcc -I. -c $< -o $@
 
 clean:
 	${RM} *.o *.so

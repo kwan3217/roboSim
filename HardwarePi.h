@@ -8,6 +8,8 @@
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 
+typedef int I2C_t;
+
 /** Extract a little-endian integer from a byte buffer
  * \tparam T type of integer to extract
  * \param buf byte buffer
@@ -58,9 +60,9 @@ static inline void writeBuf_be(char buf[], int ofs, T data) {
  * \param buf buffer to write
  * \param buf number of bytes to write
  */
-static inline bool writeI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
-  ioctl(fileno(bus),I2C_SLAVE,addr);
-  bool result=(len==fwrite(buf,1,len,bus));
+static inline bool writeI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
+  ioctl(bus,I2C_SLAVE,addr);
+  bool result=(len==write(bus,buf,len));
   return result;
 }
 
@@ -70,9 +72,9 @@ static inline bool writeI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
  * \param buf buffer to read to
  * \param buf number of bytes to read
  */
-static inline bool readI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
-  ioctl(fileno(bus),I2C_SLAVE,addr);
-  bool result=(len==fread(buf,1,len,bus));
+static inline bool readI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
+  ioctl(bus,I2C_SLAVE,addr);
+  bool result=(len==read(bus,buf,len));
   return result;
 }
 
@@ -82,7 +84,7 @@ static inline bool readI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
  * \param regaddr register address to write to
  * \param data value to write
  */
-static inline bool writeI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
+static inline bool writeI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
   char buf[2];
   buf[0]=regaddr;
   buf[1]=data;
@@ -98,7 +100,7 @@ static inline bool writeI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, u
  * \param data value to write
  */
 template<typename T>
-static inline int writeI2Creg_le(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
+static inline int writeI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
   char buf[sizeof(T)+1];
   buf[0]=regaddr;
   writeBuf_le<T>(buf,1,data);
@@ -113,7 +115,7 @@ static inline int writeI2Creg_le(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr,
  * \param data value to write
  */
 template<typename T>
-static inline bool writeI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
+static inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
   char buf[sizeof(T)+1];
   buf[0]=regaddr;
   writeBuf_be<T>(buf,1,data);
@@ -127,10 +129,10 @@ static inline bool writeI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr
  * \param regaddr register address to read from
  * \return data value that was read
  */
-static inline uint8_t readI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
+static inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
   char buf=regaddr;
-  if(!writeI2C(bus,slaveaddr,&buf,1)) printf("Addressing device failed, buf=%p slaveaddr=%02x\n",bus,slaveaddr);
-  if(fread(&buf,1,1,bus)!=1) printf("Reading device failed\n");
+  if(!writeI2C(bus,slaveaddr,&buf,1)) printf("Addressing device failed, bus=%d slaveaddr=%02x\n",bus,slaveaddr);
+  if(read(bus,&buf,1)!=1) printf("Reading device failed\n");
   return buf;
 }
 
@@ -141,7 +143,7 @@ static inline uint8_t readI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr)
  * \param buf buffer to read into
  * \param len number of bytes to read
  */
-static inline bool readI2Creg(FILE* bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
+static inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
   buf[0]=regaddr;
   if(!writeI2C(bus,slaveaddr,buf,1)) printf("Addressing device failed\n");
   if(!readI2C(bus,slaveaddr,buf,len)) printf("Reading device failed\n");
@@ -155,7 +157,7 @@ static inline bool readI2Creg(FILE* bus, uint8_t slaveaddr, uint8_t regaddr, cha
  * \return value in that multi-byte register
  */
 template<typename T>
-static inline T readI2Creg_le(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
+static inline T readI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
   char buf[sizeof(T)];
   readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
   return readBuf_le<T>(buf,0);
@@ -169,7 +171,7 @@ static inline T readI2Creg_le(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
  * \return value in that multi-byte register
  */
 template<typename T>
-static inline T readI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
+static inline T readI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
   char buf[sizeof(T)];
   readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
   return readBuf_be<T>(buf,0);
@@ -177,21 +179,7 @@ static inline T readI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
 
 class HardwarePiServo: public Servo {
 public:
-  virtual void begin(FILE*)=0;
-};
-
-/** Physical servo interface, via the /dev/servoblaster driver
- *
- */
-class HardwarePiServoBlaster: public HardwarePiServo {
-  FILE* ouf; ///< ServoBlaster device stream, opened somewhere else because multiple servos will be using the same file
-  int channel; ///<Channel number to write, in this case the servo channel number defined by ServoBlaster
-public:
-  virtual void write(int n);
-  virtual void begin(FILE* Louf) {ouf=Louf;};
-  HardwarePiServoBlaster(int Lchannel):channel(Lchannel),ouf(nullptr) {};
-  HardwarePiServoBlaster(FILE* Louf, int Lchannel):HardwarePiServoBlaster(Lchannel) {begin(Louf);};
-  ~HardwarePiServoBlaster() {};
+  virtual void begin(I2C_t)=0;
 };
 
 /** Physical servo interface, via the Arduino which is also hosting the odometer
@@ -199,14 +187,14 @@ public:
  */
 class HardwarePiServoArduino: public HardwarePiServo {
 private:
-  FILE* bus; ///<I2C bus stream, opened somewhere else because other devices are on the bus
+  I2C_t bus; ///<I2C bus stream, opened somewhere else because other devices are on the bus
   static const int ADDRESS=0x55; ///< 7-bit address of Arduino
   int channel; ///<Channel number to write, either 0 or 1
 public:
   virtual void write(int n);
-  virtual void begin(FILE* Lbus) {bus=Lbus;};
-  HardwarePiServoArduino(int Lchannel):channel(Lchannel),bus(nullptr) {};
-  HardwarePiServoArduino(FILE* Lbus, int Lchannel):HardwarePiServoArduino(Lchannel) {begin(Lbus);};
+  virtual void begin(I2C_t Lbus) {bus=Lbus;};
+  HardwarePiServoArduino(int Lchannel):channel(Lchannel),bus(-1) {};
+  HardwarePiServoArduino(I2C_t Lbus, int Lchannel):HardwarePiServoArduino(Lchannel) {begin(Lbus);};
   ~HardwarePiServoArduino() {};
 };
 
@@ -247,7 +235,7 @@ public:
 
 class MPUI2C: public MPU {
 private:
-  FILE* bus;
+  I2C_t bus;
   static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
   virtual void write(uint8_t addr, uint8_t val) {writeI2Creg(bus, ADDRESS, addr, val);};
   virtual uint8_t read(uint8_t addr) {return readI2Creg(bus, ADDRESS, addr);};
@@ -256,8 +244,8 @@ public:
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
-  void begin(FILE* Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0) {
-	bus=Lbus;
+  void begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0) {
+    bus=Lbus;
     MPU::begin(gyro_scale,acc_scale,bandwidth,sample_rate);
   }
 };
@@ -283,7 +271,7 @@ private:
   int gpsPtr; ///<Index of next byte to be read
   void fillGpsBuf();
 protected:
-  FILE* bus; ///< I2C bus stream
+  I2C_t bus; ///< I2C bus stream
 public:
   MPUI2C mpu;
   virtual double checkPPS();
@@ -295,19 +283,6 @@ public:
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
   virtual ~HardwarePiInterface();
-};
-
-/** Hardware interface for Raspberry Pi, using the ServoBlaster servo interface
- *
- */
-class HardwarePiInterfaceBlaster: public HardwarePiInterface {
-private:
-  FILE* blaster; ///< Stream for /dev/servoblaster. This will be passed to both servos
-  HardwarePiServoBlaster hardSteering; ///< Steering servo interface
-  HardwarePiServoBlaster hardThrottle; ///< Throttle servo interface
-public:
-  HardwarePiInterfaceBlaster();
-  virtual ~HardwarePiInterfaceBlaster();
 };
 
 /** Hardware interface for Raspberry Pi, using the Arduino servo interface
