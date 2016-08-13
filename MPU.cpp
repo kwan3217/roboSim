@@ -1,6 +1,7 @@
 #include "HardwarePi.h"
 
 void MPU::begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
+  printf("%02x",whoami());
   write(0x6B, (0 << 7) | // 0 - don't reset
 		      (0 << 6) | // 0 - don't sleep
 			  (0 << 5) | // 0 - don't cycle and sleep

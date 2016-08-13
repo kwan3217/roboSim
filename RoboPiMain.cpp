@@ -20,6 +20,8 @@ void loop() {
 
 int main() {
   setup();
+//  int whoami=interface.mpu.whoami();
+//  printf("whoami: %02x",whoami);
 //  while(guide.time()<15) {
   for(;;) {
 //	interface.update(0.05);

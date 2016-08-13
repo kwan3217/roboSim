@@ -58,9 +58,10 @@ static inline void writeBuf_be(char buf[], int ofs, T data) {
  * \param buf buffer to write
  * \param buf number of bytes to write
  */
-static inline int writeI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
+static inline bool writeI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
   ioctl(fileno(bus),I2C_SLAVE,addr);
-  return fwrite(buf,1,len,bus);
+  bool result=(len==fwrite(buf,1,len,bus));
+  return result;
 }
 
 /** Read a buffer from the I2C bus
@@ -69,9 +70,10 @@ static inline int writeI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
  * \param buf buffer to read to
  * \param buf number of bytes to read
  */
-static inline int readI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
+static inline bool readI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
   ioctl(fileno(bus),I2C_SLAVE,addr);
-  return fread(buf,1,len,bus);
+  bool result=(len==fread(buf,1,len,bus));
+  return result;
 }
 
 /** Write a byte to a specified register in a slave on an I2C bus
@@ -80,11 +82,12 @@ static inline int readI2C(FILE* bus,  uint8_t addr, char* buf, int len) {
  * \param regaddr register address to write to
  * \param data value to write
  */
-static inline int writeI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
+static inline bool writeI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
   char buf[2];
   buf[0]=regaddr;
   buf[1]=data;
-  return writeI2C(bus,slaveaddr,buf,2);
+  bool result=writeI2C(bus,slaveaddr,buf,2);
+  return result;
 }
 
 /** Write a value to a multi-byte little-endian register in a slave on an I2C bus
@@ -110,11 +113,12 @@ static inline int writeI2Creg_le(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr,
  * \param data value to write
  */
 template<typename T>
-static inline int writeI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
+static inline bool writeI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
   char buf[sizeof(T)+1];
   buf[0]=regaddr;
   writeBuf_be<T>(buf,1,data);
-  return writeI2C(bus,slaveaddr,buf,sizeof(T)+1);
+  bool result=writeI2C(bus,slaveaddr,buf,sizeof(T)+1);
+  return result;
 }
 
 /** Read a byte from a specified register in a slave on an I2C bus
@@ -125,8 +129,8 @@ static inline int writeI2Creg_be(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr,
  */
 static inline uint8_t readI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr) {
   char buf=regaddr;
-  writeI2C(bus,slaveaddr,&buf,1);
-  fread(&buf,1,1,bus);
+  if(!writeI2C(bus,slaveaddr,&buf,1)) printf("Addressing device failed, buf=%p slaveaddr=%02x\n",bus,slaveaddr);
+  if(fread(&buf,1,1,bus)!=1) printf("Reading device failed\n");
   return buf;
 }
 
@@ -137,10 +141,10 @@ static inline uint8_t readI2Creg(FILE* bus,  uint8_t slaveaddr, uint8_t regaddr)
  * \param buf buffer to read into
  * \param len number of bytes to read
  */
-static inline void readI2Creg(FILE* bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
+static inline bool readI2Creg(FILE* bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
   buf[0]=regaddr;
-  writeI2C(bus,slaveaddr,buf,1);
-  readI2C(bus,slaveaddr,buf,len);
+  if(!writeI2C(bus,slaveaddr,buf,1)) printf("Addressing device failed\n");
+  if(!readI2C(bus,slaveaddr,buf,len)) printf("Reading device failed\n");
 }
 
 /** Read a value from a multi-byte little-endian register in a slave on an I2C bus
@@ -206,7 +210,7 @@ public:
   ~HardwarePiServoArduino() {};
 };
 
-/** Driver for MPU6xx0 series and 9xx0 series motion processing units. Doesn't init the
+/** Driver for MPU6xx0 series and 9xx0 series motion processing units
  *
  */
 class MPU {
@@ -278,10 +282,10 @@ private:
   int gpsLen; ///<Number of bytes in the GPS buffer
   int gpsPtr; ///<Index of next byte to be read
   void fillGpsBuf();
-  MPUI2C mpu;
 protected:
   FILE* bus; ///< I2C bus stream
 public:
+  MPUI2C mpu;
   virtual double checkPPS();
   virtual bool checkNavChar();
   virtual char readChar();
