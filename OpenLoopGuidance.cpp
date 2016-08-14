@@ -20,4 +20,8 @@ void OpenLoopGuidance::control() {
   }
 }
 
-
+void OpenLoopGuidance::reset() {
+  printf("Reset!\n");
+  t0=0;
+  currentRow=0;
+}

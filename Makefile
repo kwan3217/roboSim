@@ -1,6 +1,6 @@
 CC = g++
 
-all: RoboSim.exe RoboPi.exe
+all: RoboSim.exe RoboPi.exe buttonTest.exe
 
 MainSimRobo.o: MainSimRobo.cpp robot.h Simulator.h roboBrain.h
 	${CC} -g -c -std=c++14 -o $@ $<
@@ -29,6 +29,12 @@ OpenLoopGuidance.o: OpenLoopGuidance.cpp OpenLoopGuidance.h HardwarePi.h robot.h
 	${CC} -g -c -std=c++14 -o $@ $<
 
 RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o MPU.o
+	${CC} -g -o $@ $^ -L /usr/local/lib -lwiringPi
+
+buttonTest.o: buttonTest.cpp HardwarePi.h robot.h
+	${CC} -g -c -std=c++14 -o $@ $<
+
+buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 	${CC} -g -o $@ $^ -L /usr/local/lib -lwiringPi
 
 html: Doxyfile

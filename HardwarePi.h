@@ -236,11 +236,11 @@ public:
 class MPUI2C: public MPU {
 private:
   I2C_t bus;
-  static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
   virtual void write(uint8_t addr, uint8_t val) {writeI2Creg(bus, ADDRESS, addr, val);};
   virtual uint8_t read(uint8_t addr) {return readI2Creg(bus, ADDRESS, addr);};
   virtual int16_t read16(uint8_t addr) {return readI2Creg_be<int16_t>(bus, ADDRESS, addr);};
 public:
+  static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
@@ -271,8 +271,8 @@ private:
   int gpsPtr; ///<Index of next byte to be read
   void fillGpsBuf();
 protected:
-  I2C_t bus; ///< I2C bus stream
 public:
+  I2C_t bus; ///< I2C bus stream
   MPUI2C mpu;
   virtual double checkPPS();
   virtual bool checkNavChar();
