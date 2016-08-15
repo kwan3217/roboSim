@@ -32,16 +32,16 @@ const waypoint roboBrain::waypoints[] = {
 		{   3.93,-  3.28},
 };
 
-double roboBrain::guide(){
+void roboBrain::guide(){
 	const int wpcount = sizeof(waypoints)/sizeof(waypoint);
-	if((waypoints[nowpoint]- waypoints[nowpoint - 1]).dot(waypoints[nowpoint] - pos) < 0){
+	if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
 		nowpoint += 1;
 	}
 	if(nowpoint >= wpcount){
 		headingChange=400;
-		return headingChange;
+                return;
 	}
-    desiredHeading = (waypoints[nowpoint]-pos).heading();
+    desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
 
 	headingChange = desiredHeading - heading;
 	if(headingChange > 180){
@@ -50,18 +50,17 @@ double roboBrain::guide(){
 	else if (headingChange < -180){
 		headingChange += 360;
 	}
-	return headingChange;
 }
 
-void roboBrain::control(double headingChange){
+void roboBrain::control(){
 
 	if(headingChange >= 300){
-		interface.throttle.write(0);
-		interface.steering.write(0);
+		interface.throttle.write(150);
+		interface.steering.write(150);
 		return;
 	}
-	interface.throttle.write(64);
-	interface.steering.write(headingChange * double (127)/180);
+	interface.throttle.write(140);
+	interface.steering.write(headingChange * double (50)/180+150);
 }
 
 void roboBrain::update(double t){
@@ -75,11 +74,11 @@ void roboBrain::navigateCompass(){
 }
 
 void roboBrain::navigateOdometer(){
-	uint32_t oldWheelCount = wheelCount;
-	interface.readOdometer(timeStamp, wheelCount, dt);
-	uint32_t newWheelCount = wheelCount - oldWheelCount;
-	pos.northing += (wheelRadius * (PI / 2) * newWheelCount) * cos(heading*PI/180);
-	pos.easting += (wheelRadius * (PI / 2) * newWheelCount) * sin(heading*PI/180);
+  uint32_t oldWheelCount = wheelCount;
+  interface.readOdometer(timeStamp, wheelCount, dt);
+  uint32_t newWheelCount = wheelCount - oldWheelCount;
+  waypoint dir={sin(heading*PI/180),cos(heading*PI/180)};
+  pos+=dir*fp(wheelRadius * (PI / 2) * newWheelCount);
 }
 
 void roboBrain::navigateGPS(){
@@ -163,8 +162,8 @@ void roboBrain::navigateGPS(){
 				}
 				else{
 					//compare new lat, long with original, then give a new easting and northing to pos
-					pos.northing = (latdd - lat0)*re*PI/180;
-					pos.easting = (longdd - long0)*re*cos(lat0)/180;
+					pos.northing() = (latdd - lat0)*re*PI/180;
+					pos.easting()  = (longdd - long0)*re*cos(lat0)/180;
 				}
 				break;
 			}
@@ -177,6 +176,6 @@ void roboBrain::navigateGPS(){
 }
 
 
-void roboBrain::showVector() const{
-	printf(",%06.2f,%06.2f,,%i,%06.2f,%06.2f,%06.2f, %07.2f\n",pos.easting, pos.northing, nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange);
+void roboBrain::showVector() const {
+	printf(",%06.2f,%06.2f,,%i,%06.2f,%06.2f,%06.2f, %07.2f\n",pos.easting(), pos.northing(), nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange);
 }

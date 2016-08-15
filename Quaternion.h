@@ -9,10 +9,14 @@
     for 3D orientation. */
 class Quaternion:public Vector<4,fp> {
 public:
-  fp& x; ///< Name of component 0, which is the x vector component by convention
-  fp& y; ///< Name of component 1, which is the y vector component by convention
-  fp& z; ///< Name of component 2, which is the z vector component by convention
-  fp& w; ///< Name of component 3, which is the scalar   component by convention
+  fp& x() {return comp[0]};}; ///< Name of component 0, which is the x vector component by convention
+  fp& y() {return comp[1]};}; ///< Name of component 1, which is the y vector component by convention
+  fp& z() {return comp[2]};}; ///< Name of component 2, which is the z vector component by convention
+  fp& w() {return comp[3]};}; ///< Name of component 3, which is the scalar   component by convention
+  fp x() const {return comp[0]};}; ///< Name of component 0, which is the x vector component by convention
+  fp y() const {return comp[1]};}; ///< Name of component 1, which is the y vector component by convention
+  fp z() const {return comp[2]};}; ///< Name of component 2, which is the z vector component by convention
+  fp w() const {return comp[3]};}; ///< Name of component 3, which is the scalar   component by convention
   /** Assignment operator. Copy the components from the right hand side
       quaternion into this quaternion without affecting the right hand side
    @param[in] rhs Quaternion to copy components from
@@ -27,10 +31,11 @@ public:
    @param[in] Lz initial z vector component
    @param[in] Lw initial scalar   component
   */
-  Quaternion(fp Lx, fp Ly, fp Lz, fp Lw):Quaternion(){x=Lx;y=Ly;z=Lz;w=Lw;};
+  Quaternion(fp Lx, fp Ly, fp Lz, fp Lw):Quaternion(){x()=Lx;y()=Ly;z()=Lz;w()=Lw;};
   /** Construct an identity quaternion, IE 0i+0j+0k+1 . This also represents an 
       identity orientation */
-  Quaternion():x(comp[0]),y(comp[1]),z(comp[2]),w(comp[3]){x=0;y=0;z=0;w=1;};
+  Quaternion() {x()=0;y()=0;z()=0;w()=1;};
+  Quaternion(Vector<4,fp> other):Quaternion(comp[0],comp[1],comp[2],comp[3]);
   /** Construct a quaternion from the components of a 3D vector. Quaternion
       will be Lx*i+Ly*j+Lz*k+0 . Does not have to be a unit quaternion or unit
       vector. 
@@ -51,11 +56,11 @@ private:
       @param q right-hand side quaternion
   */
   Quaternion& operator*=(const Quaternion& q) {
-    fp rx= w*q.x-z*q.y+y*q.z+x*q.w;
-    fp ry= z*q.x+w*q.y-x*q.z+y*q.w;
-    fp rz=-y*q.x+x*q.y+w*q.z+z*q.w;
-    fp rw=-x*q.x-y*q.y-z*q.z+w*q.w;
-    x=rx;y=ry;z=rz;w=rw;
+    fp rx= w()*q.x()-z()*q.y()+y()*q.z()+x()*q.w();
+    fp ry= z()*q.x()+w()*q.y()-x()*q.z()+y()*q.w();
+    fp rz=-y()*q.x()+x()*q.y()+w()*q.z()+z()*q.w();
+    fp rw=-x()*q.x()-y()*q.y()-z()*q.z()+w()*q.w();
+    x()=rx;y()=ry;z()=rz;w()=rw;
     return *this;
   }
 
@@ -65,13 +70,13 @@ public:
   /** Quaternion conjugation (Good night, everybody!). This method operates 
       directly on this quaternion, changing its components (as opposed to 
       returning a copy which is conjugated). */
-  void conjugate() {x=-x;y=-y;z=-z;}
+  void conjugate() {x()=-x();y()=-y();z()=-z();}
 
   void integrate(Vector<3> w, fp dt, int steps=1);
   /** Reciprocal of quaternion magnitude
    @return reciprocal of quaternion magnitude=1/sqrt(x^2+y^2+z^2+w^2)
    */
-  fp rlength() {return Q_rsqrt(x*x+y*y+z*z+w*w);};
+  fp rlength() {return Q_rsqrt(x()*x()+y()*y()+z()*z()+w()*w());};
   /** Force the quaternion to be unit length with the same direction */
   void normalize() {((Vector<4,fp>)(*this))*=rlength();};
   Quaternion r2b(Quaternion& vr);

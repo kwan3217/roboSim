@@ -1,19 +1,6 @@
 #include <time.h>
 #include "HardwarePi.h"
-#include <linux/i2c-dev.h>
-#include <fcntl.h>
-
-/**
- * @copydoc Servo::write(int)
- * \internal
- * Implemented using the ServoBlaster user-space driver. That driver program sets up a named pipe in /dev/servoblaster. Commands
- * to it are written in the form of <channel>=<value> where channel is a number between 0 and 7, and value is the pulse time of the servo
- * command, in 10us units.
- */
-void HardwarePiServoBlaster::write(int n) {
-  fprintf(ouf,"%d=%d\n",channel,n);
-  fflush(ouf);
-}
+#include <wiringPi.h>
 
 /**
  * @copydoc Servo::write(int)
@@ -22,12 +9,7 @@ void HardwarePiServoBlaster::write(int n) {
  * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
  */
 void HardwarePiServoArduino::write(int n) {
-  ioctl(fileno(bus),I2C_SLAVE,ADDRESS);
-  char buf[3];
-  buf[0]=0x2C+2*channel;
-  buf[1]=(n >> 0) & 0xFF;
-  buf[2]=(n >> 8) & 0xFF;
-  fwrite(buf,1,3,bus);
+  writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
 }
 
 /**
@@ -38,12 +20,13 @@ void HardwarePiServoArduino::write(int n) {
  *
  */
 double HardwarePiInterface::checkPPS() {
-  pps_info_t info;
-  static const struct timespec timeout={0,0};
-  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
-  double t=ts2t(info.assert_timestamp);
-  if(t0<t) t0=t;
-  return t-t0;
+//  pps_info_t info;
+//  static const struct timespec timeout={0,0};
+//  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
+//  double t=ts2t(info.assert_timestamp);
+//  if(t0<t) t0=t;
+//  return t-t0;
+	return 0; //Comment out PPS stuff because no PPS source is plugged in
 }
 
 /** Makes sure that GPS buffer has data to read. If there is still data in the buffer that hasn't been spooled out, return immediately. If
@@ -51,9 +34,9 @@ double HardwarePiInterface::checkPPS() {
  * The file has been opened with O_NONBLOCK so it should return immediately even if there isn't a full buffer worth of data to read.
  */
 void HardwarePiInterface::fillGpsBuf() {
-  if(gpsPtr<gpsLen) return;
-  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
-  gpsPtr=0;
+//  if(gpsPtr<gpsLen) return;
+//  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
+//  gpsPtr=0;
 }
 
 /**
@@ -95,98 +78,49 @@ double HardwarePiInterface::time() {
   return t-t0;
 }
 
-static inline uint32_t buf_uint32_le(char buf[], int ofs) {
-  return ((uint32_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 ((uint32_t(buf[ofs+1]) & 0xFF)<< 8) |
-		 ((uint32_t(buf[ofs+2]) & 0xFF)<<16) |
-	     ((uint32_t(buf[ofs+3]) & 0xFF)<<24);
-}
-
-static inline int32_t buf_int32_le(char buf[], int ofs) {
-  return (( int32_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 (( int32_t(buf[ofs+1]) & 0xFF)<< 8) |
-		 (( int32_t(buf[ofs+2]) & 0xFF)<<16) |
-	     (( int32_t(buf[ofs+3]) & 0xFF)<<24);
-}
-
-static inline uint32_t buf_uint32_be(char buf[], int ofs) {
-  return ((uint32_t(buf[ofs+0]) & 0xFF)<<24) |
-		 ((uint32_t(buf[ofs+1]) & 0xFF)<<16) |
-		 ((uint32_t(buf[ofs+2]) & 0xFF)<< 8) |
-	     ((uint32_t(buf[ofs+3]) & 0xFF)<< 0);
-}
-
-static inline int32_t buf_int32_be(char buf[], int ofs) {
-  return ( (int32_t(buf[ofs+0]) & 0xFF)<<24) |
-		 ( (int32_t(buf[ofs+1]) & 0xFF)<<16) |
-		 ( (int32_t(buf[ofs+2]) & 0xFF)<< 8) |
-	     ( (int32_t(buf[ofs+3]) & 0xFF)<< 0);
-}
-
-static inline uint16_t buf_uint16_le(char buf[], int ofs) {
-  return ((uint16_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 ((uint16_t(buf[ofs+1]) & 0xFF)<< 8) ;
-}
-
-static inline int16_t buf_int16_le(char buf[], int ofs) {
-  return (( int16_t(buf[ofs+0]) & 0xFF)<< 0) |
-		 (( int16_t(buf[ofs+1]) & 0xFF)<< 8) ;
-}
-
-static inline uint16_t buf_uint16_be(char buf[], int ofs) {
-  return ((uint16_t(buf[ofs+0]) & 0xFF)<< 8) |
-		 ((uint16_t(buf[ofs+1]) & 0xFF)<< 0) ;
-}
-
-static inline int16_t buf_int16_be(char buf[], int ofs) {
-  return (( int16_t(buf[ofs+0]) & 0xFF)<< 8) |
-		 (( int16_t(buf[ofs+1]) & 0xFF)<< 0) ;
+/** @copydoc Interface::button(int)
+ *  \internal
+ *  Since we use WiringPiSetupGpio(), we use the Broadcom numbers. This happens to match the numbers printed
+ *  on our Pi header.
+ */
+bool HardwarePiInterface::button(int pin) {
+  return 0==digitalRead(pin);
 }
 
 void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
-  ioctl(fileno(bus),I2C_SLAVE,ODOMETER_ADDRESS);
+  ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS);
   char buf[0x0C];
   buf[0]=0x00;
-  fwrite(buf,1,1,bus);
-  fread(buf,1,12,bus);
-  wheelCount=buf_int32_le(buf,0);
-  dt        =buf_uint32_le(buf,4);
-  timeStamp =buf_uint32_le(buf,8);
+  write(bus,buf,1);
+  read(bus,buf,12);
+  wheelCount=readBuf_le<int32_t>(buf,0);
+  dt        =readBuf_le<uint32_t>(buf,4);
+  timeStamp =readBuf_le<uint32_t>(buf,8);
 }
 
 void HardwarePiInterface::readGyro(int g[]) {
-  char buf[6];
-  ioctl(fileno(bus),I2C_SLAVE,GYROSCOPE_ADDRESS);
-  buf[0]=0x43;
-  fwrite(buf,1,1,bus);
-  fread(buf,1,6,bus);
-  g[0]=buf_int16_be(buf,0);
-  g[1]=buf_int16_be(buf,2);
-  g[2]=buf_int16_be(buf,4);
+
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
-  ppsf=fopen("/dev/pps0","r");
-  time_pps_create(fileno(ppsf), &pps);
-  bus=fopen("/dev/i2c-1","w");
-  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
-  gpsf=fdopen(gps,"rb");
+  //Setup for GPIO (for buttons)
+  wiringPiSetupGpio();
+//  ppsf=fopen("/dev/pps0","r");
+//  time_pps_create(fileno(ppsf), &pps);
+  //Open the I2C bus
+  bus=open("/dev/i2c-1",O_RDWR);
+  if(bus<0) printf("Couldn't open bus: errno %d",errno);
+
+  //Initialize the MPU9250
+  mpu.begin(bus,0,0);
+//  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
+//  gpsf=fdopen(gps,"rb");
 }
 
 HardwarePiInterface::~HardwarePiInterface() {
-  time_pps_destroy(pps);
-  fclose(ppsf);
-  fclose(bus);
-}
-
-HardwarePiInterfaceBlaster::HardwarePiInterfaceBlaster():hardSteering(0),hardThrottle(4),HardwarePiInterface(hardSteering,hardThrottle) {
-  blaster=fopen("/dev/servoblaster","w");
-  hardSteering.begin(blaster);
-  hardThrottle.begin(blaster);
-};
-
-HardwarePiInterfaceBlaster::~HardwarePiInterfaceBlaster() {
-  fclose(blaster);
+//  time_pps_destroy(pps);
+//  fclose(ppsf);
+//  fclose(bus);
 }
 
 HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1),HardwarePiInterface(hardSteering,hardThrottle) {

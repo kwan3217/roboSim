@@ -10,6 +10,8 @@ typedef double fp;
 typedef float fp;
 #define atan2 atan2f
 #define exp expf
+#define sin sinf
+#define cos cosf
 //#define sqrt sqrtf
 #endif
 

@@ -3,77 +3,36 @@
  */
 #include<stdint.h>
 #include <cmath>
+#include "Vector.h"
 
 #ifndef ROBOT_H_
 #define ROBOT_H_
-const double PI = 2*acos(0.0); ///< Circle constant
 const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
 const double wheelRadius = .03175;
 
-class waypoint {
+class waypoint: public Vector<2,fp> {
 public:
-	double easting;  ///< Easting coordinate in meters east of origin
-	double northing; ///< Northing coordinate in meters north of origin
-	/** Add another waypoint to this waypoint, in the vector addition sense
-	 * @param rhs the other waypoint
-	 * @return a reference to this waypoint, which is now incremented by rhs
-	 */
-	waypoint& operator+=(const waypoint& rhs) {
-	   easting+=rhs.easting;
-	   northing+=rhs.northing;
-	   return *this;
-	}
-	/** Subtract another waypoint from this waypoint, in the vector subtraction sense
-	 * @param rhs the other waypoint
-	 * @return a reference to this waypoint, which is now decremented by rhs
-	 */
-	waypoint& operator-=(const waypoint& rhs) {
-	   easting-=rhs.easting;
-	   northing-=rhs.northing;
-	   return *this;
-	}
-	/** Compute the dot product of this waypoint and another waypoint
-	 * @param b the other waypoint
-	 * @return dot product value
-	 */
-	double dot(const waypoint& b) {
-		return northing*b.northing+easting*b.easting;
-	}
-	/** Compute the heading of this waypoint relative to the origin.
-	 * @return Heading in degrees east of true north, from 0 to almost 360
-	 */
-	double heading() {
-		double result=atan2(easting,northing)*180/PI;
-		if(result<0) result+=360;
-		return result;
-	}
-	/** Construct a waypoint
-	 * @param e easting value
-	 * @param n northing value
-	 */
-	waypoint(double e, double n):easting(e),northing(n) {};
-	waypoint():easting(0),northing(0) {};
+  fp& easting()  {return comp[0];}; ///< Associate the name "easting" with component 0
+  fp& northing() {return comp[1];}; ///< Associate the name "northing" with component 1
+  fp easting() const {return comp[0];}; ///< Get the easting component, used in const context (see http://www.cprogramming.com/tutorial/const_correctness.html)
+  fp northing() const {return comp[1];};///< Get the northing component, used in const context
+  /** Compute the heading of this waypoint relative to the origin.
+   * @return Heading in degrees east of true north, from 0 to almost 360
+   */
+  fp heading() {
+    fp result=atan2(easting(),northing())*180/PI;
+    if(result<0) result+=360;
+    return result;
+  }
+  /** Construct a waypoint
+   * @param e easting value
+   * @param n northing value
+   */
+  waypoint(fp e=0, fp n=0) {easting()=e;northing()=n;};
+  /** Copy constructor */
+  waypoint(Vector<2,fp> other):waypoint(other[0],other[1]) {};
 };
 
-/** Add two waypoints (vectors) together to produce a new waypoint (vector)
- * @param lhs left-hand-side waypoint
- * @param rhs right-hand-side waypoint
- * @return a new waypoint which is the vector sum of the two input waypoints
- */
-inline waypoint operator+(waypoint lhs, const waypoint& rhs) {
-  lhs += rhs;
-  return lhs;
-}
-
-/** Subtract two waypoints (vectors) together to produce a new waypoint (vector)
- * @param lhs left-hand-side waypoint
- * @param rhs right-hand-side waypoint
- * @return a new waypoint which is the vector difference of the two input waypoints
- */
-inline waypoint operator-(waypoint lhs, const waypoint& rhs) {
-  lhs -= rhs;
-  return lhs;
-}
 /** Abstract interface to a servo. This is write-only, because a real physical servo is write-only */
 class Servo {
 	public:
@@ -110,6 +69,11 @@ private:
 		 * @return Current epoch time in seconds
 		 */
 		virtual double time()=0;
+		/** Check whether a button is pushed
+                 * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17
+		 * @return true if the button is pushed (pin is low voltage)
+		 */
+		virtual bool button(int pin=17)=0;
 		/**	Read the odometer
 		 * @param timeStamp [out] time of last time readOdometer was called in microseconds
 		 * @param wheelCount [out] number of sectors read since the odometer was reset
