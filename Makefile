@@ -34,7 +34,13 @@ RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o MPU.o
 buttonTest.o: buttonTest.cpp HardwarePi.h robot.h
 	${CC} -g -c -std=c++14 -o $@ $<
 
+recordOdometer.o: recordOdometer.cpp HardwarePi.h robot.h
+	${CC} -g -c -std=c++14 -o $@ $<
+
 buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
+	${CC} -g -o $@ $^ -L /usr/local/lib lwiringPi
+	
+recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 	${CC} -g -o $@ $^ -L /usr/local/lib -lwiringPi
 
 html: Doxyfile
