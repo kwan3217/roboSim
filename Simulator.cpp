@@ -13,7 +13,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -92,10 +92,13 @@ void Simulator::update(double dt) {
 		turnRadius = wheelBase * tan( (90 - simSteering.read()) * PI / 180);
 	else if (simSteering.read() < 0.0)
 		turnRadius = -wheelBase * tan( (90 - simSteering.read()) * PI / 180);
+
 	if(simSteering.read() == 0) //Straight line position setting
 	{
-		pos.easting += sin(heading*PI/180)*simThrottle.read()*dt;
-		pos.northing += cos(heading*PI/180)*simThrottle.read()*dt;
+          waypoint dpos(sin(heading*PI/180)*simThrottle.read()*dt,
+                        cos(heading*PI/180)*simThrottle.read()*dt);
+ 
+		pos+=dpos;
 	}
 	else
 	{	//  Time is read and placed in turnAngle to represent the angle of the turn
@@ -103,8 +106,9 @@ void Simulator::update(double dt) {
 		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
 		if(simSteering.read() < 0)
 		{
-			pos.easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			pos.northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+                   waypoint dpos(turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180),
+                                 turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180));
+			pos += dpos;
 			heading -= dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
@@ -113,8 +117,9 @@ void Simulator::update(double dt) {
 		}
 		else if(simSteering.read() > 0)
 		{
-			pos.easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			pos.northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+                   waypoint dpos(-turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180),
+                                  turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180));
+			pos+= dpos;
 			heading += dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
@@ -123,9 +128,8 @@ void Simulator::update(double dt) {
 }
 
 /** Print information related to the current stat in CSV format */
-void Simulator::showVector() const
-{
-	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting, pos.northing, simThrottle.read(), heading,  turnRadius );
+void Simulator::showVector() const {
+	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading,  turnRadius );
 }
 
 void Simulator::testNMEA() {
@@ -152,7 +156,7 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 		et -= .05;
 		predictedNorthing += wheelCount * PI * .03175 / 2;
 	}
-	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, predictedNorthing, distanceTraveled);
+	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing(), predictedNorthing, distanceTraveled);
 }
 
 
@@ -161,7 +165,7 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 SimServo::SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) :
 cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(slewrate), commanded(0), physical(0)
 {
-	if(physmax < physmin || cmdmax < cmdmin)
+	if(cmdmax < cmdmin)
 	{
 		cerr << "bad servo max/min -- set max greater than or equal to min";
 		exit(1);
