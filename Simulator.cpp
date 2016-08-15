@@ -13,7 +13,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(-127, 127, -10, 10, 5), simSteering(-127, 127, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -161,7 +161,7 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 SimServo::SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate) :
 cmdmin(cmdmin), cmdmax(cmdmax), physmin(physmin), physmax(physmax), slewrate(slewrate), commanded(0), physical(0)
 {
-	if(physmax < physmin || cmdmax < cmdmin)
+	if(cmdmax < cmdmin)
 	{
 		cerr << "bad servo max/min -- set max greater than or equal to min";
 		exit(1);

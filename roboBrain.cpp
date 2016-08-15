@@ -39,7 +39,6 @@ double roboBrain::guide(){
 	}
 	if(nowpoint >= wpcount){
 		headingChange=400;
-		return headingChange;
 	}
     desiredHeading = (waypoints[nowpoint]-pos).heading();
 
@@ -50,10 +49,9 @@ double roboBrain::guide(){
 	else if (headingChange < -180){
 		headingChange += 360;
 	}
-	return headingChange;
 }
 
-void roboBrain::control(double headingChange){
+void roboBrain::control(){
 
 	if(headingChange >= 300){
 		interface.throttle.write(0);

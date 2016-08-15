@@ -5,7 +5,7 @@
 #ifndef ROBOBRAIN_H_
 #define ROBOBRAIN_H_
 
-class roboBrain //where the robot thinks it is
+class roboBrain: public Controller //where the robot thinks it is
 {
 	private:
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
@@ -30,7 +30,6 @@ class roboBrain //where the robot thinks it is
 		double heading;		///< Perceived heading
 		double desiredHeading;	///< Heading needed for the robot to be on course
 		double headingChange;	///< Heading change needed for the robot to be on course
-		Interface& interface;	///< Interface for the robot, either simulated or actual hardware
 		int nowpoint = 1;	///< Current waypoint for robot to navigate to
 		static const waypoint waypoints[];	///< Array of waypoints for the robot
 		char nmeaReceived[256];	///< NMEA sentence received by robot
@@ -50,7 +49,7 @@ class roboBrain //where the robot thinks it is
 		void navigateGPS();
 		void navigateOdometer();
 		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
-		void control(double);			//give data to servos, which will then be read by the simulation
+		void control();			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
 		void showVector() const;
 };
