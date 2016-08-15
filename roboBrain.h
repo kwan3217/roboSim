@@ -5,9 +5,10 @@
 #ifndef ROBOBRAIN_H_
 #define ROBOBRAIN_H_
 
-class roboBrain: public Controller //where the robot thinks it is
+class roboBrain //where the robot thinks it is
 {
 	private:
+		Interface& interface;
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void

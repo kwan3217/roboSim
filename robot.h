@@ -141,13 +141,4 @@ private:
 		virtual ~Interface() {};
 };
 
-class Controller {
-protected:
-	Interface& interface;	///< Interface to the robot, either simulated or actual hardware
-public:
-	Controller(Interface& Linterface):interface(Linterface) {}
-	virtual ~Controller() {};
-	virtual void control()=0;
-};
-
 #endif /* ROBOT_H_ */

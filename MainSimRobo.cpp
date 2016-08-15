@@ -23,7 +23,8 @@ int main()
 		roboSim.update(dt);
 		robo.navigateCompass();
 		robo.navigateOdometer();
-		robo.control(robo.guide());
+                robo.guide();
+		robo.control();
 //		robo.navigateCompass();
 //		robo.navigateGPS();
 		if(roboSim.time() > 30) break;
