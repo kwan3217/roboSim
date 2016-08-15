@@ -1,6 +1,8 @@
 #ifndef Vector_h
 #define Vector_h
 
+/** @file */
+
 #include "float.h"
 
 /** Geometry vector, IE quantity with magnitude and direction. This is set up

@@ -1,6 +1,8 @@
 #ifndef Quaternion_h
 #define Quaternion_h
 
+/** @file */
+
 #include "Vector.h"
 
 /** Quaternion class. This is a specialization of the Vector class, which adds
@@ -8,50 +10,13 @@
     encourage use of a consistent convention when using this quaternion class
     for 3D orientation. */
 class Quaternion:public Vector<4,fp> {
-public:
-  fp& x() {return comp[0]};}; ///< Name of component 0, which is the x vector component by convention
-  fp& y() {return comp[1]};}; ///< Name of component 1, which is the y vector component by convention
-  fp& z() {return comp[2]};}; ///< Name of component 2, which is the z vector component by convention
-  fp& w() {return comp[3]};}; ///< Name of component 3, which is the scalar   component by convention
-  fp x() const {return comp[0]};}; ///< Name of component 0, which is the x vector component by convention
-  fp y() const {return comp[1]};}; ///< Name of component 1, which is the y vector component by convention
-  fp z() const {return comp[2]};}; ///< Name of component 2, which is the z vector component by convention
-  fp w() const {return comp[3]};}; ///< Name of component 3, which is the scalar   component by convention
-  /** Assignment operator. Copy the components from the right hand side
-      quaternion into this quaternion without affecting the right hand side
-   @param[in] rhs Quaternion to copy components from
-   */
-  Quaternion& operator=(Quaternion rhs) {
-    for(int i=0;i<4;i++)comp[i]=rhs[i];
-    return *this;
-  }
-  /** Constructor with components specified
-   @param[in] Lx initial x vector component
-   @param[in] Ly initial y vector component
-   @param[in] Lz initial z vector component
-   @param[in] Lw initial scalar   component
-  */
-  Quaternion(fp Lx, fp Ly, fp Lz, fp Lw):Quaternion(){x()=Lx;y()=Ly;z()=Lz;w()=Lw;};
-  /** Construct an identity quaternion, IE 0i+0j+0k+1 . This also represents an 
-      identity orientation */
-  Quaternion() {x()=0;y()=0;z()=0;w()=1;};
-  Quaternion(Vector<4,fp> other):Quaternion(comp[0],comp[1],comp[2],comp[3]);
-  /** Construct a quaternion from the components of a 3D vector. Quaternion
-      will be Lx*i+Ly*j+Lz*k+0 . Does not have to be a unit quaternion or unit
-      vector. 
-   @param[in] Lx initial x vector component
-   @param[in] Ly initial y vector component
-   @param[in] Lz initial z vector component
-   */
-  Quaternion(fp Lx, fp Ly, fp Lz):Quaternion(Lx,Ly,Lz,0){};
-
 private:
-  /** Quaternion multipy and assign. Don't use this directly, instead use the 
-      plain multiply operator built upon this. 
+  /** Quaternion multipy and assign. Don't use this directly, instead use the
+      plain multiply operator built upon this.
 
       The operator uses this as the left-hand operand,
       the passed-in quaternion as the right-hand operand, and writes
-      the result back to the left-hand side, returning a reference to it. 
+      the result back to the left-hand side, returning a reference to it.
 
       @param q right-hand side quaternion
   */
@@ -65,6 +30,59 @@ private:
   }
 
   friend Quaternion operator*(Quaternion lhs, const Quaternion& rhs);
+
+public:
+  /** Accessor for x vector component
+   * \return reference to component 0, which is the X vector component by convention */
+  fp& x() {return comp[0]};};
+  /** Accessor for y vector component
+   * \return reference to component 1, which is the Y vector component by convention */
+  fp& y() {return comp[1]};};
+  /** Accessor for z vector component
+   * \return reference to component 2, which is the Z vector component by convention */
+  fp& z() {return comp[2]};};
+  /** Accessor for scalar component
+   * \return reference to component 3, which is the scalar component by convention */
+  fp& w() {return comp[3]};};
+  /** Read-only accessor for x vector component, used in const context
+   * \return value of component 0, which is the X vector component by convention */
+  fp x() const {return comp[0]};};
+  /** Read-only accessor for y vector component, used in const context
+   * \return value of component 1, which is the Y vector component by convention */
+  fp y() const {return comp[1]};};
+  /** Read-only accessor for z vector component, used in const context
+   * \return value of component 2, which is the Z vector component by convention */
+  fp z() const {return comp[2]};};
+  /** Read-only accessor for scalar component, used in const context
+   * \return value of component 3, which is the scalar component by convention */
+  fp w() const {return comp[3]};};
+  /** Assignment operator. Copy the components from the right hand side
+      quaternion into this quaternion without affecting the right hand side
+   @param[in] rhs Quaternion to copy components from
+   */
+  Quaternion& operator=(Quaternion rhs) {
+    for(int i=0;i<4;i++)comp[i]=rhs[i];
+    return *this;
+  };
+  /** Constructor with components specified
+   @param[in] Lx initial x vector component
+   @param[in] Ly initial y vector component
+   @param[in] Lz initial z vector component
+   @param[in] Lw initial scalar   component
+  */
+  Quaternion(fp Lx, fp Ly, fp Lz, fp Lw):Quaternion(){x()=Lx;y()=Ly;z()=Lz;w()=Lw;};
+  /** Construct an identity quaternion, IE 0i+0j+0k+1 . This also represents an 
+      identity orientation */
+  Quaternion() {x()=0;y()=0;z()=0;w()=1;};
+  Quaternion(Vector<4,fp> other):Quaternion(comp[0],comp[1],comp[2],comp[3]) {};
+  /** Construct a quaternion from the components of a 3D vector. Quaternion
+      will be Lx*i+Ly*j+Lz*k+0 . Does not have to be a unit quaternion or unit
+      vector. 
+   @param[in] Lx initial x vector component
+   @param[in] Ly initial y vector component
+   @param[in] Lz initial z vector component
+   */
+  Quaternion(fp Lx, fp Ly, fp Lz):Quaternion(Lx,Ly,Lz,0){};
 
 public:
   /** Quaternion conjugation (Good night, everybody!). This method operates 

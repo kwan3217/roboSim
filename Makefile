@@ -1,6 +1,6 @@
 CC = g++
 
-all: RoboSim.exe RoboPi.exe buttonTest.exe
+all: RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe
 
 MainSimRobo.o: MainSimRobo.cpp robot.h Simulator.h roboBrain.h
 	${CC} -g -c -std=c++14 -o $@ $<
@@ -38,7 +38,7 @@ recordOdometer.o: recordOdometer.cpp HardwarePi.h robot.h
 	${CC} -g -c -std=c++14 -o $@ $<
 
 buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
-	${CC} -g -o $@ $^ -L /usr/local/lib lwiringPi
+	${CC} -g -o $@ $^ -L /usr/local/lib -lwiringPi
 	
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 	${CC} -g -o $@ $^ -L /usr/local/lib -lwiringPi

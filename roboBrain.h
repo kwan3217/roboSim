@@ -5,10 +5,11 @@
 #ifndef ROBOBRAIN_H_
 #define ROBOBRAIN_H_
 
-class roboBrain //where the robot thinks it is
+#include "robot.h"
+
+class roboBrain: public Controller //where the robot thinks it is
 {
 	private:
-		Interface& interface;
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void
@@ -45,12 +46,12 @@ class roboBrain //where the robot thinks it is
 		uint32_t dt;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
-		void update(double);	//takes time and updates location. For now, it'll just be a copy of simulation's update.
 		void navigateCompass();	//
 		void navigateGPS();
 		void navigateOdometer();
-		void guide() ;	
-		void control();			//give data to servos, which will then be read by the simulation
+		virtual void navigage() {navigateCompass();navigateGPS();navigateOdometer();}
+		virtual void guide();
+		virtual void control();			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
 		void showVector() const;
 };
