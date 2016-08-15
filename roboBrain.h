@@ -49,7 +49,7 @@ class roboBrain //where the robot thinks it is
 		void navigateCompass();	//
 		void navigateGPS();
 		void navigateOdometer();
-		double guide() ;	//return a heading change, work with current object data. Determine if previous waypoint has been passed
+		void guide() ;	
 		void control();			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
 		void showVector() const;

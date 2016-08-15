@@ -92,10 +92,13 @@ void Simulator::update(double dt) {
 		turnRadius = wheelBase * tan( (90 - simSteering.read()) * PI / 180);
 	else if (simSteering.read() < 0.0)
 		turnRadius = -wheelBase * tan( (90 - simSteering.read()) * PI / 180);
+
 	if(simSteering.read() == 0) //Straight line position setting
 	{
-		pos.easting += sin(heading*PI/180)*simThrottle.read()*dt;
-		pos.northing += cos(heading*PI/180)*simThrottle.read()*dt;
+          waypoint dpos(sin(heading*PI/180)*simThrottle.read()*dt,
+                        cos(heading*PI/180)*simThrottle.read()*dt);
+ 
+		pos+=dpos;
 	}
 	else
 	{	//  Time is read and placed in turnAngle to represent the angle of the turn
@@ -103,8 +106,9 @@ void Simulator::update(double dt) {
 		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
 		if(simSteering.read() < 0)
 		{
-			pos.easting += turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180);
-			pos.northing += turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180);
+                   waypoint dpos(turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180),
+                                 turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180));
+			pos += dpos;
 			heading -= dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading < 0)
 				heading = 360 + heading;
@@ -113,8 +117,9 @@ void Simulator::update(double dt) {
 		}
 		else if(simSteering.read() > 0)
 		{
-			pos.easting += -turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180);
-			pos.northing += turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180);
+                   waypoint dpos(-turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180),
+                                  turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180));
+			pos+= dpos;
 			heading += dt*180*simThrottle.read()/(PI * turnRadius);
 			if (heading > 360)
 				heading = heading - 360;
@@ -123,9 +128,8 @@ void Simulator::update(double dt) {
 }
 
 /** Print information related to the current stat in CSV format */
-void Simulator::showVector() const
-{
-	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting, pos.northing, simThrottle.read(), heading,  turnRadius );
+void Simulator::showVector() const {
+	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading,  turnRadius );
 }
 
 void Simulator::testNMEA() {
@@ -152,7 +156,7 @@ void Simulator::testOdometer(double et){ //virtual void readOdometer(uint32_t& t
 		et -= .05;
 		predictedNorthing += wheelCount * PI * .03175 / 2;
 	}
-	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing, predictedNorthing, distanceTraveled);
+	printf("wheelCount: %d\nNorthing: %2.2f\nNorthing predicted by wheelCount: %2.2f\nDistance traveled: %2.2f", wheelCount, pos.northing(), predictedNorthing, distanceTraveled);
 }
 
 

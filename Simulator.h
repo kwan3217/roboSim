@@ -77,14 +77,14 @@ class Simulator : public Interface
 		/** Return the current latitude. This is calculated from the current northing and the initial latitude.
 		 * @return Latitude in degrees north of WGS84 equator
 		 */
-		double lat() const {return lat0+(pos.northing/re)*180.0/PI;};
+		double lat() const {return lat0+(pos.northing()/re)*180.0/PI;};
 		/** Return the current longitude. This is calculated from the current easting and the initial latitude and longitude.
 		 * Note that the cosine factor necessary for converting easting to longitude is calculated from the initial latitude,
 		 * not the current latitude. This doesn't matter at the small scale of an AVC course. If you are considering an
 		 * area big enough for the change in latitude to make a difference, easting and northing are no longer valid concepts.
 		 * @return Longitude in degrees east of WGS84 prime meridian (Note that all longitudes in continental USA are negative).
 		 */
-		double lon() const {return lon0+(pos.easting/cos(lat0*PI/180.0)/re)*180.0/PI;}
+		double lon() const {return lon0+(pos.easting()/cos(lat0*PI/180.0)/re)*180.0/PI;}
 		/** Convert a measurement in degrees to a measurement in degrees and minutes, appropriate for NMEA output
 		 * @param deg Angle in decimal degrees
 		 * @return Same angle in degrees*100+minutes, so when printed in decimal, the format is DDMM.MMMMM, IE the units and
@@ -112,7 +112,7 @@ class Simulator : public Interface
 		 * @param e [out] easting in meters east of initial longitude
 		 * @param n [out] northing in meters east of initial latitude
 		 */
-        void cheatNavigate(double& e, double& n) {e=pos.easting; n=pos.northing;};
+//        void cheatNavigate(waypoint& Lpos) {Lpos=pos;};
 		/** Back-door direct access to heading
 		 * @param h [out] heading in degrees east of true north
 		 */
