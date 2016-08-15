@@ -13,23 +13,19 @@ int main()
 //	Simulator::testNMEA();
 	cout << "pos.easting, pos.northing, simThrottle.read(), heading,  turnRadius ,,nav.easting, nav.northing,, nowpoint,waypoints[nowpoint].easting, waypoints[nowpoint].northing,desiredHeading,headingChange" << endl; //.csv headers
 	
-	Simulator roboSim = Simulator(309.63, 40.090586, -105.185485);
+	HardwarePiInterfaceArduino roboInterface;
 	
-	roboBrain robo = roboBrain(309.63,0,0,roboSim);
+	roboBrain robo = roboBrain(309.63,0,0,roboInterface);
 	
 	while(true)
 	{
-		double dt = .05; //Interval time; simulates amount of time between each function's call
-		roboSim.update(dt);
-		robo.navigateCompass();
-		robo.navigateOdometer();
-		robo.control(robo.guide());
-//		robo.navigateCompass();
-//		robo.navigateGPS();
-		if(roboSim.time() > 30) break;
-
-		roboSim.showVector();
-		robo.showVector();
+		roboInterface.throttle.write(1750);
+		if(roboInterface.time() > 2) roboInterface.steering.write(2000);
+		else if(roboInterface.time() > 2.5) roboInterface.steering.write(1500);
+		else if(roboInterface.time() > 5){
+			roboInterface.throttle.write(1500);
+			break;
+		}
 	}
 	cout << "\nEND";
 	return 0;
