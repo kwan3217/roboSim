@@ -3,8 +3,8 @@
 #include "OpenLoopGuidance.h"
 #include <iostream>
 
-//HardwarePiInterfaceArduino interface;
-Simulator interface;
+HardwarePiInterfaceArduino interface;
+//Simulator interface;
 double t[]           {0,  0,  2,  5,  7,  9,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};
 int servoCommand[]  {150,150,140,200,150,150,150};
@@ -27,7 +27,7 @@ void loop() {
   controller.navigate();
   controller.guide();
   controller.control();
-//  usleep(2000);
+  usleep(2000);
 }
 
 int main() {
