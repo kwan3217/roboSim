@@ -1,6 +1,8 @@
 CC = g++
 
-all: RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe
+EXES = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe
+
+all: $(EXES)
 
 MainSimRobo.o: MainSimRobo.cpp robot.h Simulator.h roboBrain.h
 	${CC} -g -c -std=c++14 -o $@ $<
@@ -48,4 +50,4 @@ html: Doxyfile
 
 #Remove all compiled files
 clean:
-	$(RM) -r RoboSim.exe RoboPi.exe *.o html latex
+	$(RM) -r $(EXES) *.o html latex
