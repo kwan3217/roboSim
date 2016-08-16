@@ -31,7 +31,7 @@ class roboBrain //where the robot thinks it is
 		double heading;		///< Perceived heading
 		double desiredHeading;	///< Heading needed for the robot to be on course
 		double headingChange;	///< Heading change needed for the robot to be on course
-		int nowpoint = 1;	///< Current waypoint for robot to navigate to
+		int nowpoint = 0;	///< Current waypoint for robot to navigate to
 		static const waypoint waypoints[];	///< Array of waypoints for the robot
 		char nmeaReceived[256];	///< NMEA sentence received by robot
 		int charsReceived;	///< Number of characters in NMEA sentence currently received
