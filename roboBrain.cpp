@@ -53,14 +53,17 @@ void roboBrain::guide(){
 }
 
 void roboBrain::control(){
-
-	if(headingChange >= 300){
-		interface.throttle.write(150);
-		interface.steering.write(150);
-		return;
+	if(nowpoint == 0){
+		if(interface.button()) nowpoint = 1;
+	} else {
+		if(headingChange >= 300){
+			interface.throttle.write(150);
+			interface.steering.write(150);
+			return;
+		}
+		interface.throttle.write(140);
+		interface.steering.write(headingChange * double (50)/180+150);
 	}
-	interface.throttle.write(140);
-	interface.steering.write(headingChange * double (50)/180+150);
 }
 
 void roboBrain::navigateCompass(){

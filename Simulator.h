@@ -107,7 +107,7 @@ class Simulator : public Interface
 		virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
 		virtual void readGyro(int g[]);
 		virtual double time() {return epochTime;};
-		virtual bool button(int pin=17) {return time()>1.0 && time()<1.1;};
+		virtual bool button(int pin=17) {return epochTime >= 1;};
 		/** Back-door direct access to navigation state
 		 * @param e [out] easting in meters east of initial longitude
 		 * @param n [out] northing in meters east of initial latitude
