@@ -20,10 +20,10 @@ void Quaternion::integrate(Vector<3> wv, fp dt, int steps) {
 /** Implement direct (reference to body) rotation with quaternions using the convention documented
     in the Kwan Hypertext Library:
 
-v_r=q'*v_b*q
+\f$ \vec{v}_b=\mathbf{q}\vec{v}_r\mathbf{q}' \f$
 
-    @param[in] vr Vector in reference frame. Must be a quaternion with zero scalar part
-    @return copy of same vector but expressed in components in body frame. Will be a quaternion
+\param[in] vr Vector in reference frame. Must be a quaternion with zero scalar part
+\return copy of same vector but expressed in components in body frame. Will be a quaternion
             with zero scalar part
 */    
 Quaternion Quaternion::r2b(Quaternion& vr) {
@@ -36,10 +36,10 @@ Quaternion Quaternion::r2b(Quaternion& vr) {
 /** Implement inverse (body to reference) rotation with quaternions using the convention documented
     in the Kwan Hypertext Library:
 
-v_r=q'*v_b*q
+\f$ \vec{v}_r=\mathbf{q}'\vec{v}_b\mathbf{q} \f$
 
-    @param vr Vector in reference frame. Must be a quaternion with zero scalar part
-    @return same vector but transformed into body frame. Will be a quaternion
+\param vb Vector in body frame. Must be a quaternion with zero scalar part
+\return same vector but transformed into reference frame. Will be a quaternion
             with zero scalar part
 */    
 Quaternion Quaternion::b2r(Quaternion& vb) {

@@ -14,7 +14,7 @@ using namespace std;
 
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
-heading(h), pos(e, n),interface(Linterface),headingChange(0),desiredHeading(0),
+Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),
 partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0)
 { }
 
@@ -64,10 +64,6 @@ void roboBrain::control(){
 		interface.throttle.write(140);
 		interface.steering.write(headingChange * double (50)/180+150);
 	}
-}
-
-void roboBrain::update(double t){
-
 }
 
 void roboBrain::navigateCompass(){

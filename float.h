@@ -1,6 +1,8 @@
 #ifndef FLOAT_H
 #define FLOAT_H
 
+/** @file */
+
 #include <inttypes.h>
 #include <math.h>
 
