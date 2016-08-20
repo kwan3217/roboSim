@@ -37,9 +37,33 @@ int main() {
     //ERROR HANDLING: i2c transaction failed
     printf("Failed to read from the i2c bus.\n");
   } else {
-    printf("Data read: %02x%02x\n", buffer[0],buffer[1]);
+    printf("Data read: %02x%02x\n", buffer[1],buffer[0]);
   }
 
+  //----- WRITE BYTES -----
+  if (write(file_i2c, "\x00", 1) != 1) {
+    //write() returns the number of bytes actually written, if it doesn't match then an error occurred (e.g. no response from the device)
+    // ERROR HANDLING: i2c transaction failed
+    printf("Failed to write to the i2c bus.\n");
+  }
+
+  //----- READ BYTES -----
+  length = 16;			//<<< Number of bytes to read
+  if (read(file_i2c, buffer, length) != length) {
+    //read() returns the number of bytes actually read, if it doesn't match then an error occurred (e.g. no response from the device)
+    //ERROR HANDLING: i2c transaction failed
+    printf("Failed to read from the i2c bus.\n");
+  } else {
+    printf("Data read: ");
+    int32_t  wc=*(( int32_t*)(buffer+ 0));
+    uint32_t dt=*((uint32_t*)(buffer+ 4));
+    uint32_t t0=*((uint32_t*)(buffer+ 8));
+    uint32_t t1=*((uint32_t*)(buffer+12));
+    for(int i=0;i<16;i+=4) printf("%02x%02x%02x%02x ", buffer[3+i],buffer[2+i],buffer[1+i],buffer[0+i]);
+    printf("\n");
+    printf("wc=%d, dt=%u, t0=%u, t1=%u \n",wc,dt,t0,t1);
+  }
+/*
   for(;;) {
     for(uint16_t i=0;i<100;i++) {
       buffer[0]=0x2C;
@@ -57,4 +81,5 @@ int main() {
       usleep(32174);
     }
   }
+*/
 }
