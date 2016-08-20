@@ -51,6 +51,8 @@ public:
 class Simulator : public Interface
 {
 	private:
+		double dt;
+		double turnAngle;		///< Rate of change of heading
 	    double lat0;            ///< Origin latitude in degrees north of WGS84 equator
 	    double lon0;            ///< Origin longitude in degrees east of WGS84 prime meridian
 		waypoint pos;           ///< Actual position of robot relative to lat0 and lon0
