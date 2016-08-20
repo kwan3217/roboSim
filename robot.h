@@ -49,6 +49,7 @@ class Servo {
 class Interface {
 private:
 	public:
+	    virtual void update(double dt) {};
 	    /** Gets time of last PPS in seconds from epoch. You may call this function as often as you like -- it will
 	     * only return a new value whenever a new PPS has arrived. This represents the time at which the *next* GPS fix
 	     * is valid, IE a PPS pulse is generated, then some time later a new position is transmitted.
@@ -98,6 +99,17 @@ private:
 		 * for any class which has virtual methods.
 		 */
 		virtual ~Interface() {};
+};
+
+class Controller {
+protected:
+  Interface& interface;
+public:
+  virtual void navigate() {};
+  virtual void guide() {};
+  virtual void control() {};
+  Controller(Interface& Linterface):interface(Linterface) {};
+  virtual ~Controller() {};
 };
 
 #endif /* ROBOT_H_ */

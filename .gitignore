@@ -7,6 +7,7 @@ latex
 .project
 .settings
 *.csv
+*.bin
 *.nmea
 *.ods
 .~lock*
