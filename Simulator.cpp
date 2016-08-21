@@ -47,7 +47,10 @@ char Simulator::readChar() {
   charsSent++;
   return result;
 }
-void Simulator::readGyro(int []) {}
+void Simulator::readGyro(int g[]) {
+	g[0] = g[1] = 0;
+	g[2] = (turnAngle * 0x7FFF)/(dt * 250) + 0.5;
+}
 
 /** Generate a new GPS fix. Update the PPS value, create the RMC sentence, set the pointers for spooling out the sentence */
 void Simulator::generateNewFix() {
@@ -76,7 +79,8 @@ void Simulator::generateNewFix() {
 /** Update the actual position and heading of the robot
  * @param dt update time interval in seconds
  */
-void Simulator::update(double dt) {
+void Simulator::update(double Ldt) {
+	dt = Ldt;
 	simSteering.timeStep(dt);
 	simThrottle.timeStep(dt);
 
@@ -103,7 +107,7 @@ void Simulator::update(double dt) {
 	else
 	{	//  Time is read and placed in turnAngle to represent the angle of the turn
 		//  made since last position update.
-		double turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
+		turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
 		if(simSteering.read() < 0)
 		{
                    waypoint dpos(turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180),
