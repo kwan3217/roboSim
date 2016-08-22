@@ -13,7 +13,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), turnRadius(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), kappa(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -48,8 +48,8 @@ char Simulator::readChar() {
   return result;
 }
 void Simulator::readGyro(int g[]) {
-	g[0] = g[1] = 0;
-	g[2] = (turnAngle * 0x7FFF)/(dt * 250) + 0.5;
+  g[0] = g[1] = 0;
+  g[2] = (yawRate * 0x7FFF)/250;
 }
 
 /** Generate a new GPS fix. Update the PPS value, create the RMC sentence, set the pointers for spooling out the sentence */
@@ -80,60 +80,33 @@ void Simulator::generateNewFix() {
  * @param dt update time interval in seconds
  */
 void Simulator::update(double Ldt) {
-	dt = Ldt;
-	simSteering.timeStep(dt);
-	simThrottle.timeStep(dt);
+  dt = Ldt;
+  simSteering.timeStep(dt);
+  simThrottle.timeStep(dt);
 
-	epochTime+=dt; //Update current time
-	distanceTraveled += simThrottle.read() * double(dt);
+  epochTime+=dt; //Update current time
+  distanceTraveled += simThrottle.read() * double(dt);
 
-	if((epochTime-pps)>dpps) {
-		generateNewFix();
-	}
-	if(simSteering.read() == 0.0)
-		turnRadius = 0;
-	else if (simSteering.read() > 0.0)
-		turnRadius = wheelBase * tan( (90 - simSteering.read()) * PI / 180);
-	else if (simSteering.read() < 0.0)
-		turnRadius = -wheelBase * tan( (90 - simSteering.read()) * PI / 180);
+  if((epochTime-pps)>dpps) {
+    generateNewFix();
+  }
 
-	if(simSteering.read() == 0) //Straight line position setting
-	{
-          waypoint dpos(sin(heading*PI/180)*simThrottle.read()*dt,
-                        cos(heading*PI/180)*simThrottle.read()*dt);
- 
-		pos+=dpos;
-	}
-	else
-	{	//  Time is read and placed in turnAngle to represent the angle of the turn
-		//  made since last position update.
-		turnAngle = dt * 180 * simThrottle.read()/(PI * turnRadius);
-		if(simSteering.read() < 0)
-		{
-                   waypoint dpos(turnRadius * cos((turnAngle - heading)*PI/180) - turnRadius * cos(heading*PI/180),
-                                 turnRadius * sin((turnAngle - heading)*PI/180) + turnRadius * sin(heading*PI/180));
-			pos += dpos;
-			heading -= dt*180*simThrottle.read()/(PI * turnRadius);
-			if (heading < 0)
-				heading = 360 + heading;
-			else if (heading > 360)
-				heading -= 360;
-		}
-		else if(simSteering.read() > 0)
-		{
-                   waypoint dpos(-turnRadius * cos((turnAngle + heading)*PI/180) + turnRadius * cos(heading*PI/180),
-                                  turnRadius * sin((turnAngle + heading)*PI/180) - turnRadius * sin(heading*PI/180));
-			pos+= dpos;
-			heading += dt*180*simThrottle.read()/(PI * turnRadius);
-			if (heading > 360)
-				heading = heading - 360;
-		}
-	}
+  kappa = tan( simSteering.read() * PI / 180)/wheelBase;
+  yawRate = kappa*simThrottle.read()*180/PI; //Yaw rate in deg/s
+  heading +=yawRate*dt; //Add yaw increment in degrees
+  if (heading < 0) {
+    heading = 360 + heading;
+  } else if (heading > 360) {
+    heading -= 360;
+  }
+  waypoint dpos(sin(heading*PI/180)*simThrottle.read()*dt,
+                cos(heading*PI/180)*simThrottle.read()*dt);
+  pos+=dpos;
 }
 
 /** Print information related to the current stat in CSV format */
 void Simulator::showVector() const {
-	printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading,  turnRadius );
+  printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading, kappa);
 }
 
 void Simulator::testNMEA() {

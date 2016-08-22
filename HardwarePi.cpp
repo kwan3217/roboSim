@@ -6,9 +6,11 @@
  * @copydoc Servo::write(int)
  * \internal
  * Implemented by writing to the correct registers in the Arduino serving as the odometer. The value written is a 16-bit unsigned integer
- * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units.
+ * written little-endian to address 0x2C/0x2D or 0x2E/0x2F. This number is interpreted as the pulse width to use in 10us units. There is a software stop at 100 units and 200 units.
  */
 void HardwarePiServoArduino::write(int n) {
+  if(n<100) n=100;
+  if(n>200) n=200;
   writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
 }
 
