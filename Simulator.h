@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include "robot.h"
 
-
 /** Simulated servo. Keeps track of physical value of servo (steering angle, speed of robot, etc) and manages servo slewing */
 class SimServo:public Servo {
 private:
@@ -51,12 +50,12 @@ public:
 class Simulator : public Interface {
 private:
   double dt;
-  double turnAngle;		///< Rate of change of heading
+  double yawRate;	  ///< Yaw rate in deg/s
   double lat0;            ///< Origin latitude in degrees north of WGS84 equator
   double lon0;            ///< Origin longitude in degrees east of WGS84 prime meridian
   waypoint pos;           ///< Actual position of robot relative to lat0 and lon0
   double heading;         ///< Actual heading in degrees east of True North
-  double turnRadius;      ///< Turning radius in meters, but 0 means straight ahead
+  double kappa;           ///< Turning curvature in 1/m, positive is turning to the right
   const double wheelBase=0.3; ///< Wheelbase coefficient in meters
   const double ppsInterval=1.0; ///< Position is available at this interval in seconds
   double pps;             ///< epoch time of the last PPS in seconds

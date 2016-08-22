@@ -64,6 +64,9 @@ i2c_echo.exe: i2c_echo.c
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 	${CPP} -g -o $@ $^ # Link in debug mode to an executable, output name from $@, input is all named .o files ($^)
 
+testCompassNeedle.csv: testCompassNeedle.exe
+	./$^ > $@
+
 html: Doxyfile
 	doxygen
 
