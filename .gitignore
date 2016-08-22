@@ -12,4 +12,5 @@ latex
 *.ods
 .~lock*
 *.log
+*.lss
 
