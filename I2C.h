@@ -10,25 +10,14 @@ typedef int I2C_t;
 
 /** Write a buffer to the I2C bus
  * \param bus stream representing I2C bus
- * \param addr slave address to write to
+ * \param slaveaddr slave address to write to
  * \param buf buffer to write
  * \param buf number of bytes to write
+ * \return true if write succeeded, false otherwise
  */
-static inline bool writeI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
-  ioctl(bus,I2C_SLAVE,addr);
+inline bool writeI2C(I2C_t bus,  uint8_t slaveaddr, char* buf, int len) {
+  ioctl(bus,I2C_SLAVE,slaveaddr);
   bool result=(len==write(bus,buf,len));
-  return result;
-}
-
-/** Read a buffer from the I2C bus
- * \param bus stream representing I2C bus
- * \param addr slave address to write to
- * \param buf buffer to read to
- * \param buf number of bytes to read
- */
-static inline bool readI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
-  ioctl(bus,I2C_SLAVE,addr);
-  bool result=(len==read(bus,buf,len));
   return result;
 }
 
@@ -37,8 +26,9 @@ static inline bool readI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
  * \param slaveaddr slave address to write to
  * \param regaddr register address to write to
  * \param data value to write
+ * \return true if write succeeded, false otherwise
  */
-static inline bool writeI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
+inline bool writeI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
   char buf[2];
   buf[0]=regaddr;
   buf[1]=data;
@@ -52,9 +42,10 @@ static inline bool writeI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, u
  * \param slaveaddr slave address to write to
  * \param regaddr register address of first (least significant) byte to write to
  * \param data value to write
+ * \return true if write succeeded, false otherwise
  */
 template<typename T>
-static inline int writeI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
+inline int writeI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
   char buf[sizeof(T)+1];
   buf[0]=regaddr;
   writeBuf_le<T>(buf,1,data);
@@ -67,9 +58,10 @@ static inline int writeI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr,
  * \param slaveaddr slave address to write to
  * \param regaddr register address of first (most significant) byte to write to
  * \param data value to write
+ * \return true if write succeeded, false otherwise
  */
 template<typename T>
-static inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
+inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
   char buf[sizeof(T)+1];
   buf[0]=regaddr;
   writeBuf_be<T>(buf,1,data);
@@ -77,13 +69,27 @@ static inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr
   return result;
 }
 
+/** Read a buffer from the I2C bus
+ * \param bus stream representing I2C bus
+ * \param slaveaddr slave address to write to
+ * \param buf buffer to read to
+ * \param buf number of bytes to read
+ * \return true if write succeeded, false otherwise
+ */
+inline bool readI2C(I2C_t bus,  uint8_t slaveaddr, char* buf, int len) {
+  ioctl(bus,I2C_SLAVE,addr);
+  bool result=(len==read(bus,buf,len));
+  return result;
+}
+
 /** Read a byte from a specified register in a slave on an I2C bus
  * \param bus stream representing I2C bus
  * \param slaveaddr slave address to read from
  * \param regaddr register address to read from
+ * \param success true if write succeeded, false otherwise
  * \return data value that was read
  */
-static inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
+inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
   char buf=regaddr;
   if(!writeI2C(bus,slaveaddr,&buf,1)) {
     printf("Addressing device failed, bus=%d slaveaddr=%02x\n",bus,slaveaddr);
@@ -107,7 +113,7 @@ static inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr,
  * \param len number of bytes to read
  * \return true if read succeeded, false if not
  */
-static inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
+inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
   buf[0]=regaddr;
   if(!writeI2C(bus,slaveaddr,buf,1)) {
     printf("Addressing device failed\n");
@@ -125,10 +131,11 @@ static inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, cha
  * \param bus stream representing I2C bus
  * \param slaveaddr slave address to write to
  * \param regaddr register address of first (least significant) byte to write to
+ * \param success true if write succeeded, false otherwise
  * \return value in that multi-byte register
  */
 template<typename T>
-static inline T readI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
+inline T readI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
   char buf[sizeof(T)];
   readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
   return readBuf_le<T>(buf,0);
@@ -139,10 +146,11 @@ static inline T readI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bo
  * \param bus stream representing I2C bus
  * \param slaveaddr slave address to write to
  * \param regaddr register address of first (most significant) byte to write to
+ * \param success true if write succeeded, false otherwise
  * \return value in that multi-byte register
  */
 template<typename T>
-static inline T readI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
+inline T readI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
   char buf[sizeof(T)];
   readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
   return readBuf_be<T>(buf,0);
