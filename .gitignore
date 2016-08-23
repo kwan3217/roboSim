@@ -13,4 +13,5 @@ latex
 .~lock*
 *.log
 *.lss
+.dep
 

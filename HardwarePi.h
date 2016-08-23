@@ -64,7 +64,7 @@ public:
    * @return true if read worked, false if not
    */
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t)=0;
-  void begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0);
+  void begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate);
 };
 
 class MPUI2C: public MPU {
@@ -75,10 +75,11 @@ private:
   virtual int16_t read16(uint8_t addr, bool& success) {return readI2Creg_be<int16_t>(bus, ADDRESS, addr, success);};
 public:
   static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
+  bool readConfig(char buf[]);
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
-  void begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0) {
+  void begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
     bus=Lbus;
     MPU::begin(gyro_scale,acc_scale,bandwidth,sample_rate);
   }
@@ -115,7 +116,7 @@ public:
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
   virtual bool readGyro(int g[]);
   virtual bool button(int pin=17);
-  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
+  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle, uint8_t bandwidth=0, uint8_t sample_rate=0);
   virtual ~HardwarePiInterface();
 };
 

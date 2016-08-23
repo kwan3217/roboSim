@@ -6,6 +6,19 @@
 HardwarePiInterfaceArduino interface;
 
 void setup() {
+  char buf[128];
+  for(int i=0;i<sizeof(buf);i++) buf[i]=0;
+  interface.mpu.readConfig(buf);
+  for(int i=0;i<sizeof(buf);i+=16) {
+    printf("%02x: ",i);
+    for(int j=0;j<16;j+=4) {
+      for(int k=0;k<4;k++) {
+        printf("%02x",buf[i+j+k]);
+      }
+//      printf(" ");
+    }
+    printf("\n");
+  }
   printf("t,gx,gy,gz\n");
 }
 
