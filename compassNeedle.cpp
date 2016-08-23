@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include "robot.h"
 #include "compassNeedle.h"
-#include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
 
 using namespace std;
 
@@ -17,35 +16,36 @@ Controller(Linterface),heading(h)
 { }
 
 void compassNeedle::guide(){
-    desiredHeading = 0;
-	headingChange = desiredHeading - heading;
-	if(headingChange > 180){
-		headingChange -= 360;
-	}
-	else if (headingChange < -180){
-		headingChange += 360;
-	}
+  desiredHeading = 0;
+  headingChange = desiredHeading - heading;
+  if(headingChange > 180){
+    headingChange -= 360;
+  } else if (headingChange < -180){
+    headingChange += 360;
+  }
 }
 
 void compassNeedle::control(){
-  interface.steering.write(headingChange * double (50)/180+150);
+  steerCmd=headingChange * double (50)/180+150;
+  interface.steering.write(steerCmd);
 }
 
 void compassNeedle::updateTime(){
-	double oldTime = epochTime;
-	epochTime = interface.time();
-	dt = epochTime - oldTime;
+  double oldTime = epochTime;
+  epochTime = interface.time();
+  dt = epochTime - oldTime;
 }
 
 void compassNeedle::navigateCompass(){
-	updateTime();
-	int g[3];
-	interface.readGyro(g);
-	double actual = (double)g[2]/ 0x7FFF * 250;
-	heading += actual * dt;
+  updateTime();
+  int g[3];
+  interface.readGyro(g);
+  zDN=g[2];
+  yawRate = (double)g[2]/ 0x7FFF * 250;
+  heading -= yawRate * dt; //Notice that since the Z axis points up, the right-hand vector rotation rule says that positive yaw rate DECREASES heading IE indicates a turn to the left
 }
 
 void compassNeedle::showVector() const {
-  printf(",%6.2f,%6.2f,%6.2f\n",heading,desiredHeading,headingChange);
+  printf(",%f,%d,%f,%6.2f,%6.2f,%6.2f,%d\n",dt,zDN,yawRate,heading,desiredHeading,headingChange,steerCmd);
 }
 

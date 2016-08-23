@@ -1,6 +1,6 @@
 CC = gcc
 CXX = g++
-CXXFLAGS= -g -std=c++14
+CXXFLAGS= -g -std=c++14 -O3
 OBJDUMP=objdump
 OBJCOPY=objcopy
 

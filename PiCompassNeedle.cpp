@@ -8,6 +8,7 @@
 using namespace std;
 
 int main() {
+  printf("t,dt,zDN,yawRate,heading,desiredHeading,headingChange,steerCmd\n");
   HardwarePiInterfaceArduino interface;
   double heading;
   compassNeedle robo(interface,90);
@@ -18,6 +19,8 @@ int main() {
     robo.navigate();
     robo.guide();
     robo.control();
+    printf("%f",interface.time());
+    robo.showVector();
   }
   return 0;
 }
