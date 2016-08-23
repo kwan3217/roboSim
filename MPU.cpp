@@ -1,7 +1,11 @@
 #include "HardwarePi.h"
 
 void MPU::begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
-  printf("%02x",whoami());
+  bool success;
+  uint8_t who=whoami(success);
+  if(!success||who!=0x71) {
+    printf("Failed: %02x=whoami(%s)",who,success?"true":"false");
+  }
   write(0x6B, (0 << 7) | // 0 - don't reset
 		      (0 << 6) | // 0 - don't sleep
 			  (0 << 5) | // 0 - don't cycle and sleep
@@ -40,7 +44,7 @@ void MPU::begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_
  */
 bool MPUI2C::readGyro(int16_t& gx, int16_t& gy, int16_t& gz) {
   char buf[sizeof(int16_t)*3];
-  readI2Creg(bus,ADDRESS,0x43,buf,sizeof(buf));
+  if(!readI2Creg(bus,ADDRESS,0x43,buf,sizeof(buf))) return false;
   gx=readBuf_be<int16_t>(buf,0);
   gy=readBuf_be<int16_t>(buf,2);
   gz=readBuf_be<int16_t>(buf,4);
@@ -52,7 +56,7 @@ bool MPUI2C::readGyro(int16_t& gx, int16_t& gy, int16_t& gz) {
  */
 bool MPUI2C::readAcc(int16_t& ax, int16_t& ay, int16_t& az) {
   char buf[sizeof(int16_t)*3];
-  readI2Creg(bus,ADDRESS,0x3B,buf,sizeof(buf));
+  if(!readI2Creg(bus,ADDRESS,0x3B,buf,sizeof(buf))) return false;
   ax=readBuf_be<int16_t>(buf,0);
   ay=readBuf_be<int16_t>(buf,2);
   az=readBuf_be<int16_t>(buf,4);
@@ -64,7 +68,7 @@ bool MPUI2C::readAcc(int16_t& ax, int16_t& ay, int16_t& az) {
  */
 bool MPUI2C::read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
   char buf[sizeof(int16_t)*7];
-  readI2Creg(bus,ADDRESS,0x3B,buf,sizeof(buf));
+  if(!readI2Creg(bus,ADDRESS,0x3B,buf,sizeof(buf))) return false;
   ax=readBuf_be<int16_t>(buf, 0);
   ay=readBuf_be<int16_t>(buf, 2);
   az=readBuf_be<int16_t>(buf, 4);

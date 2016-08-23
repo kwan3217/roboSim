@@ -1,6 +1,6 @@
 CC = gcc
 CXX = g++
-CXXFLAGS= -g -std=c++14
+CXXFLAGS= -g -std=c++14 -O3
 OBJDUMP=objdump
 OBJCOPY=objcopy
 
@@ -20,15 +20,15 @@ clean:
 	$(OBJDUMP) -h $< > $@
 	$(OBJDUMP) -S -j .vectors $< |tail -n +4 >> $@
 	$(OBJDUMP) -S -j .text $< | c++filt | tail -n +4 >> $@
-	$(OBJDUMP) -s -j .vtable -j .rodata_str -j .rodata -j .ctors $< | tail -n +4 >> $@
+	$(OBJDUMP) -s -j .vtable -j .rodata_str -j .rodata -j .ctors $< |c++filt |  tail -n +4 >> $@
 	$(OBJCOPY) -O binary -j .source $< $<.tmp.zpaq
 	if [ -s $<.tmp.zpaq ] ;then  echo "Source tarball contents:" >> $@ ; zpaq110 xn $<.tmp.zpaq $<.tmp.cpio ; cpio -ivt < $<.tmp.cpio >> $@ ; $(RM) $<.tmp.cpio; fi
 	$(RM) -f $<.tmp.zpaq $<.tmp.cpio
-	$(OBJDUMP) -s                        -j .data $< | tail -n +4 >> $@
-	$(OBJDUMP) -S -j .text_lib $< |tail -n +4 >> $@
+	$(OBJDUMP) -s                        -j .data $< |c++filt |  tail -n +4 >> $@
+	$(OBJDUMP) -S -j .text_lib $< |c++filt | tail -n +4 >> $@
 	$(OBJDUMP) -s -j .ARM.exidx -j .ARM.extab -j .glue -j .vtable_lib -j .rtti_info -j .rtti_name -j .rodata_str_lib -j .rodata_lib -j .ctors_lib $< | tail -n +4 >> $@
-	$(OBJDUMP) -s                        -j .data_lib $< | tail -n +4 >> $@
-	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] | sort >> $@
+	$(OBJDUMP) -s                        -j .data_lib $< |c++filt |  tail -n +4 >> $@
+	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] | c++filt | sort >> $@
 
 #We make a lot of use of the default recipe:
 #	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
