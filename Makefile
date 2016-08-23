@@ -5,15 +5,15 @@ OBJDUMP=objdump
 OBJCOPY=objcopy
 
 EXES = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe
-
-all: $(EXES)
+LSS = $(EXES:%.exe=%.lss)
+all: $(LSS) html
 
 html: Doxyfile
 	doxygen
 
 #Remove all compiled files
 clean:
-	$(RM) -r $(EXES) *.o html latex
+	$(RM) -r $(EXES) $(LSS) *.o html latex
 
 #Rule for making extended listing
 %.lss: %.exe
