@@ -1,10 +1,30 @@
 #ifndef I2C_h
 #define I2C_h
-/** @file */
 
-#include "robot.h"
+/** @file
+ *
+ * Routines to read and write I2C with the "register" protocol.
+ *
+ * In this protocol, the slave
+ * is modeled as a series of 8-bit registers, each with an 8-bit address, for a total of 256 in the
+ * space. The slave also maintains an address pointer. Using a feature called "burst mode", each time
+ * a register is accessed, the address pointer is incremented to point to the next register. This means
+ * that each consecutive register doesn't have to be addressed. The exact details depend on the slave.
+ *
+ * To send data from the master to a register in the slave, the master addresses the slave for
+ * write, then writes the register address, then zero or more bytes of data. Sending zero bytes after
+ * the register address sets the address pointer but takes no further action. To receive data from the
+ * slave, first address the slave register as above, then address the slave for read and read one or
+ * more bytes. If the master knows that the slave register address pointer is already correct, it can
+ * just do the read.
+ *
+ * The routines in this file encapsulate this protocol and make it easy to read or write single bytes
+ * or burst mode.
+ * */
+
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
+#include "buffer.h"
 
 typedef int I2C_t;
 
@@ -77,7 +97,7 @@ inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T dat
  * \return true if write succeeded, false otherwise
  */
 inline bool readI2C(I2C_t bus,  uint8_t slaveaddr, char* buf, int len) {
-  ioctl(bus,I2C_SLAVE,addr);
+  ioctl(bus,I2C_SLAVE,slaveaddr);
   bool result=(len==read(bus,buf,len));
   return result;
 }

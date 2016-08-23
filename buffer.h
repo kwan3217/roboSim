@@ -1,6 +1,9 @@
 #ifndef buffer_h
 #define buffer_h
-/** @file */
+/** @file
+ *
+ * Routines to read and write multi-byte integers from a buffer
+ * */
 
 /** Extract a little-endian integer from a byte buffer
  * \tparam T type of integer to extract
