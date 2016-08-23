@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-//#include "HeaderSimRobo.h"
 #include "robot.h"
 #include "compassNeedle.h"
 #include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
@@ -13,9 +12,8 @@ using namespace std;
 
 
 
-compassNeedle::compassNeedle(double h, double e, double n, Interface& Linterface):
-heading(h), pos(e, n),interface(Linterface),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0)
+compassNeedle::compassNeedle(Interface& Linterface, double h):
+Controller(Linterface),heading(h)
 { }
 
 void compassNeedle::guide(){
@@ -30,17 +28,7 @@ void compassNeedle::guide(){
 }
 
 void compassNeedle::control(){
-	if(nowpoint == 0){
-		if(interface.button()) nowpoint = 1;
-	} else {
-		if(headingChange >= 300){
-			interface.throttle.write(150);
-			interface.steering.write(150);
-			return;
-		}
-		interface.throttle.write(140);
-		interface.steering.write(headingChange * double (50)/180+150);
-	}
+  interface.steering.write(headingChange * double (50)/180+150);
 }
 
 void compassNeedle::updateTime(){
@@ -55,5 +43,9 @@ void compassNeedle::navigateCompass(){
 	interface.readGyro(g);
 	double actual = (double)g[2]/ 0x7FFF * 250;
 	heading += actual * dt;
+}
+
+void compassNeedle::showVector() const {
+  printf(",%6.2f,%6.2f,%6.2f\n",heading,desiredHeading,headingChange);
 }
 
