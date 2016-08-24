@@ -16,6 +16,8 @@ class compassNeedle: public Controller //where the robot thinks it is
 		double desiredHeading;	///< Heading needed for the robot to be on course
 		double headingChange;	///< Heading change needed for the robot to be on course
 		void updateTime();
+		int16_t zDN,steerCmd;
+		double yawRate;
 	public:
 		compassNeedle(Interface& Linterface, double h);
 		void navigate() {navigateCompass();};

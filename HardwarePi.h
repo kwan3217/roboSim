@@ -5,177 +5,8 @@
 #include "robot.h"
 #include <sys/timepps.h>
 #include <cstdio>
-#include <linux/i2c-dev.h>
-#include <fcntl.h>
-
-typedef int I2C_t;
-
-/** Extract a little-endian integer from a byte buffer
- * \tparam T type of integer to extract
- * \param buf byte buffer
- * \param ofs offset of first byte in number (will go into least significant byte)
- */
-template<typename T>
-static inline T readBuf_le(char buf[], int ofs) {
-  T result=0;
-  for(int i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << i*8;
-  return result;
-}
-
-/** Extract a big-endian integer from a byte buffer
- * \tparam T type of integer to extract
- * \param buf byte buffer
- * \param ofs offset of first byte in number (will go into most significant byte)
- */
-template<typename T>
-static inline T readBuf_be(char buf[], int ofs) {
-  T result=0;
-  for(int i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << (sizeof(T)-1-i)*8;
-  return result;
-}
-
-/** Insert a little-endian integer into a byte buffer
- * \tparam T type of integer to insert
- * \param buf byte buffer
- * \param ofs offset of first byte in number (least significant byte will go here)
- */
-template<typename T>
-static inline void writeBuf_le(char buf[], int ofs, T data) {
-  for(int i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> i*8) & 0xFF);
-}
-
-/** Insert a big-endian integer into a byte buffer
- * \tparam T type of integer to insert
- * \param buf byte buffer
- * \param ofs offset of first byte in number (most significant byte will go here)
- */
-template<typename T>
-static inline void writeBuf_be(char buf[], int ofs, T data) {
-  for(int i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> (sizeof(T)-1-i)*8) & 0xFF);
-}
-
-/** Write a buffer to the I2C bus
- * \param bus stream representing I2C bus
- * \param addr slave address to write to
- * \param buf buffer to write
- * \param buf number of bytes to write
- */
-static inline bool writeI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
-  ioctl(bus,I2C_SLAVE,addr);
-  bool result=(len==write(bus,buf,len));
-  return result;
-}
-
-/** Read a buffer from the I2C bus
- * \param bus stream representing I2C bus
- * \param addr slave address to write to
- * \param buf buffer to read to
- * \param buf number of bytes to read
- */
-static inline bool readI2C(I2C_t bus,  uint8_t addr, char* buf, int len) {
-  ioctl(bus,I2C_SLAVE,addr);
-  bool result=(len==read(bus,buf,len));
-  return result;
-}
-
-/** Write a byte to a specified register in a slave on an I2C bus
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to write to
- * \param regaddr register address to write to
- * \param data value to write
- */
-static inline bool writeI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, uint8_t data) {
-  char buf[2];
-  buf[0]=regaddr;
-  buf[1]=data;
-  bool result=writeI2C(bus,slaveaddr,buf,2);
-  return result;
-}
-
-/** Write a value to a multi-byte little-endian register in a slave on an I2C bus
- * \tparam T integer type of register
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to write to
- * \param regaddr register address of first (least significant) byte to write to
- * \param data value to write
- */
-template<typename T>
-static inline int writeI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
-  char buf[sizeof(T)+1];
-  buf[0]=regaddr;
-  writeBuf_le<T>(buf,1,data);
-  return writeI2C(bus,slaveaddr,buf,sizeof(T)+1);
-}
-
-/** Write a value to a multi-byte big-endian register in a slave on an I2C bus
- * \tparam T integer type of register
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to write to
- * \param regaddr register address of first (most significant) byte to write to
- * \param data value to write
- */
-template<typename T>
-static inline bool writeI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, T data) {
-  char buf[sizeof(T)+1];
-  buf[0]=regaddr;
-  writeBuf_be<T>(buf,1,data);
-  bool result=writeI2C(bus,slaveaddr,buf,sizeof(T)+1);
-  return result;
-}
-
-/** Read a byte from a specified register in a slave on an I2C bus
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to read from
- * \param regaddr register address to read from
- * \return data value that was read
- */
-static inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
-  char buf=regaddr;
-  if(!writeI2C(bus,slaveaddr,&buf,1)) printf("Addressing device failed, bus=%d slaveaddr=%02x\n",bus,slaveaddr);
-  if(read(bus,&buf,1)!=1) printf("Reading device failed\n");
-  return buf;
-}
-
-/** Read a series of consecutive byte registers in a slave on an I2C bus
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to read from
- * \param regaddr register address of first register to read from
- * \param buf buffer to read into
- * \param len number of bytes to read
- */
-static inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
-  buf[0]=regaddr;
-  if(!writeI2C(bus,slaveaddr,buf,1)) printf("Addressing device failed\n");
-  if(!readI2C(bus,slaveaddr,buf,len)) printf("Reading device failed\n");
-}
-
-/** Read a value from a multi-byte little-endian register in a slave on an I2C bus
- * \tparam T integer type of register
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to write to
- * \param regaddr register address of first (least significant) byte to write to
- * \return value in that multi-byte register
- */
-template<typename T>
-static inline T readI2Creg_le(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
-  char buf[sizeof(T)];
-  readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
-  return readBuf_le<T>(buf,0);
-}
-
-/** Read a value from a multi-byte big-endian register in a slave on an I2C bus
- * \tparam T integer type of register
- * \param bus stream representing I2C bus
- * \param slaveaddr slave address to write to
- * \param regaddr register address of first (most significant) byte to write to
- * \return value in that multi-byte register
- */
-template<typename T>
-static inline T readI2Creg_be(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr) {
-  char buf[sizeof(T)];
-  readI2Creg(bus,slaveaddr,regaddr,buf,sizeof(T));
-  return readBuf_be<T>(buf,0);
-}
+#include "buffer.h"
+#include "I2C.h"
 
 class HardwarePiServo: public Servo {
 public:
@@ -203,21 +34,24 @@ public:
  */
 class MPU {
 protected:
-  virtual void write(uint8_t addr, uint8_t val)=0;
-  virtual uint8_t read(uint8_t addr)=0;
-  virtual int16_t read16(uint8_t addr)=0;
+  virtual bool write(uint8_t addr, uint8_t val)=0;
+  virtual uint8_t read(uint8_t addr, bool& success)=0;
+  virtual int16_t read16(uint8_t addr, bool& success)=0;
 public:
-  unsigned char whoami() {return read(0x75);};
+  virtual bool begin();
+  unsigned char whoami(bool& success) {return read(0x75,success);};
   /** Perform a gyro readout in burst mode
    * @param[out] gx rotation rate around the x axis in DN
    * @param[out] gy rotation rate around the y axis in DN
    * @param[out] gz rotation rate around the z axis in DN
+   * @return true if read worked, false if not
    */
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz)=0;
   /** Perform a accelerometer readout in burst mode
    * @param[out] ax acceleration along the x axis in DN
    * @param[out] ay acceleration along the y axis in DN
    * @param[out] az acceleration along the z axis in DN
+   * @return true if read worked, false if not
    */
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az)=0;
   /** Perform an accelerometer and gyro readout in burst mode
@@ -228,25 +62,31 @@ public:
    * @param[out] gy rotation rate around the y axis in DN
    * @param[out] gz rotation rate around the z axis in DN
    * @param[out] t temperature in DN
+   * @return true if read worked, false if not
    */
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t)=0;
-  void begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0);
+  virtual bool  configure(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate);
 };
 
 class MPUI2C: public MPU {
 private:
   I2C_t bus;
-  virtual void write(uint8_t addr, uint8_t val) {writeI2Creg(bus, ADDRESS, addr, val);};
-  virtual uint8_t read(uint8_t addr) {return readI2Creg(bus, ADDRESS, addr);};
-  virtual int16_t read16(uint8_t addr) {return readI2Creg_be<int16_t>(bus, ADDRESS, addr);};
+  virtual bool write(uint8_t addr, uint8_t val) {return writeI2Creg(bus, ADDRESS, addr, val);};
+  virtual uint8_t read(uint8_t addr, bool& success) {return readI2Creg(bus, ADDRESS, addr, success);};
+  virtual int16_t read16(uint8_t addr, bool& success) {return readI2Creg_be<int16_t>(bus, ADDRESS, addr, success);};
 public:
   static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
+  bool readConfig(char buf[]);
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
-  void begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth=0, uint8_t sample_rate=0) {
+  virtual bool begin(I2C_t Lbus) {
     bus=Lbus;
-    MPU::begin(gyro_scale,acc_scale,bandwidth,sample_rate);
+    return MPU::begin();
+  }
+  bool begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
+    begin(bus);
+    return MPU::configure(gyro_scale,acc_scale,bandwidth,sample_rate);
   }
 };
 
@@ -279,7 +119,7 @@ public:
   virtual char readChar();
   virtual double time();
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
-  virtual void readGyro(int g[]);
+  virtual bool readGyro(int g[]);
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
   virtual ~HardwarePiInterface();
