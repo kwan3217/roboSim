@@ -47,7 +47,7 @@ char Simulator::readChar() {
   charsSent++;
   return result;
 }
-bool Simulator::readGyro(int g[]) {
+bool Simulator::readGyro(int16_t g[]) {
   g[0] = g[1] = 0;
   g[2] = (yawRate * 0x7FFF)/250;
   return true;

@@ -88,7 +88,7 @@ private:
 		 * IE element 0 is X, 1 is Y, and 2 is Z.
                  * @return true if measurement was successful and valid, false if not (I2C read error, etc)
 		 */
-		virtual bool readGyro(int g[]) = 0;
+		virtual bool readGyro(int16_t g[]) = 0;
 		Servo& steering; ///< Reference to steering servo object
 		Servo& throttle; ///< Reference to throttle servo object
 		/** Construct a robot interface

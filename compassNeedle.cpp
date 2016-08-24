@@ -38,7 +38,7 @@ void compassNeedle::updateTime(){
 
 void compassNeedle::navigateCompass(){
   updateTime();
-  int g[3];
+  int16_t g[3];
   interface.readGyro(g);
   zDN=g[2];
   yawRate = (double)g[2]/ 0x7FFF * 250;

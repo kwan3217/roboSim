@@ -41,7 +41,7 @@ void setup() {
 }
 
 void loop() {
-  int gyro[3];
+  int16_t gyro[3];
   auto t=interface.time();
   interface.readGyro(gyro);
   pkt.startPacket(0);
