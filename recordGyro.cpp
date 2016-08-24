@@ -6,10 +6,10 @@
 int bandwidth=3;
 int samplerate=0;
 
-HardwarePiInterfaceArduino interface(3,0);
+HardwarePiInterfaceArduino interface;
 
 void setup() {
-  interface.mpu.begin(0,0,bandwidth,samplerate);
+  interface.mpu.configure(0,0,bandwidth,samplerate);
   char buf[128];
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
