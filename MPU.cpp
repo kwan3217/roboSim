@@ -38,7 +38,7 @@ bool MPU::begin() {
  \param acc_scale Accelerometer full scale. Physical value is +-2*2^acc_scale g, IE 2,4,8,16g
  \param bandwidth Gyroscope bandwidth, gets written in DLPF_CFG field of CONFIG register (0x1a)
    selected from this table:
-   bandwidth | actual bandwidth (Hz) | delay (ms) | internal read rate (kHz)
+   bandwidth | filter bandwidth (Hz) | delay (ms) | internal read rate (kHz)
   ---------- | --------------------- | ---------- | -----------------------
        0     |    250                |   0.97     |  8
        1     |    184                |   2.90     |  1
@@ -48,6 +48,13 @@ bool MPU::begin() {
        5     |     10                |  17.85     |  1
        6     |      5                |  33.48     |  1
        7     |   3600                |   0.17     |  1
+ \param sample_rate Sample rate divisor. Given the internal read rate, the MPU reports and can generate
+        an interrupt every sample_rate+1 times the sensor is read internally. So, if the rate is 1kHz
+        then a sample_rate of 0 will generate an interrupt at 1kHz, while a sample_rate of 9 will generate
+        an interrupt 1 out of every 10 reads, or 100Hz. The sensor registers are updated at the same
+        time an interrupt is (or would have been, if interrupts are disabled) so in these examples,
+        0 would lead to the sensors being updated at 1kHz and 9 would lead to 100Hz.
+ \return true if all writes are successful, false otherwise.
 */
 bool MPU::configure(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
   //Set the sample rate

@@ -10,7 +10,7 @@ OBJCOPY=objcopy
 #the .o files (effectively the full parse tree) so that the linker has this information.
 #In the link phase, the linker is then able to do its own optimization, especially 
 #inlining of functions across .o files, in the final executable.
-CXXFLAGS= -flto
+#CXXFLAGS= -flto
 
 #Turn on debugging information 
 CXXFLAGS+=-g 
@@ -77,7 +77,7 @@ clean:
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
 %.exe:
-	$(CXX) -flto -g -o $@ $^ -L /usr/local/lig -lwiringPi
+	$(CXX) -g -o $@ $^ -L /usr/local/lig -lwiringPi
 
 #Rule to compile an object file. Whenever another rule specifies a .o file as a dependency, and there
 #is a matching .cpp file, this recipe is used to make it. This rule runs the compiler twice to 
@@ -107,7 +107,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
+recordGyro.exe: recordGyro.o HardwarePi.o MPU.o LogRecordGyro.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 
