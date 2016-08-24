@@ -38,6 +38,7 @@ protected:
   virtual uint8_t read(uint8_t addr, bool& success)=0;
   virtual int16_t read16(uint8_t addr, bool& success)=0;
 public:
+  virtual bool begin();
   unsigned char whoami(bool& success) {return read(0x75,success);};
   /** Perform a gyro readout in burst mode
    * @param[out] gx rotation rate around the x axis in DN
@@ -64,7 +65,7 @@ public:
    * @return true if read worked, false if not
    */
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t)=0;
-  void begin(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate);
+  virtual bool  configure(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate);
 };
 
 class MPUI2C: public MPU {
@@ -79,9 +80,13 @@ public:
   virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
   virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
   virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
-  void begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
+  virtual bool begin(I2C_t Lbus) {
     bus=Lbus;
-    MPU::begin(gyro_scale,acc_scale,bandwidth,sample_rate);
+    return MPU::begin();
+  }
+  bool begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
+    begin(bus);
+    return MPU::configure(gyro_scale,acc_scale,bandwidth,sample_rate);
   }
 };
 
@@ -116,7 +121,7 @@ public:
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
   virtual bool readGyro(int g[]);
   virtual bool button(int pin=17);
-  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle, uint8_t bandwidth=0, uint8_t sample_rate=0);
+  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
   virtual ~HardwarePiInterface();
 };
 

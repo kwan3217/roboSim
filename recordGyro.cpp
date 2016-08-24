@@ -3,9 +3,13 @@
 #include "OpenLoopGuidance.h"
 #include <iostream>
 
-HardwarePiInterfaceArduino interface;
+int bandwidth=3;
+int samplerate=0;
+
+HardwarePiInterfaceArduino interface(3,0);
 
 void setup() {
+  interface.mpu.begin(0,0,bandwidth,samplerate);
   char buf[128];
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
@@ -30,7 +34,9 @@ void loop() {
   usleep(2000);
 }
 
-int main() {
+int main(int argc, char** argv) {
+  if(argc>=2) bandwidth=atoi(argv[1]);
+  if(argc>=3) bandwidth=atoi(argv[2]);
   setup();
   for(;;) {
     loop();
