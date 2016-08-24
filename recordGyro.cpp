@@ -36,7 +36,7 @@ void loop() {
 
 int main(int argc, char** argv) {
   if(argc>=2) bandwidth=atoi(argv[1]);
-  if(argc>=3) bandwidth=atoi(argv[2]);
+  if(argc>=3) samplerate=atoi(argv[2]);
   setup();
   for(;;) {
     loop();

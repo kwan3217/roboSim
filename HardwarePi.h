@@ -4,9 +4,10 @@
 
 #include "robot.h"
 #include <sys/timepps.h>
-#include <cstdio>
+#include <cstdio> //used for FILE*
 #include "buffer.h"
 #include "I2C.h"
+#include "MPU.h"
 
 class HardwarePiServo: public Servo {
 public:
@@ -27,67 +28,6 @@ public:
   HardwarePiServoArduino(int Lchannel):channel(Lchannel),bus(-1) {};
   HardwarePiServoArduino(I2C_t Lbus, int Lchannel):HardwarePiServoArduino(Lchannel) {begin(Lbus);};
   ~HardwarePiServoArduino() {};
-};
-
-/** Driver for MPU6xx0 series and 9xx0 series motion processing units
- *
- */
-class MPU {
-protected:
-  virtual bool write(uint8_t addr, uint8_t val)=0;
-  virtual uint8_t read(uint8_t addr, bool& success)=0;
-  virtual int16_t read16(uint8_t addr, bool& success)=0;
-public:
-  virtual bool begin();
-  unsigned char whoami(bool& success) {return read(0x75,success);};
-  /** Perform a gyro readout in burst mode
-   * @param[out] gx rotation rate around the x axis in DN
-   * @param[out] gy rotation rate around the y axis in DN
-   * @param[out] gz rotation rate around the z axis in DN
-   * @return true if read worked, false if not
-   */
-  virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz)=0;
-  /** Perform a accelerometer readout in burst mode
-   * @param[out] ax acceleration along the x axis in DN
-   * @param[out] ay acceleration along the y axis in DN
-   * @param[out] az acceleration along the z axis in DN
-   * @return true if read worked, false if not
-   */
-  virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az)=0;
-  /** Perform an accelerometer and gyro readout in burst mode
-   * @param[out] ax acceleration along the x axis in DN
-   * @param[out] ay acceleration along the y axis in DN
-   * @param[out] az acceleration along the z axis in DN
-   * @param[out] gx rotation rate around the x axis in DN
-   * @param[out] gy rotation rate around the y axis in DN
-   * @param[out] gz rotation rate around the z axis in DN
-   * @param[out] t temperature in DN
-   * @return true if read worked, false if not
-   */
-  virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t)=0;
-  virtual bool  configure(uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate);
-};
-
-class MPUI2C: public MPU {
-private:
-  I2C_t bus;
-  virtual bool write(uint8_t addr, uint8_t val) {return writeI2Creg(bus, ADDRESS, addr, val);};
-  virtual uint8_t read(uint8_t addr, bool& success) {return readI2Creg(bus, ADDRESS, addr, success);};
-  virtual int16_t read16(uint8_t addr, bool& success) {return readI2Creg_be<int16_t>(bus, ADDRESS, addr, success);};
-public:
-  static const int ADDRESS=0x68;///< 7-bit I2C address of MPU9250 used as gyrocompass
-  bool readConfig(char buf[]);
-  virtual bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
-  virtual bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
-  virtual bool read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
-  virtual bool begin(I2C_t Lbus) {
-    bus=Lbus;
-    return MPU::begin();
-  }
-  bool begin(I2C_t Lbus, uint8_t gyro_scale, uint8_t acc_scale, uint8_t bandwidth, uint8_t sample_rate) {
-    begin(bus);
-    return MPU::configure(gyro_scale,acc_scale,bandwidth,sample_rate);
-  }
 };
 
 /** Hardware interface using a Raspberry Pi, as currently intended for Yukari 4

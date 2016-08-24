@@ -22,8 +22,9 @@
  * or burst mode.
  * */
 
-#include <linux/i2c-dev.h>
-#include <fcntl.h>
+#include <linux/i2c-dev.h> //For I2C_SLAVE constant
+#include <sys/ioctl.h>     //For ioctl()
+#include <unistd.h>        //for read() and write()
 #include "buffer.h"
 
 typedef int I2C_t;
@@ -112,12 +113,12 @@ inline bool readI2C(I2C_t bus,  uint8_t slaveaddr, char* buf, int len) {
 inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& success) {
   char buf=regaddr;
   if(!writeI2C(bus,slaveaddr,&buf,1)) {
-    printf("Addressing device failed, bus=%d slaveaddr=%02x\n",bus,slaveaddr);
+//    printf("Addressing device failed, bus=%d slaveaddr=%02x\n",bus,slaveaddr);
     success=false;
     return 0;
   }
   if(read(bus,&buf,1)!=1) {
-    printf("Reading device failed\n");
+//    printf("Reading device failed\n");
     success=false;
     return 0;
   }
@@ -136,11 +137,11 @@ inline uint8_t readI2Creg(I2C_t bus,  uint8_t slaveaddr, uint8_t regaddr, bool& 
 inline bool readI2Creg(I2C_t bus, uint8_t slaveaddr, uint8_t regaddr, char* buf, int len) {
   buf[0]=regaddr;
   if(!writeI2C(bus,slaveaddr,buf,1)) {
-    printf("Addressing device failed\n");
+//    printf("Addressing device failed\n");
     return false;
   }
   if(!readI2C(bus,slaveaddr,buf,len)) {
-    printf("Reading device failed\n");
+//    printf("Reading device failed\n");
     return false;
   }
   return true;
