@@ -1,6 +1,8 @@
 #include <time.h>
 #include "HardwarePi.h"
 #include <wiringPi.h>
+#include <fcntl.h>
+
 
 /**
  * @copydoc Servo::write(int)
