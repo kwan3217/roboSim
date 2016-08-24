@@ -118,7 +118,7 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
   if(bus<0) printf("Couldn't open bus: errno %d",errno);
 
   //Initialize the MPU9250
-  mpu.begin(bus,0,0);
+  mpu.begin(bus);
 //  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
 //  gpsf=fdopen(gps,"rb");
 }
