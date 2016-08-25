@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <stdio.h>
-
+#include <string.h> //for strlen()
 /** Logging class. Default implementation ignores logging messages. This is suitable for something with no filesystem
  *  like an Arduino, but an actual implementation will be needed to record data in a file or set of files. Can cover
  *  any quadrant on the logging space, text/binary and single/multiple streams.
@@ -102,6 +102,28 @@ public:
   virtual void startDescribe(int apid);
   virtual void endDescribe(int apid);
   virtual void describe(char* name, int type);
+};
+
+class LogRawBinary: public Log {
+private:
+  FILE* stream;
+public:
+  LogRawBinary(char* filename);
+  virtual ~LogRawBinary();
+  virtual void startPacket(int apid) {};
+  virtual void write(int8_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(int16_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(int32_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint8_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint16_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint32_t value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(float value) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(char* value, int len) {fwrite(value,len,1,stream);};
+  virtual void write(char* value) {fwrite(value,strlen(value),1,stream);};
+  virtual void endPacket(int apid) {};
+  virtual void startDescribe(int apid) {};
+  virtual void endDescribe(int apid) {};
+  virtual void describe(char* name, int type) {};
 };
 
 #endif /* LOG_H_ */

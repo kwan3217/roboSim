@@ -4,6 +4,9 @@ CC = gcc
 CXX = g++
 OBJDUMP=objdump
 OBJCOPY=objcopy
+ATTACH = *.cpp *.h
+ATTACH+=Yukari4.fzz
+ATTACH+=Makefile
 
 ### Set the compiler options, used during the call to g++ to make each .o file. ###
 #Turn on link-time optimization. In the compile phase, this writes extra information in
@@ -56,7 +59,7 @@ html: Doxyfile
 
 #Remove all intermediate and target files
 clean:
-	$(RM) -r $(EXE) $(LSS) *.e *.s *.o html latex
+	$(RM) -r $(EXE) $(LSS) *.e *.s *.o html latex attach.tbz
 
 #Rule for making extended listing. We use objdump to dump several sections out. Some are tables, some
 #are code, which is disassembled, some are data which is dumped in hex. If there is an archive attached
@@ -65,14 +68,20 @@ clean:
 	$(OBJDUMP) -h $< > $@
 	$(OBJDUMP) -S -j .text $< | c++filt | tail -n +4 >> $@
 	$(OBJDUMP) -s -j .vtable -j .rodata_str -j .rodata -j .ctors $< |c++filt |  tail -n +4 >> $@
-	$(OBJCOPY) -O binary -j .source $< $<.tmp.zpaq
-	if [ -s $<.tmp.zpaq ] ;then  echo "Source tarball contents:" >> $@ ; zpaq110 xn $<.tmp.zpaq $<.tmp.cpio ; cpio -ivt < $<.tmp.cpio >> $@ ; $(RM) $<.tmp.cpio; fi
-	$(RM) -f $<.tmp.zpaq $<.tmp.cpio
+	$(OBJCOPY) -O binary -j .source $< $<.tmp.tbz
+	if [ -s $<.tmp.tbz ] ;then  echo "Source tarball contents:" >> $@ ; tar tvf $<.tmp.tbz >> $@; fi
+	$(RM) -f $<.tmp.tbz 
 	$(OBJDUMP) -s                        -j .data $< |c++filt |  tail -n +4 >> $@
 	$(OBJDUMP) -S -j .text_lib $< |c++filt | tail -n +4 >> $@
 	$(OBJDUMP) -s -j .ARM.exidx -j .ARM.extab -j .glue -j .vtable_lib -j .rtti_info -j .rtti_name -j .rodata_str_lib -j .rodata_lib -j .ctors_lib $< | tail -n +4 >> $@
 	$(OBJDUMP) -s                        -j .data_lib $< |c++filt |  tail -n +4 >> $@
-	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] | c++filt | sort >> $@
+	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] |  sort | c++filt >> $@
+
+attach.o: attach.tbz
+	$(OBJCOPY) -I binary -O elf32-littlearm $< $@ --rename-section .data=.source -B arm
+
+attach.tbz: $(ATTACH)
+	tar jcvhf $@ $(sort $^)
 
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
@@ -107,7 +116,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o LogRecordGyro.o
+recordGyro.exe: recordGyro.o HardwarePi.o MPU.o LogRecordGyro.o dump.o attach.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 

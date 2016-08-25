@@ -16,4 +16,6 @@ latex
 .dep
 *.e
 *.s
+*.tar
+*.tbz
 
