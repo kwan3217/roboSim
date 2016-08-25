@@ -1,5 +1,6 @@
 #include "HardwarePi.h"
-#include "Log.h"
+#include "LogRecordGyro.h"
+#include "LogRawBinary.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
@@ -32,8 +33,9 @@ void setup() {
     pkt.endPacket(1);
   }
   pkt.startDescribe(0);
-  snprintf(buf,256,"t%d",bandwidth);
+  snprintf(buf,256,"time%d",bandwidth);
   pkt.describe(buf,pkt.t_float);
+  pkt.describe("Temperature",pkt.t_i16);
   pkt.describe("gx",pkt.t_i16);
   pkt.describe("gy",pkt.t_i16);
   pkt.describe("gz",pkt.t_i16);
@@ -43,10 +45,12 @@ void setup() {
 
 void loop() {
   int16_t gyro[3];
+  int16_t T;
   auto t=interface.time();
-  interface.readGyro(gyro);
+  interface.readGyro(gyro,T);
   pkt.startPacket(0);
   pkt.write((float)t);
+  pkt.write(T);
   for(int i=0;i<3;i++) pkt.write(gyro[i]);
   pkt.endPacket(0);
   usleep(2000);

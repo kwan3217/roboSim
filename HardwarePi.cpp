@@ -102,8 +102,8 @@ void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount,
   timeStamp =readBuf_le<uint32_t>(buf,8);
 }
 
-bool HardwarePiInterface::readGyro(int16_t g[]) {
-  mpu.readGyro(g[0],g[1],g[2]);
+bool HardwarePiInterface::readGyro(int16_t g[], int16_t& t) {
+  mpu.readGyro(g[0],g[1],g[2],t);
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {

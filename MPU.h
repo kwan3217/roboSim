@@ -41,6 +41,13 @@ protected:
   static const int ACCEL_CONFIG      = 28; ///< Register address for this register
   static const int INT_PIN_CFG       = 55; ///< Register address for this register
   static const int ACCEL_XOUT_H      = 59; ///< Register address for this register
+  static const int ACCEL_XOUT_L      = 60; ///< Register address for this register
+  static const int ACCEL_YOUT_H      = 61; ///< Register address for this register
+  static const int ACCEL_YOUT_L      = 62; ///< Register address for this register
+  static const int ACCEL_ZOUT_H      = 63; ///< Register address for this register
+  static const int ACCEL_ZOUT_L      = 64; ///< Register address for this register
+  static const int TEMP_OUT_H        = 65; ///< Register address for this register
+  static const int TEMP_OUT_L        = 66; ///< Register address for this register
   static const int GYRO_XOUT_H       = 67; ///< Register address for this register
   static const int SIGNAL_PATH_RESET =104; ///< Register address for this register
   static const int USER_CTRL         =106; ///< Register address for this register
@@ -56,16 +63,18 @@ public:
    * @param[out] gx rotation rate around the x axis in DN
    * @param[out] gy rotation rate around the y axis in DN
    * @param[out] gz rotation rate around the z axis in DN
+   * @param[out] t  temperature in DN
    * @return true if read worked, false if not
    */
-  bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
+  bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t);
   /** Perform a accelerometer readout in burst mode
    * @param[out] ax acceleration along the x axis in DN
    * @param[out] ay acceleration along the y axis in DN
    * @param[out] az acceleration along the z axis in DN
+   * @param[out] t  temperature in DN
    * @return true if read worked, false if not
    */
-  bool readAcc(int16_t& ax, int16_t& ay, int16_t& az);
+  bool readAcc(int16_t& ax, int16_t& ay, int16_t& az, int16_t& t);
   /** Perform an accelerometer and gyro readout in burst mode
    * @param[out] ax acceleration along the x axis in DN
    * @param[out] ay acceleration along the y axis in DN

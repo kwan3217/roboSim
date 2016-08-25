@@ -2,8 +2,7 @@
 #define LOG_H_
 
 #include <inttypes.h>
-#include <stdio.h>
-#include <string.h> //for strlen()
+
 /** Logging class. Default implementation ignores logging messages. This is suitable for something with no filesystem
  *  like an Arduino, but an actual implementation will be needed to record data in a file or set of files. Can cover
  *  any quadrant on the logging space, text/binary and single/multiple streams.
@@ -19,8 +18,12 @@
  *  would look up which stream this packet goes into and makes subsequent writes go to it.
  */
 class Log {
+private:
+  void getRecordPath();
+protected:
+  static char recordPath[256];
 public:
-  Log() {};
+  Log() {getRecordPath();};
   virtual ~Log() {};
   /** Start a packet with a particular APID
    \param[in] apid APID to use for this packet
@@ -78,52 +81,6 @@ public:
   static const int t_u32=13; ///< Field type is unsigend 32-bit int;
   static const int t_float=4; ///< Field type is IEEE754 single-precision 32-bit float
   static const int t_double=5;///< Field type is IEEE754 double-precision 64-bit float
-};
-
-class LogRecordGyro: public Log {
-private:
-  FILE* stream[2];
-  int current_apid;
-  bool firstField;
-public:
-  LogRecordGyro();
-  virtual ~LogRecordGyro();
-  virtual void startPacket(int apid);
-  virtual void write(int8_t value);
-  virtual void write(int16_t value);
-  virtual void write(int32_t value);
-  virtual void write(uint8_t value);
-  virtual void write(uint16_t value);
-  virtual void write(uint32_t value);
-  virtual void write(float value);
-  virtual void write(char* value, int len);
-  virtual void write(char* value);
-  virtual void endPacket(int apid);
-  virtual void startDescribe(int apid);
-  virtual void endDescribe(int apid);
-  virtual void describe(char* name, int type);
-};
-
-class LogRawBinary: public Log {
-private:
-  FILE* stream;
-public:
-  LogRawBinary(char* filename);
-  virtual ~LogRawBinary();
-  virtual void startPacket(int apid) {};
-  virtual void write(int8_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(int16_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(int32_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(uint8_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(uint16_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(uint32_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(float value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* value, int len) {fwrite(value,len,1,stream);};
-  virtual void write(char* value) {fwrite(value,strlen(value),1,stream);};
-  virtual void endPacket(int apid) {};
-  virtual void startDescribe(int apid) {};
-  virtual void endDescribe(int apid) {};
-  virtual void describe(char* name, int type) {};
 };
 
 #endif /* LOG_H_ */

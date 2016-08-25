@@ -116,7 +116,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o LogRecordGyro.o dump.o attach.o
+recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogRawBinary.o LogRecordGyro.o dump.o attach.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 
