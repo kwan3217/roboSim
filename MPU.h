@@ -35,13 +35,18 @@ protected:
   virtual bool read(uint8_t addr, char buf[], int len)=0;
   //Register addresses. In decimal because the majority of the register map
   //document uses decimal registers
-  static const int SMPLRT_DIV   = 25; ///< Register address for this register
-  static const int CONFIG       = 26; ///< Register address for this register
-  static const int GYRO_CONFIG  = 27; ///< Register address for this register
-  static const int ACCEL_CONFIG = 28; ///< Register address for this register
-  static const int INT_PIN_CFG  = 55; ///< Register address for this register
-  static const int PWR_MGMT_1   =108; ///< Register address for this register
-  static const int WHOAMI       =117; ///< Register address for this register
+  static const int SMPLRT_DIV        = 25; ///< Register address for this register
+  static const int CONFIG            = 26; ///< Register address for this register
+  static const int GYRO_CONFIG       = 27; ///< Register address for this register
+  static const int ACCEL_CONFIG      = 28; ///< Register address for this register
+  static const int INT_PIN_CFG       = 55; ///< Register address for this register
+  static const int ACCEL_XOUT_H      = 59; ///< Register address for this register
+  static const int GYRO_XOUT_H       = 67; ///< Register address for this register
+  static const int SIGNAL_PATH_RESET =104; ///< Register address for this register
+  static const int USER_CTRL         =106; ///< Register address for this register
+  static const int PWR_MGMT_1        =107; ///< Register address for this register
+  static const int PWR_MGMT_2        =108; ///< Register address for this register
+  static const int WHOAMI            =117; ///< Register address for this register
 public:
   bool begin();
   unsigned char whoami(bool& success) {return read(WHOAMI,success);};

@@ -13,7 +13,7 @@ bool MPU::begin() {
 //    printf("Failed: %02x=whoami(%s)",who,success?"true":"false");
     return false;
   }
-  if(!write(PWR_MGMT_1, (0 << 7) | // 0 - don't reset
+  if(!write(PWR_MGMT_1, (1 << 7) | // 0 - reset everything, bit will auto-clear
                   (0 << 6) | // 0 - don't sleep
                   (0 << 5) | // 0 - don't cycle and sleep
                   (0b001 << 0)))  //clockselect 1 - auto-select best available source (used to be use X gyro)
@@ -95,6 +95,8 @@ bool MPU::readConfig(char buf[]) {
   if(!read(0x13,buf+0x13,13)) return false;
   //Next are registers 0x23 to 0x3A inclusive (24 bytes)
   if(!read(0x23,buf+0x23,24)) return false;
+  //Next are registers 0x3B to 0x48 inclusive (14 bytes). These are the sensor values
+  if(!read(0x3B,buf+0x3B,14)) return false;
   //Next are registers 0x67 to 0x6C inclusive (6 bytes)
   if(!read(0x67,buf+0x67,6)) return false;
   //Next are registers 0x72 to 0x75 inclusive (4 bytes)
@@ -114,7 +116,7 @@ bool MPU::readConfig(char buf[]) {
  */
 bool MPU::readGyro(int16_t& gx, int16_t& gy, int16_t& gz) {
   char buf[sizeof(int16_t)*3];
-  if(!read(0x43,buf,sizeof(buf))) return false;
+  if(!read(GYRO_XOUT_H,buf,sizeof(buf))) return false;
   gx=readBuf_be<int16_t>(buf,0);
   gy=readBuf_be<int16_t>(buf,2);
   gz=readBuf_be<int16_t>(buf,4);
@@ -126,7 +128,7 @@ bool MPU::readGyro(int16_t& gx, int16_t& gy, int16_t& gz) {
  */
 bool MPU::readAcc(int16_t& ax, int16_t& ay, int16_t& az) {
   char buf[sizeof(int16_t)*3];
-  if(!read(0x3B,buf,sizeof(buf))) return false;
+  if(!read(ACCEL_XOUT_H,buf,sizeof(buf))) return false;
   ax=readBuf_be<int16_t>(buf,0);
   ay=readBuf_be<int16_t>(buf,2);
   az=readBuf_be<int16_t>(buf,4);
@@ -138,7 +140,7 @@ bool MPU::readAcc(int16_t& ax, int16_t& ay, int16_t& az) {
  */
 bool MPU::read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
   char buf[sizeof(int16_t)*7];
-  if(!read(0x3B,buf,sizeof(buf))) return false;
+  if(!read(ACCEL_XOUT_H,buf,sizeof(buf))) return false;
   ax=readBuf_be<int16_t>(buf, 0);
   ay=readBuf_be<int16_t>(buf, 2);
   az=readBuf_be<int16_t>(buf, 4);
