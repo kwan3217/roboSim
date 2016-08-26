@@ -28,8 +28,8 @@ private:
   void write(char* buf, int& ptr, uint32_t value) {writeBuf_be(buf,ptr,value);  ptr+=sizeof(value);};
   void write(char* buf, int& ptr, float    value) {writeBuf_be(buf,ptr,value);  ptr+=sizeof(value);};
   void write(char* buf, int& ptr, double   value) {writeBuf_be(buf,ptr,value);  ptr+=sizeof(value);};
-  void write(char* buf, int& ptr, char*    value, int len) {for(int i=0;i<len;i++) write(buf,ptr,value[i]);};
-  void writeBinary(char* buf, int& ptr, char*    value) {write(buf,ptr,value,strlen(value));};
+  void writeBinary(char* buf, int& ptr, char*    value, int len) {for(int i=0;i<len;i++) write(buf,ptr,value[i]);};
+  void writeString(char* buf, int& ptr, char*    value) {writeBinary(buf,ptr,value,strlen(value));};
   void end(char* buf, int& ptr, int apid);
 public:
   LogCCSDS(char* filename, int LdocApid=0);
@@ -43,8 +43,8 @@ public:
   virtual void write(uint32_t value,          char* fieldName=nullptr) {writeDoc(t_u32   ,fieldName);write(pktBuf,pktPtr,value);};
   virtual void write(float    value,          char* fieldName=nullptr) {writeDoc(t_float ,fieldName);write(pktBuf,pktPtr,value);};
   virtual void write(double   value,          char* fieldName=nullptr) {writeDoc(t_double,fieldName);write(pktBuf,pktPtr,value);};
-  virtual void write(char*    value, int len, char* fieldName=nullptr) {writeDoc(t_binary,fieldName);write(pktBuf,pktPtr,value,len);};
-  virtual void write(char*    value,          char* fieldName=nullptr) {writeDoc(t_string,fieldName);writeBinary(pktBuf,pktPtr,value);};
+  virtual void write(char*    value, int len, char* fieldName=nullptr) {writeDoc(t_binary,fieldName);writeBinary(pktBuf,pktPtr,value,len);};
+  virtual void write(char*    value,          char* fieldName=nullptr) {writeDoc(t_string,fieldName);writeString(pktBuf,pktPtr,value);};
   virtual void end() {end(pktBuf,pktPtr,pktApid);};
 };
 

@@ -27,6 +27,7 @@ void LogCCSDS::start(char* buf, int& ptr, int apid) {
   writeBuf_be<uint16_t>(buf,2,0xC000 | seq[apid]);
   seq[apid]++;
   if(seq[apid]>=0xC000) seq[apid]=0;
+  ptr=6;
 }
 
 void LogCCSDS::end(char* buf, int& ptr, int apid) {

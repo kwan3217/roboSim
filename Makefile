@@ -1,7 +1,7 @@
 #Set the names of the tools we will be using, to make it easy to change, for instance
 #if we want to do cross-compiling on a host, or want to switch between gcc and clang.
 CC = gcc
-CXX = clang++
+CXX = g++
 OBJDUMP=objdump
 OBJCOPY=objcopy
 ATTACH = *.cpp *.h
@@ -13,13 +13,13 @@ ATTACH+=Robodometer.ino
 
 #Detect system type so that we can build attach.o for the host system 
 #(no cross-compile here).
-SYSTYPE=`uname -m`
-ifeq ($(SYSTYPE), armv6l)
-BFDO = elf32-littlearm
-BFDB = arm
+SYSTYPE:=$(shell uname -m)
+ifeq ($(SYSTYPE),armv6l)
+BFDO := elf32-littlearm
+BFDB := arm
 else
-BFDO = elf64-x86-64
-BFDB = i386
+BFDO := elf64-x86-64
+BFDB := i386
 endif
 
 
@@ -44,7 +44,7 @@ CXXFLAGS+=-std=c++14
 #      flow of code too much, so that the generated code matches structure of the source
 #      code and it can be followed in a debugger.
 #-O3 - Turn on almost all the optimizations.
-CXXFLAGS+=-O3
+CXXFLAGS+=-O0
 
 #Turn on dependency generation. This makes the preprocessor make a list of which source 
 #and header files include, and therefore depend on, which headers. This is done recursively,
@@ -93,6 +93,9 @@ clean:
 	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] |  sort | c++filt >> $@
 
 attach.o: attach.tbz
+	echo Systype: $(SYSTYPE)
+	echo BFDO: $(BFDO)
+	echo BFDB: $(BFDB)
 	$(OBJCOPY) -I binary -O $(BFDO) $< $@ --rename-section .data=.source -B $(BFDB)
 
 attach.tbz: $(ATTACH)
@@ -117,8 +120,8 @@ attach.tbz: $(ATTACH)
 #assembler pass to write annotated assembly to a .s file for each .o file. 
 %.o: %.cpp
 	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
-	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
+	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 #Main executable rules. Dependencies are the .o files needed. Those .o files themselves depend on
 #the source code, so we just need to list the .o files and make will figure out which source
