@@ -1,6 +1,6 @@
 #include "LogRawBinary.h"
 
-LogRawBinary::LogRawBinary(char* basename) {
+LogRawBinary::LogRawBinary(const char* basename) {
   char filename[256];
   snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
   stream=fopen(filename,"w");

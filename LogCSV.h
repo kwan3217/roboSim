@@ -23,17 +23,17 @@ private:
 	}
   }
 public:
-  LogCSV(int n_streams, const char** filenames, bool* buffer=nullptr);
+  LogCSV(int n_streams, const char** filenames, const bool* buffer=nullptr);
   virtual ~LogCSV();
   virtual void start(int apid,                const char* pktName=nullptr);
-  virtual void write(int8_t      value,          const char* fieldName=nullptr);
-  virtual void write(int16_t     value,          const char* fieldName=nullptr);
-  virtual void write(int32_t     value,          const char* fieldName=nullptr);
-  virtual void write(uint8_t     value,          const char* fieldName=nullptr);
-  virtual void write(uint16_t    value,          const char* fieldName=nullptr);
-  virtual void write(uint32_t    value,          const char* fieldName=nullptr);
-  virtual void write(float       value,          const char* fieldName=nullptr);
-  virtual void write(double      value,          const char* fieldName=nullptr);
+  virtual void write(int8_t      value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
+  virtual void write(int16_t     value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
+  virtual void write(int32_t     value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%d":",%d",value);  firstField=false;};
+  virtual void write(uint8_t     value,          const char* fieldName=nullptr) {write((uint32_t)value,fieldName);};
+  virtual void write(uint16_t    value,          const char* fieldName=nullptr) {write((uint32_t)value,fieldName);};
+  virtual void write(uint32_t    value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%u":",%u",value);  firstField=false;};
+  virtual void write(float       value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%f":",%f",value);  firstField=false;};
+  virtual void write(double      value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%f":",%f",value);  firstField=false;};
   virtual void write(const char* value, int len, const char* fieldName=nullptr);
   virtual void write(const char* value,          const char* fieldName=nullptr);
   virtual void end();

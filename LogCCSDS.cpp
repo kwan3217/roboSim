@@ -1,6 +1,6 @@
 #include "LogCCSDS.h"
 
-LogCCSDS::LogCCSDS(char* basename, int LdocApid):docApid(LdocApid) {
+LogCCSDS::LogCCSDS(const char* basename, int LdocApid):docApid(LdocApid) {
   char filename[256];
   snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
   stream=fopen(filename,"w");
@@ -11,14 +11,14 @@ LogCCSDS::~LogCCSDS() {
   fclose(stream);
 }
 
-void LogCCSDS::writeDoc(int type, char* fieldName) {
+void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;
   if(hasDoc[pktApid]) return;
   start(docBuf,docPtr,docApid);
   write(docBuf,docPtr,(uint16_t)pktApid);
   write(docBuf,docPtr,(uint16_t)pktPtr);
   write(docBuf,docPtr,(uint8_t)type);
-  writeString(docBuf,docPtr,fieldName);
+  write(docBuf,docPtr,fieldName);
   end(docBuf,docPtr,docApid);
 }
 

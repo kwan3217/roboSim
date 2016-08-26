@@ -32,7 +32,7 @@ private:
   void write(char* buf, int& ptr, const char* value) {write(buf,ptr,value,strlen(value));};
   void end(char* buf, int& ptr, int apid);
 public:
-  LogCCSDS(char* filename, int LdocApid=0);
+  LogCCSDS(const char* filename, int LdocApid=0);
   virtual ~LogCCSDS();
   virtual void start(int apid, const char* pktName=nullptr) {pktApid=apid;writeDoc(pktName);start(pktBuf,pktPtr,pktApid);};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {writeDoc(t_u8    ,fieldName);write(pktBuf,pktPtr,value);};
