@@ -86,6 +86,14 @@ private:
 		 * a constant fraction of a degree per second rotation rate around each axis. Number
 		 * is a raw readout of the sensor, in two's complement integer, in proper axis order,
 		 * IE element 0 is X, 1 is Y, and 2 is Z.
+                 * @return true if measurement was successful and valid, false if not (I2C read error, etc)
+		 */
+		virtual bool readGyro(int16_t g[]) = 0;
+		/** Read the gyroscope
+		 * @param[out] g vector of gyroscope readings, in DN. One DN typically represents
+		 * a constant fraction of a degree per second rotation rate around each axis. Number
+		 * is a raw readout of the sensor, in two's complement integer, in proper axis order,
+		 * IE element 0 is X, 1 is Y, and 2 is Z.
                  * @param[out] t temperature reading in DN
                  * @return true if measurement was successful and valid, false if not (I2C read error, etc)
 		 */

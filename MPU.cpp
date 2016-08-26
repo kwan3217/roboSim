@@ -110,6 +110,19 @@ bool MPU::readConfig(char buf[]) {
   return true;
 }
 
+/** \copydoc MPU::readGyro(int16_t&,int16_t&,int16_t&)
+ * \internal
+ * Implemented by reading 8 bytes the I2C bus, starting at register 0x41
+ */
+bool MPU::readGyro(int16_t& gx, int16_t& gy, int16_t& gz) {
+  char buf[sizeof(int16_t)*3];
+  if(!read(GYRO_XOUT_H,buf,sizeof(buf))) return false;
+  gx=readBuf_be<int16_t>(buf,0);
+  gy=readBuf_be<int16_t>(buf,2);
+  gz=readBuf_be<int16_t>(buf,4);
+  return true;
+}
+
 /** \copydoc MPU::readGyro(int16_t&,int16_t&,int16_t&,int16_t&)
  * \internal
  * Implemented by reading 8 bytes the I2C bus, starting at register 0x41
@@ -123,6 +136,7 @@ bool MPU::readGyro(int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
   gz=readBuf_be<int16_t>(buf,6);
   return true;
 }
+
 /** \copydoc MPU::readAcc(int16_t&,int16_t&,int16_t&,int16_t&)
  * \internal
  * Implemented by reading 8 bytes the I2C bus, starting at register 0x3B

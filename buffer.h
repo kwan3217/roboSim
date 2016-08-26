@@ -49,4 +49,26 @@ inline void writeBuf_be(char buf[], int ofs, T data) {
   for(int i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> (sizeof(T)-1-i)*8) & 0xFF);
 }
 
+template<>
+inline void writeBuf_be(char buf[], int ofs, float data) {
+  union floatint {
+    float f;
+    int32_t i;
+  };
+  floatint i;
+  i.f=data;
+  writeBuf_be(buf,ofs,i.i);
+}
+
+template<>
+inline void writeBuf_be(char buf[], int ofs, double data) {
+  union doubleint {
+    double f;
+    int64_t i;
+  };
+  doubleint i;
+  i.f=data;
+  writeBuf_be(buf,ofs,i.i);
+}
+
 #endif

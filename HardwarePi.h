@@ -59,6 +59,7 @@ public:
   virtual char readChar();
   virtual double time();
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
+  virtual bool readGyro(int16_t g[]);
   virtual bool readGyro(int16_t g[], int16_t& t);
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);

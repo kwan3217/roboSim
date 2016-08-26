@@ -106,6 +106,10 @@ bool HardwarePiInterface::readGyro(int16_t g[], int16_t& t) {
   mpu.readGyro(g[0],g[1],g[2],t);
 }
 
+bool HardwarePiInterface::readGyro(int16_t g[]) {
+  mpu.readGyro(g[0],g[1],g[2]);
+}
+
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
   //Setup for GPIO (for buttons)
   wiringPiSetupGpio();

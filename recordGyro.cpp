@@ -1,6 +1,7 @@
 #include "HardwarePi.h"
-#include "LogRecordGyro.h"
+#include "LogCSV.h"
 #include "LogRawBinary.h"
+#include "LogCCSDS.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
@@ -8,9 +9,15 @@
 int bandwidth=3;
 int samplerate=0;
 int maxt=0;
+int Argc;
+char** Argv;
+
+char* csvFilenames[]={"record.csv","mpuconfig.csv"};
+
 HardwarePiInterfaceArduino interface;
-LogRecordGyro pkt;
+LogCSV csv(sizeof(csvFilenames)/sizeof(char*),csvFilenames);
 LogRawBinary dump("attach.tbz");
+LogCCSDS pkt("packets.sds");
 
 static volatile bool done=false;
 
@@ -18,28 +25,43 @@ void intHandler(int dummy) {
   done=true;
 }
 
+static const int APID_DESC=0;
+static const int APID_DATA=1;
+static const int APID_TEXT=2;
+static const int APID_DUMP=3;
+
 void setup() {
-  dumpAttach(dump,0,64);
+  char buf[256];
+
+  pkt.startDescribe(APID_DUMP);
+  pkt.describe("Data",pkt.t_string);
+  pkt.endDescribe();
+
+  if(Argc>=2) bandwidth =atoi(Argv[1]);
+  if(Argc>=3) samplerate=atoi(Argv[2]);
+  if(Argc>=4) maxt      =atoi(Argv[3]);
+  pkt.start("Text",APID_TEXT);
+  pkt.write("Program arguments: ");
+  pkt.end();
+  for(int i=0;i<Argc;i++) {
+    pkt.startPacket("Text",APID_TEXT);
+    pkt.write(i);
+    pkt.write(Argv[i]);
+    pkt.endPacket();
+  }
+
   interface.mpu.configure(0,0,bandwidth,samplerate);
-  char buf[128];
-  pkt.startPacket(1);
+  pkt.startPacket(APID_TEXT);
   pkt.write("Gyro Registers: ");
-  pkt.endPacket(1);
+  pkt.endPacket();
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
   for(int i=0;i<sizeof(buf);i+=16) {
     pkt.startPacket(1);
     pkt.write(buf+i,16);
-    pkt.endPacket(1);
+    pkt.endPacket();
   }
-  pkt.startDescribe(0);
-  snprintf(buf,256,"time%d",bandwidth);
-  pkt.describe(buf,pkt.t_float);
-  pkt.describe("Temperature",pkt.t_i16);
-  pkt.describe("gx",pkt.t_i16);
-  pkt.describe("gy",pkt.t_i16);
-  pkt.describe("gz",pkt.t_i16);
-  pkt.endDescribe(0);
+  dumpAttach(pkt,APID_DUMP,64);
   signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flusing our logs
 }
 
@@ -48,28 +70,20 @@ void loop() {
   int16_t T;
   auto t=interface.time();
   interface.readGyro(gyro,T);
-  pkt.startPacket(0);
-  pkt.write((float)t);
-  pkt.write(T);
-  for(int i=0;i<3;i++) pkt.write(gyro[i]);
-  pkt.endPacket(0);
+  pkt.start("GyroData",APID_DATA);
+  pkt.write("time",(float)t);
+  pkt.write("Temperature",T);
+  pkt.write("gx",gyro[0]);
+  pkt.write("gy",gyro[1]);
+  pkt.write("gz",gyro[2]);
+  pkt.end();
   usleep(2000);
   if(maxt>0 && t>maxt) done=true;
 }
 
 int main(int argc, char** argv) {
-  if(argc>=2) bandwidth =atoi(argv[1]);
-  if(argc>=3) samplerate=atoi(argv[2]);
-  if(argc>=4) maxt      =atoi(argv[3]);
-  pkt.startPacket(1);
-  pkt.write("Program arguments: ");
-  pkt.endPacket(1);
-  for(int i=0;i<argc;i++) {
-    pkt.startPacket(1);
-    pkt.write(i); 
-    pkt.write(argv[i]);
-    pkt.endPacket(1);
-  }
+  Argc=argc;
+  Argv=argv;
   setup();
   while(!done) {
     loop();

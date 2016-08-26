@@ -47,10 +47,15 @@ char Simulator::readChar() {
   charsSent++;
   return result;
 }
+
 bool Simulator::readGyro(int16_t g[], int16_t& t) {
   g[0] = g[1] = 0;
   g[2] = (yawRate * 0x7FFF)/250;
   return true;
+}
+bool Simulator::readGyro(int16_t g[]) {
+  int16_t t;
+  return readGyro(g,t);
 }
 
 /** Generate a new GPS fix. Update the PPS value, create the RMC sentence, set the pointers for spooling out the sentence */

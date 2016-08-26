@@ -63,6 +63,13 @@ public:
    * @param[out] gx rotation rate around the x axis in DN
    * @param[out] gy rotation rate around the y axis in DN
    * @param[out] gz rotation rate around the z axis in DN
+   * @return true if read worked, false if not
+   */
+  bool readGyro(int16_t& gx, int16_t& gy, int16_t& gz);
+  /** Perform a gyro readout in burst mode
+   * @param[out] gx rotation rate around the x axis in DN
+   * @param[out] gy rotation rate around the y axis in DN
+   * @param[out] gz rotation rate around the z axis in DN
    * @param[out] t  temperature in DN
    * @return true if read worked, false if not
    */

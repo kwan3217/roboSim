@@ -6,7 +6,8 @@ OBJDUMP=objdump
 OBJCOPY=objcopy
 ATTACH = *.cpp *.h
 ATTACH+=Yukari4.fzz
-ATTACH+=Makefile
+ATTACH+=Doxyfile Makefile
+ATTACH+=MPU9250registers.ods
 
 ### Set the compiler options, used during the call to g++ to make each .o file. ###
 #Turn on link-time optimization. In the compile phase, this writes extra information in
@@ -116,7 +117,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogRawBinary.o LogRecordGyro.o dump.o attach.o
+recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o dump.o attach.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 
