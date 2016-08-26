@@ -26,73 +26,138 @@ public:
   Log() {getRecordPath();};
   virtual ~Log() {};
   /** Start a packet with a particular APID
-   \param[in] ptkName Name of this packet, used for self-documentation purposes
    \param[in] apid APID to use for this packet
+   \param[in] ptkName Name of this packet, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void start(char* pktName, int apid)=0;
+  virtual void start(int apid, char* pktName=nullptr)=0;
   /** Add a signed 8-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, int8_t value)=0;
+  virtual void write(int8_t value, char* fieldName=nullptr)=0;
   /** Add a signed 16-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, int16_t value)=0;
+  virtual void write(int16_t value, char* fieldName=nullptr)=0;
   /** Add a signed 32-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, int32_t value)=0;
+  virtual void write(int32_t value, char* fieldName=nullptr)=0;
   /** Add an unsigned 8-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, uint8_t value)=0;
+  virtual void write(uint8_t value, char* fieldName=nullptr)=0;
   /** Add an unsigned 16-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, uint16_t value)=0;
+  virtual void write(uint16_t value, char* fieldName=nullptr)=0;
   /** Add an unsigned 32-bit value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, uint32_t value)=0;
+  virtual void write(uint32_t value, char* fieldName=nullptr)=0;
   /** Add a single-precision floating-point value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, float value)=0;
+  virtual void write(float value, char* fieldName=nullptr)=0;
   /** Add a double-precision floating-point value to the packet
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, double value)=0;
+  virtual void write(double value, char* fieldName=nullptr)=0;
   /** Add a byte buffer to the packet. This is intended to be used for arbitrary
       binary data. The length information is not required to be written to the 
       packet, so in packets that are not self-delimiting (say CCSDS) you may
       need to write a length. ASCII packet generators will generally transform
       this to printable characters (such as hex or base85).
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
    \param[in] len number of bytes to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, char* value, int len)=0;
+  virtual void write(char* value, int len, char* fieldName=nullptr)=0;
   /** Add a null-terminated string to the packet. This is intended to be used
       for ASCII text strings. This will generally be dumped to the packet as-is,
       so be careful if you are using a delimited packet such as CSV or NMEA. The 
       null terminator is not required to be written to the packet, so you may need
       to write a length before or null terminator after this string.
-   \param[in] fieldname Name of this field, used for self-documentation purposes
    \param[in] value value to write
+   \param[in] fieldName Name of this field, used for self-documentation purposes.
+                      Default value is null, and if null, then no attempt is made
+                      to document this packet and any previous definition remains.
+                      If the packet is documented twice and the documentation is
+                      the same, the packet writer is required to act as if the packet
+                      was only documented once. This means that you can leave
+                      the documentation on a packet writer in a loop.
    */
-  virtual void write(char* fieldName, char* value)=0;
-  /** End a packet
-   */
+  virtual void write(char* value, char* fieldName=nullptr)=0;
+  /** End a packet */
   virtual void end()=0;
-  //These follow IDL types just as a reference
+  //These follow IDL types when possible just as a reference
   static const int t_u8    = 1; ///< Field type is unsigned 8-bit int
   static const int t_i16   = 2; ///< Field type is signed 16-bit int
   static const int t_i32   = 3; ///< Field type is signed 32-bit int
@@ -101,7 +166,7 @@ public:
   static const int t_float = 4; ///< Field type is IEEE754 single-precision 32-bit float
   static const int t_double= 5; ///< Field type is IEEE754 double-precision 64-bit float
   static const int t_string= 7; ///< Field is a byte string of arbitrary length. No length info provided, it must be provided elsewhere. Intent is ASCII text
-  static const int t_binary= 6; ///< Field is a byte string of arbitrary length. No length info provided, it must be provided elsewhere
+  static const int t_binary=10; ///< Field is a byte string of arbitrary length. No length info provided, it must be provided elsewhere. We steal the pointer type from IDL
 };
 
 #endif /* LOG_H_ */

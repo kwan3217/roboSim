@@ -33,34 +33,31 @@ static const int APID_DUMP=3;
 void setup() {
   char buf[256];
 
-  pkt.startDescribe(APID_DUMP);
-  pkt.describe("Data",pkt.t_string);
-  pkt.endDescribe();
-
   if(Argc>=2) bandwidth =atoi(Argv[1]);
   if(Argc>=3) samplerate=atoi(Argv[2]);
   if(Argc>=4) maxt      =atoi(Argv[3]);
-  pkt.start("Text",APID_TEXT);
+  pkt.start(APID_TEXT,"Text");
   pkt.write("Program arguments: ");
   pkt.end();
   for(int i=0;i<Argc;i++) {
-    pkt.startPacket("Text",APID_TEXT);
+    pkt.start(APID_TEXT);
     pkt.write(i);
     pkt.write(Argv[i]);
-    pkt.endPacket();
+    pkt.end();
   }
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
-  pkt.startPacket(APID_TEXT);
+  pkt.start(APID_TEXT);
   pkt.write("Gyro Registers: ");
-  pkt.endPacket();
+  pkt.end();
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
   for(int i=0;i<sizeof(buf);i+=16) {
-    pkt.startPacket(1);
+    pkt.start(APID_TEXT);
     pkt.write(buf+i,16);
-    pkt.endPacket();
+    pkt.end();
   }
+
   dumpAttach(pkt,APID_DUMP,64);
   signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flusing our logs
 }
@@ -68,14 +65,14 @@ void setup() {
 void loop() {
   int16_t gyro[3];
   int16_t T;
-  auto t=interface.time();
+  float t=interface.time();
   interface.readGyro(gyro,T);
-  pkt.start("GyroData",APID_DATA);
-  pkt.write("time",(float)t);
-  pkt.write("Temperature",T);
-  pkt.write("gx",gyro[0]);
-  pkt.write("gy",gyro[1]);
-  pkt.write("gz",gyro[2]);
+  pkt.start(APID_DATA,"GyroData");
+  pkt.write(t,"time");
+  pkt.write(T,"Temperature");
+  pkt.write(gyro[0],"gx");
+  pkt.write(gyro[1],"gy");
+  pkt.write(gyro[2],"gz");
   pkt.end();
   usleep(2000);
   if(maxt>0 && t>maxt) done=true;

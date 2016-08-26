@@ -14,17 +14,17 @@ private:
 public:
   LogRawBinary(char* filename);
   virtual ~LogRawBinary();
-  virtual void start(char* pktName, int apid) {};
-  virtual void write(char* fieldName, int8_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, int16_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, int32_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, uint8_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, uint16_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, uint32_t value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, float value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, double value) {fwrite(&value,sizeof(value),1,stream);};
-  virtual void write(char* fieldName, char* value, int len) {fwrite(value,len,1,stream);};
-  virtual void write(char* fieldName, char* value) {fwrite(value,strlen(value),1,stream);};
+  virtual void start(int apid, char* pktName=nullptr) {};
+  virtual void write(int8_t   value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(int16_t  value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(int32_t  value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint8_t  value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint16_t value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(uint32_t value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(float    value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(double   value,          char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
+  virtual void write(char*    value, int len, char* fieldName=nullptr) {fwrite( value,len,          1,stream);};
+  virtual void write(char*    value,          char* fieldName=nullptr) {fwrite( value,strlen(value),1,stream);};
   virtual void end() {};
 };
 

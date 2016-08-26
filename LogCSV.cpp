@@ -1,86 +1,98 @@
-#include "LogRecordGyro.h"
+#include "LogCSV.h"
 
-LogRecordGyro::LogRecordGyro() {
+LogCSV::LogCSV(int n_streams, char** basename, bool* buffer) {
   char filename[256];
-  snprintf(filename,sizeof(filename)-1,"%s/record.csv",recordPath);
-  stream[0]=fopen(filename,"w");
-  snprintf(filename,sizeof(filename)-1,"%s/mpuconfig.csv",recordPath);
-  stream[1]=fopen(filename,"w");
-  setbuf(stream[1],nullptr); //turn off buffering on this file
+  for(int i=0;i<n_streams;i++) if(basename[i]!=nullptr) {
+    snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename[i]);
+    stream[i]=fopen(filename,"w");
+    if(buffer==nullptr || !buffer[i]) setbuf(stream[i],nullptr);//turn off buffering on this file
+  } else {
+	stream[i]=nullptr;
+  }
 }
 
-LogRecordGyro::~LogRecordGyro() {
-  fclose(stream[0]);
-  fclose(stream[1]);
+LogCSV::~LogCSV() {
+  for(int i=0;i<n_apid;i++) if(stream[i]!=nullptr) fclose(stream[i]);
 }
 
-void LogRecordGyro::startPacket(int apid) {
+void LogCSV::start(int apid, char* pktName) {
   current_apid=apid;
   firstField=true;
+  if(hasDoc[apid]) {
+	fbuf=stream[current_apid];
+  } else {
+	fbuf=fmemopen(buf,sizeof(buf),"w");
+  }
 }
 
-void LogRecordGyro::write(int8_t value) {
-  fprintf(stream[current_apid],firstField?"%d":",%d",value);
+void LogCSV::write(int8_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%d":",%d",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(int16_t value) {
-  fprintf(stream[current_apid],firstField?"%d":",%d",value);
+void LogCSV::write(int16_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%d":",%d",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(int32_t value) {
-  fprintf(stream[current_apid],firstField?"%d":",%d",value);
+void LogCSV::write(int32_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%d":",%d",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(uint8_t value) {
-  fprintf(stream[current_apid],firstField?"%u":",%u",value);
+void LogCSV::write(uint8_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%u":",%u",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(uint16_t value) {
-  fprintf(stream[current_apid],firstField?"%u":",%u",value);
+void LogCSV::write(uint16_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%u":",%u",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(uint32_t value) {
-  fprintf(stream[current_apid],firstField?"%u":",%u",value);
+void LogCSV::write(uint32_t value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%u":",%u",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(float value) {
-  fprintf(stream[current_apid],firstField?"%f":",%f",value);
+void LogCSV::write(float value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%f":",%f",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(char* value, int len) {
-  if(!firstField) fprintf(stream[current_apid],",");
-  for(int i=0;i<len;i++) fprintf(stream[current_apid],"%02x",value[i]);
+void LogCSV::write(double value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%f":",%f",value);
   firstField=false;
 }
 
-void LogRecordGyro::write(char* value) {
-  fprintf(stream[current_apid],firstField?"%s":",%s",value);
+void LogCSV::write(char* value, int len, char* fieldName) {
+  writeDoc(fieldName);
+  if(!firstField) fprintf(fbuf,",");
+  for(int i=0;i<len;i++) fprintf(fbuf,"%02x",value[i]);
   firstField=false;
 }
 
-void LogRecordGyro::endPacket(int apid) {
+void LogCSV::write(char* value, char* fieldName) {
+  writeDoc(fieldName);
+  fprintf(fbuf,firstField?"%s":",%s",value);
+  firstField=false;
+}
+
+void LogCSV::end() {
+  if(!hasDoc[current_apid]) {
+	fclose(fbuf);
+	fputs(buf,stream[current_apid]);
+  }
   fprintf(stream[current_apid],"\n");
-}
-
-void LogRecordGyro::startDescribe(int apid) {
-  current_apid=apid;
-  firstField=true;
-}
-
-void LogRecordGyro::endDescribe(int apid) {
-  fprintf(stream[current_apid],"\n");
-}
-
-void LogRecordGyro::describe(char* name, int type) {
-  fprintf(stream[current_apid],firstField?"%s":",%s",name);
-  firstField=false;
+  hasDoc[current_apid]=true;
 }
 
 

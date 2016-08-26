@@ -1,13 +1,27 @@
 #Set the names of the tools we will be using, to make it easy to change, for instance
 #if we want to do cross-compiling on a host, or want to switch between gcc and clang.
 CC = gcc
-CXX = g++
+CXX = clang++
 OBJDUMP=objdump
 OBJCOPY=objcopy
 ATTACH = *.cpp *.h
+ATTACH+= wiringPiDummy/*.c wiringPiDummy/*.h wiringPiDummy/Makefile
 ATTACH+=Yukari4.fzz
 ATTACH+=Doxyfile Makefile
 ATTACH+=MPU9250registers.ods
+ATTACH+=Robodometer.ino
+
+#Detect system type so that we can build attach.o for the host system 
+#(no cross-compile here).
+SYSTYPE=`uname -m`
+ifeq ($(SYSTYPE), armv6l)
+BFDO = elf32-littlearm
+BFDB = arm
+else
+BFDO = elf64-x86-64
+BFDB = i386
+endif
+
 
 ### Set the compiler options, used during the call to g++ to make each .o file. ###
 #Turn on link-time optimization. In the compile phase, this writes extra information in
@@ -16,11 +30,11 @@ ATTACH+=MPU9250registers.ods
 #inlining of functions across .o files, in the final executable.
 #CXXFLAGS= -flto
 
-#Turn on debugging information 
-CXXFLAGS+=-g 
+#Turn on debugging information
+CXXFLAGS+=-g
 
 #Set the language standard to C++14, the most current released standard at time of writing
-CXXFLAGS+=-std=c++14 
+CXXFLAGS+=-std=c++14
 
 #Set the optimization level. Recommend one of these levels
 #-O0 - no optimization at all. This tends to write really stupid code, such as writing
@@ -29,8 +43,8 @@ CXXFLAGS+=-std=c++14
 #-Og - Optimize the debugging experience. Do the optimizations which don't change the 
 #      flow of code too much, so that the generated code matches structure of the source
 #      code and it can be followed in a debugger.
-#-O3 - Turn on almost all the optimizations. 
-CXXFLAGS+=-Og
+#-O3 - Turn on almost all the optimizations.
+CXXFLAGS+=-O3
 
 #Turn on dependency generation. This makes the preprocessor make a list of which source 
 #and header files include, and therefore depend on, which headers. This is done recursively,
@@ -79,7 +93,7 @@ clean:
 	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] |  sort | c++filt >> $@
 
 attach.o: attach.tbz
-	$(OBJCOPY) -I binary -O elf32-littlearm $< $@ --rename-section .data=.source -B arm
+	$(OBJCOPY) -I binary -O $(BFDO) $< $@ --rename-section .data=.source -B $(BFDB)
 
 attach.tbz: $(ATTACH)
 	tar jcvhf $@ $(sort $^)
@@ -103,7 +117,8 @@ attach.tbz: $(ATTACH)
 #assembler pass to write annotated assembly to a .s file for each .o file. 
 %.o: %.cpp
 	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
+	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 #Main executable rules. Dependencies are the .o files needed. Those .o files themselves depend on
 #the source code, so we just need to list the .o files and make will figure out which source
@@ -117,7 +132,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o dump.o attach.o
+recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRawBinary.o dump.o attach.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 

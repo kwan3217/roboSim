@@ -1,8 +1,6 @@
 #include "LogCCSDS.h"
-#include "buffer.h"
-#include <string.h>
 
-LogCCSDS::LogCCSDS(char* basename) {
+LogCCSDS::LogCCSDS(char* basename, int LdocApid):docApid(LdocApid) {
   char filename[256];
   snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
   stream=fopen(filename,"w");
@@ -13,61 +11,26 @@ LogCCSDS::~LogCCSDS() {
   fclose(stream);
 }
 
-void LogCCSDS::startPacket(int apid) {
+void LogCCSDS::writeDoc(int type, char* fieldName) {
+  if(fieldName==nullptr) return;
+  if(hasDoc[pktApid]) return;
+  start(docBuf,docPtr,docApid);
+  write(docBuf,docPtr,(uint16_t)pktApid);
+  write(docBuf,docPtr,(uint16_t)pktPtr);
+  write(docBuf,docPtr,(uint8_t)type);
+  write(docBuf,docPtr,fieldName);
+  end(docBuf,docPtr,docApid);
+}
+
+void LogCCSDS::start(char* buf, int& ptr, int apid) {
   writeBuf_be<uint16_t>(buf,0,apid);
   writeBuf_be<uint16_t>(buf,2,0xC000 | seq[apid]);
   seq[apid]++;
   if(seq[apid]>=0xC000) seq[apid]=0;
-  ptr=6;
 }
 
-void LogCCSDS::write(int8_t value) {
-  buf[ptr]=value;
-  ptr++;
-}
-
-void LogCCSDS::write(int16_t value) {
-  writeBuf_be(buf,ptr,value);
-  ptr+=sizeof(value);
-}
-
-void LogCCSDS::write(int32_t value) {
-  writeBuf_be(buf,ptr,value);
-  ptr+=sizeof(value);
-}
-
-void LogCCSDS::write(uint8_t value) {
-  buf[ptr]=value;
-  ptr++;
-}
-
-void LogCCSDS::write(uint16_t value) {
-  writeBuf_be(buf,ptr,value);
-  ptr+=sizeof(value);
-}
-
-void LogCCSDS::write(uint32_t value) {
-  writeBuf_be(buf,ptr,value);
-  ptr+=sizeof(value);
-}
-
-void LogCCSDS::write(float value) {
-  writeBuf_be(buf,ptr,value);
-  ptr+=sizeof(value);
-}
-
-void LogCCSDS::write(char* value, int len) {
-  for(int i=0;i<len;i++) {
-    buf[ptr+i]=value[i];
-  }
-  ptr+=len;
-}
-
-void LogCCSDS::write(char* value) {
-  write(value,strlen(value));
-}
-
-void LogCCSDS::endPacket() {
+void LogCCSDS::end(char* buf, int& ptr, int apid) {
+  hasDoc[apid]=true;
   writeBuf_be<uint16_t>(buf,4,ptr-7);
   fwrite(buf,ptr,1,stream);
 }
