@@ -35,7 +35,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void start(int apid, char* pktName=nullptr)=0;
+  virtual void start(int apid, const char* pktName=nullptr)=0;
   /** Add a signed 8-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -46,7 +46,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(int8_t value, char* fieldName=nullptr)=0;
+  virtual void write(int8_t value, const char* fieldName=nullptr)=0;
   /** Add a signed 16-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -57,7 +57,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(int16_t value, char* fieldName=nullptr)=0;
+  virtual void write(int16_t value, const char* fieldName=nullptr)=0;
   /** Add a signed 32-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -68,7 +68,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(int32_t value, char* fieldName=nullptr)=0;
+  virtual void write(int32_t value, const char* fieldName=nullptr)=0;
   /** Add an unsigned 8-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -79,7 +79,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(uint8_t value, char* fieldName=nullptr)=0;
+  virtual void write(uint8_t value, const char* fieldName=nullptr)=0;
   /** Add an unsigned 16-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -90,7 +90,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(uint16_t value, char* fieldName=nullptr)=0;
+  virtual void write(uint16_t value, const char* fieldName=nullptr)=0;
   /** Add an unsigned 32-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -101,7 +101,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(uint32_t value, char* fieldName=nullptr)=0;
+  virtual void write(uint32_t value, const char* fieldName=nullptr)=0;
   /** Add a single-precision floating-point value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -112,7 +112,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(float value, char* fieldName=nullptr)=0;
+  virtual void write(float value, const char* fieldName=nullptr)=0;
   /** Add a double-precision floating-point value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.
@@ -123,7 +123,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(double value, char* fieldName=nullptr)=0;
+  virtual void write(double value, const char* fieldName=nullptr)=0;
   /** Add a byte buffer to the packet. This is intended to be used for arbitrary
       binary data. The length information is not required to be written to the 
       packet, so in packets that are not self-delimiting (say CCSDS) you may
@@ -139,7 +139,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(char* value, int len, char* fieldName=nullptr)=0;
+  virtual void write(const char* value, int len, const char* fieldName=nullptr)=0;
   /** Add a null-terminated string to the packet. This is intended to be used
       for ASCII text strings. This will generally be dumped to the packet as-is,
       so be careful if you are using a delimited packet such as CSV or NMEA. The 
@@ -154,7 +154,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void write(char* value, char* fieldName=nullptr)=0;
+  virtual void write(const char* value, const char* fieldName=nullptr)=0;
   /** End a packet */
   virtual void end()=0;
   //These follow IDL types when possible just as a reference

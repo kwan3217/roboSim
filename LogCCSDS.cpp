@@ -18,7 +18,7 @@ void LogCCSDS::writeDoc(int type, char* fieldName) {
   write(docBuf,docPtr,(uint16_t)pktApid);
   write(docBuf,docPtr,(uint16_t)pktPtr);
   write(docBuf,docPtr,(uint8_t)type);
-  write(docBuf,docPtr,fieldName);
+  writeString(docBuf,docPtr,fieldName);
   end(docBuf,docPtr,docApid);
 }
 

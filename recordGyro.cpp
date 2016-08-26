@@ -12,7 +12,7 @@ int maxt=0;
 int Argc;
 char** Argv;
 
-char* csvFilenames[]={"record.csv","mpuconfig.csv"};
+const char* csvFilenames[]={"record.csv","mpuconfig.csv"};
 
 HardwarePiInterfaceArduino interface;
 LogCSV csv(sizeof(csvFilenames)/sizeof(char*),csvFilenames);
@@ -27,8 +27,9 @@ void intHandler(int dummy) {
 
 static const int APID_DESC=0;
 static const int APID_DATA=1;
-static const int APID_TEXT=2;
+static const int APID_ARGV=2;
 static const int APID_DUMP=3;
+static const int APID_GYROCFG=4;
 
 void setup() {
   char buf[256];
@@ -36,29 +37,22 @@ void setup() {
   if(Argc>=2) bandwidth =atoi(Argv[1]);
   if(Argc>=3) samplerate=atoi(Argv[2]);
   if(Argc>=4) maxt      =atoi(Argv[3]);
-  pkt.start(APID_TEXT,"Text");
-  pkt.write("Program arguments: ");
-  pkt.end();
   for(int i=0;i<Argc;i++) {
-    pkt.start(APID_TEXT);
-    pkt.write(i);
-    pkt.write(Argv[i]);
+    pkt.start(APID_ARGV,"CommandLineParameters");
+    pkt.write(Argv[i],"Parameter");
     pkt.end();
   }
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
-  pkt.start(APID_TEXT);
-  pkt.write("Gyro Registers: ");
-  pkt.end();
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
   for(int i=0;i<sizeof(buf);i+=16) {
-    pkt.start(APID_TEXT);
-    pkt.write(buf+i,16);
+    pkt.start(APID_GYROCFG,"GyroConfig");
+    pkt.write(buf+i,16,"registers");
     pkt.end();
   }
 
-  dumpAttach(pkt,APID_DUMP,64);
+  dumpAttach(dump,APID_DUMP,64);
   signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flusing our logs
 }
 
