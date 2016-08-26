@@ -1,6 +1,6 @@
 #include "LogCSV.h"
 
-LogCSV::LogCSV(int n_streams, const char** basename, const bool* buffer) {
+LogCSV::LogCSV(int n_streams, const char* const* basename, const bool* buffer) {
   char filename[256];
   for(int i=0;i<n_streams;i++) if(basename[i]!=nullptr) {
     snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename[i]);

@@ -23,7 +23,7 @@ private:
 	}
   }
 public:
-  LogCSV(int n_streams, const char** filenames, const bool* buffer=nullptr);
+  LogCSV(int n_streams, const char* const* filenames, const bool* buffer=nullptr);
   virtual ~LogCSV();
   virtual void start(int apid,                const char* pktName=nullptr);
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};

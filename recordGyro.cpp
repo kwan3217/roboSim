@@ -6,13 +6,11 @@
 #include <iostream>
 #include <signal.h>
 
-int bandwidth=3;
-int samplerate=0;
-int maxt=0;
+int bandwidth,samplerate,maxt;
 int Argc;
 char** Argv;
 
-const char* csvFilenames[]={"record.csv","mpuconfig.csv"};
+const char* const csvFilenames[]={"record.csv","mpuconfig.csv"};
 
 HardwarePiInterfaceArduino interface;
 LogCSV csv(sizeof(csvFilenames)/sizeof(char*),csvFilenames);
@@ -34,9 +32,9 @@ static const int APID_GYROCFG=4;
 void setup() {
   char buf[256];
 
-  if(Argc>=2) bandwidth =atoi(Argv[1]);
-  if(Argc>=3) samplerate=atoi(Argv[2]);
-  if(Argc>=4) maxt      =atoi(Argv[3]);
+  if(Argc>=2) bandwidth =atoi(Argv[1]); else bandwidth=3;
+  if(Argc>=3) samplerate=atoi(Argv[2]); else samplerate=0;
+  if(Argc>=4) maxt      =atoi(Argv[3]); else maxt=0;
   for(int i=0;i<Argc;i++) {
     pkt.start(APID_ARGV,"CommandLineParameters");
     pkt.write(Argv[i],"Parameter");
@@ -53,7 +51,6 @@ void setup() {
   }
 
   dumpAttach(dump,APID_DUMP,64);
-  signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flusing our logs
 }
 
 void loop() {
@@ -73,6 +70,7 @@ void loop() {
 }
 
 int main(int argc, char** argv) {
+  signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flushing our logs
   Argc=argc;
   Argv=argv;
   setup();
