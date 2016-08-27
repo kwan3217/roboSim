@@ -16,9 +16,9 @@ LogCSV mpuconfigCSV("mpuconfig.csv",false);
 LogCSV recordCSV("mpuconfig.csv",false);
 LogRawBinary dumpTBZ("attach.tbz");
 LogCCSDS pkt("packets.sds");
-LogMulti mpuconfig({&pkt,&mpuconfigCSV});
-LogMulti record({&pkt,&recordCSV});
-LogMulti dump({&pkt,&dumpTBZ});
+LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
+LogMulti<2> record({&pkt,&recordCSV});
+LogMulti<2> dump({&pkt,&dumpTBZ});
 
 static volatile bool done=false;
 
