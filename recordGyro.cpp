@@ -2,6 +2,7 @@
 #include "LogCSV.h"
 #include "LogRawBinary.h"
 #include "LogCCSDS.h"
+#include "LogMulti.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
@@ -13,8 +14,11 @@ char** Argv;
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfigCSV("mpuconfig.csv",false);
 LogCSV recordCSV("mpuconfig.csv",false);
-LogRawBinary dump("attach.tbz");
+LogRawBinary dumpTBZ("attach.tbz");
 LogCCSDS pkt("packets.sds");
+LogMulti mpuconfig({&pkt,&mpuconfigCSV});
+LogMulti record({&pkt,&recordCSV});
+LogMulti dump({&pkt,&dumpTBZ});
 
 static volatile bool done=false;
 
@@ -35,28 +39,21 @@ void setup() {
   if(Argc>=3) samplerate=atoi(Argv[2]); else samplerate=0;
   if(Argc>=4) maxt      =atoi(Argv[3]); else maxt=0;
   for(int i=0;i<Argc;i++) {
-    pkt.start(APID_ARGV,"CommandLineParameters");
-    pkt.write(Argv[i],"Parameter");
-    pkt.end();
-    mpuconfigCSV.start(APID_ARGV,"CommandLineParameters");
-    mpuconfigCSV.write(Argv[i],"Parameter");
-    mpuconfigCSV.end();
+    mpuconfig.start(APID_ARGV,"CommandLineParameters");
+    mpuconfig.write(Argv[i],"Parameter");
+    mpuconfig.end();
   }
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
   for(int i=0;i<sizeof(buf);i++) buf[i]=0;
   interface.mpu.readConfig(buf);
   for(int i=0;i<sizeof(buf);i+=16) {
-    pkt.start(APID_GYROCFG,"GyroConfig");
-    pkt.write(buf+i,16,"registers");
-    pkt.end();
-    mpuconfigCSV.start(APID_GYROCFG,"GyroConfig");
-    mpuconfigCSV.write(buf+i,16,"registers");
-    mpuconfigCSV.end();
+    mpuconfig.start(APID_GYROCFG,"GyroConfig");
+    mpuconfig.write(buf+i,16,"registers");
+    mpuconfig.end();
   }
 
   dumpAttach(dump,APID_DUMP,64);
-  dumpAttach(pkt,APID_DUMP,64);
 }
 
 void loop() {
@@ -64,20 +61,13 @@ void loop() {
   int16_t T;
   float t=interface.time();
   interface.readGyro(gyro,T);
-  pkt.start(APID_DATA,"GyroData");
-  pkt.write(t,"time");
-  pkt.write(T,"Temperature");
-  pkt.write(gyro[0],"gx");
-  pkt.write(gyro[1],"gy");
-  pkt.write(gyro[2],"gz");
-  pkt.end();
-  recordCSV.start(APID_DATA,"GyroData");
-  recordCSV.write(t,"time");
-  recordCSV.write(T,"Temperature");
-  recordCSV.write(gyro[0],"gx");
-  recordCSV.write(gyro[1],"gy");
-  recordCSV.write(gyro[2],"gz");
-  recordCSV.end();
+  record.start(APID_DATA,"GyroData");
+  record.write(t,"time");
+  record.write(T,"Temperature");
+  record.write(gyro[0],"gx");
+  record.write(gyro[1],"gy");
+  record.write(gyro[2],"gz");
+  record.end();
   usleep(2000);
   if(maxt>0 && t>maxt) done=true;
 }
