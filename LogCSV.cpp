@@ -1,26 +1,24 @@
 #include "LogCSV.h"
 
-LogCSV::LogCSV(int n_streams, const char* const* basename, const bool* buffer) {
+LogCSV::LogCSV(const char* basename, bool bufEnabled) {
   char filename[256];
-  for(int i=0;i<n_streams;i++) if(basename[i]!=nullptr) {
-    snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename[i]);
-    stream[i]=fopen(filename,"w");
-    if(buffer==nullptr || !buffer[i]) setbuf(stream[i],nullptr);//turn off buffering on this file
-  } else {
-	stream[i]=nullptr;
-  }
+  snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
+  stream=fopen(filename,"w");
+  if(!bufEnabled) setbuf(stream,nullptr);//If requested, turn off buffering
 }
 
 LogCSV::~LogCSV() {
-  for(int i=0;i<n_apid;i++) if(stream[i]!=nullptr) fclose(stream[i]);
+  fclose(stream);
 }
 
 void LogCSV::start(int apid, const char* pktName) {
-  current_apid=apid;
+  pktApid=apid;
   firstField=true;
   if(hasDoc[apid]) {
-	fbuf=stream[current_apid];
+	//Write directly to the stream
+	fbuf=stream;
   } else {
+	//Write the packet to the buffer, so we can write the documentation to the stream
 	fbuf=fmemopen(buf,sizeof(buf),"w");
   }
 }
@@ -39,12 +37,12 @@ void LogCSV::write(const char* value, const char* fieldName) {
 }
 
 void LogCSV::end() {
-  if(!hasDoc[current_apid]) {
-	fclose(fbuf);
-	fputs(buf,stream[current_apid]);
+  if(hasDoc[pktApid]||!inDoc) { //True if the packet was already documented or we didn't have any documentation
+    fprintf(stream,"\n"); //Write the linefeed for the packet
+  } else {
+    fprintf(stream,"\n"); //Write the linefeed for the packet documentation
+	fclose(fbuf);         //close the in-memory buffer for the packet data
+	if(inDoc) fprintf(stream,"%s\n",buf); //write the packet data to the stream, with its linefeed
   }
-  fprintf(stream[current_apid],"\n");
-  hasDoc[current_apid]=true;
+  hasDoc[pktApid]=true; //Either way, our chance to document has ended
 }
-
-

@@ -10,10 +10,9 @@ int bandwidth,samplerate,maxt;
 int Argc;
 char** Argv;
 
-const char* const csvFilenames[]={"record.csv","mpuconfig.csv"};
-
 HardwarePiInterfaceArduino interface;
-LogCSV csv(sizeof(csvFilenames)/sizeof(char*),csvFilenames);
+LogCSV mpuconfigCSV("mpuconfig.csv",false);
+LogCSV recordCSV("mpuconfig.csv",false);
 LogRawBinary dump("attach.tbz");
 LogCCSDS pkt("packets.sds");
 
@@ -39,6 +38,9 @@ void setup() {
     pkt.start(APID_ARGV,"CommandLineParameters");
     pkt.write(Argv[i],"Parameter");
     pkt.end();
+    mpuconfigCSV.start(APID_ARGV,"CommandLineParameters");
+    mpuconfigCSV.write(Argv[i],"Parameter");
+    mpuconfigCSV.end();
   }
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
@@ -48,9 +50,13 @@ void setup() {
     pkt.start(APID_GYROCFG,"GyroConfig");
     pkt.write(buf+i,16,"registers");
     pkt.end();
+    mpuconfigCSV.start(APID_GYROCFG,"GyroConfig");
+    mpuconfigCSV.write(buf+i,16,"registers");
+    mpuconfigCSV.end();
   }
 
   dumpAttach(dump,APID_DUMP,64);
+  dumpAttach(pkt,APID_DUMP,64);
 }
 
 void loop() {
@@ -65,6 +71,13 @@ void loop() {
   pkt.write(gyro[1],"gy");
   pkt.write(gyro[2],"gz");
   pkt.end();
+  recordCSV.start(APID_DATA,"GyroData");
+  recordCSV.write(t,"time");
+  recordCSV.write(T,"Temperature");
+  recordCSV.write(gyro[0],"gx");
+  recordCSV.write(gyro[1],"gy");
+  recordCSV.write(gyro[2],"gz");
+  recordCSV.end();
   usleep(2000);
   if(maxt>0 && t>maxt) done=true;
 }
