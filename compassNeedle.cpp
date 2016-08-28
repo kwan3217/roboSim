@@ -38,8 +38,8 @@ void compassNeedle::updateTime(){
 
 void compassNeedle::navigateCompass(){
   updateTime();
-  int g[3];
-  interface.readGyro(g);
+  int16_t g[3],t;
+  interface.readGyro(g,t);
   zDN=g[2];
   yawRate = (double)g[2]/ 0x7FFF * 250;
   heading -= yawRate * dt; //Notice that since the Z axis points up, the right-hand vector rotation rule says that positive yaw rate DECREASES heading IE indicates a turn to the left

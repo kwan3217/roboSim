@@ -14,4 +14,9 @@ latex
 *.log
 *.lss
 .dep
+*.e
+*.s
+*.tar
+*.tbz
+*.sds
 

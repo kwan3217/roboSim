@@ -1,6 +1,8 @@
 #include <time.h>
 #include "HardwarePi.h"
 #include <wiringPi.h>
+#include <fcntl.h>
+
 
 /**
  * @copydoc Servo::write(int)
@@ -100,12 +102,12 @@ void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount,
   timeStamp =readBuf_le<uint32_t>(buf,8);
 }
 
-bool HardwarePiInterface::readGyro(int g[]) {
-  int16_t x,y,z;
-  mpu.readGyro(x,y,z);
-  g[0]=x;
-  g[1]=y;
-  g[2]=z;
+bool HardwarePiInterface::readGyro(int16_t g[], int16_t& t) {
+  mpu.readGyro(g[0],g[1],g[2],t);
+}
+
+bool HardwarePiInterface::readGyro(int16_t g[]) {
+  mpu.readGyro(g[0],g[1],g[2]);
 }
 
 HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {

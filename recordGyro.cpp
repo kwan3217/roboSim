@@ -1,44 +1,83 @@
 #include "HardwarePi.h"
-#include "Simulator.h"
-#include "OpenLoopGuidance.h"
+#include "LogCSV.h"
+#include "LogRawBinary.h"
+//#include "LogCCSDS.h"
+//#include "LogMulti.h"
+#include "dump.h"
 #include <iostream>
+#include <signal.h>
 
-int bandwidth=3;
-int samplerate=0;
+int bandwidth,samplerate,maxt;
+int Argc;
+char** Argv;
 
-HardwarePiInterfaceArduino interface(3,0);
+static const int APID_DESC=0;
+static const int APID_DATA=1;
+static const int APID_ARGV=2;
+static const int APID_DUMP=3;
+static const int APID_GYROCFG=4;
+static const int APID_CCSDS_ID=5;
+
+HardwarePiInterfaceArduino interface;
+LogCSV mpuconfig("mpuconfig.csv",false);
+LogCSV record("record.csv",false);
+LogRawBinary dump("attach.tbz");
+//LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
+//LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
+//LogMulti<2> record({&pkt,&recordCSV});
+//LogMulti<2> dump({&pkt,&dumpTBZ});
+
+static volatile bool done=false;
+
+void intHandler(int dummy) {
+  done=true;
+}
 
 void setup() {
-  interface.mpu.begin(0,0,bandwidth,samplerate);
-  char buf[128];
-  for(int i=0;i<sizeof(buf);i++) buf[i]=0;
-  interface.mpu.readConfig(buf);
-  for(int i=0;i<sizeof(buf);i+=16) {
-    printf("%02x: ",i);
-    for(int j=0;j<16;j+=4) {
-      for(int k=0;k<4;k++) {
-        printf("%02x",buf[i+j+k]);
-      }
-//      printf(" ");
-    }
-    printf("\n");
+  if(Argc>=2) bandwidth =atoi(Argv[1]); else bandwidth=3;
+  if(Argc>=3) samplerate=atoi(Argv[2]); else samplerate=0;
+  if(Argc>=4) maxt      =atoi(Argv[3]); else maxt=0;
+  for(int i=0;i<Argc;i++) {
+    mpuconfig.start(APID_ARGV,"CommandLineParameters");
+    mpuconfig.write(Argv[i],"Parameter");
+    mpuconfig.end();
   }
-  printf("t,gx,gy,gz\n");
+
+  interface.mpu.configure(0,0,bandwidth,samplerate);
+  char reg[128];
+  for(int i=0;i<sizeof(reg);i++) reg[i]=0;
+  interface.mpu.readConfig(reg);
+  for(int i=0;i<sizeof(reg);i+=16) {
+    mpuconfig.start(APID_GYROCFG,"GyroConfig");
+    mpuconfig.write(reg+i,16,"registers");
+    mpuconfig.end();
+  }
+
+  dumpAttach(dump,APID_DUMP,64);
 }
 
 void loop() {
-  int gyro[3];
-  auto t=interface.time();
-  interface.readGyro(gyro);
-  printf("%f,%d,%d,%d\n",t,gyro[0],gyro[1],gyro[2]);
-  usleep(2000);
+  int16_t gyro[3];
+  int16_t T;
+  float t=interface.time();
+  interface.readGyro(gyro,T);
+  record.start(APID_DATA,"GyroData");
+  record.write(t,"time");
+  record.write(T,"Temperature");
+  record.write(gyro[0],"gx");
+  record.write(gyro[1],"gy");
+  record.write(gyro[2],"gz");
+  record.end();
+  usleep(10000);
+  if(maxt>0 && t>maxt) done=true;
 }
 
 int main(int argc, char** argv) {
-  if(argc>=2) bandwidth=atoi(argv[1]);
-  if(argc>=3) bandwidth=atoi(argv[2]);
+  signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flushing our logs
+  Argc=argc;
+  Argv=argv;
   setup();
-  for(;;) {
+  while(!done) {
     loop();
   }
 }

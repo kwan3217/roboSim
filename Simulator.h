@@ -105,7 +105,8 @@ public:
   virtual bool checkNavChar();
   virtual char readChar();
   virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
-  virtual bool readGyro(int g[]);
+  virtual bool readGyro(int16_t g[]);
+  virtual bool readGyro(int16_t g[], int16_t& t);
   virtual double time() {return epochTime;};
   virtual bool button(int pin=17) {return epochTime >= 1;};
   /** Back-door direct access to heading
