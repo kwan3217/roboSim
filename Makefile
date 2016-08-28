@@ -28,11 +28,11 @@ endif
 #the .o files (effectively the full parse tree) so that the linker has this information.
 #In the link phase, the linker is then able to do its own optimization, especially 
 #inlining of functions across .o files, in the final executable.
-#CXXFLAGS+= -flto
+CXXFLAGS+= -flto
 
 #Make the program make a separate section for each function and variable in the program.
 #This makes it easier for the linker to remove dead code.
-CXXFLAGS+= -ffunction-sections -fdata-sections
+#CXXFLAGS+= -ffunction-sections -fdata-sections
 
 #Turn on debugging information
 CXXFLAGS+=-g
@@ -48,7 +48,7 @@ CXXFLAGS+=-std=c++14
 #      flow of code too much, so that the generated code matches structure of the source
 #      code and it can be followed in a debugger.
 #-O3 - Turn on almost all the optimizations.
-CXXFLAGS+=-Og
+CXXFLAGS+=-O3
 
 #Turn on dependency generation. This makes the preprocessor make a list of which source 
 #and header files include, and therefore depend on, which headers. This is done recursively,
@@ -111,7 +111,7 @@ attach.tbz: $(ATTACH)
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
 %.exe:
-	$(CXX) -g -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v -o $@ $^ -L /usr/local/lib -lwiringPi
+	$(CXX) -flto -g -O3 -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v -o $@ $^ -L /usr/local/lib -lwiringPi
 
 #Rule to compile an object file. Whenever another rule specifies a .o file as a dependency, and there
 #is a matching .cpp file, this recipe is used to make it. This rule runs the compiler twice to 
