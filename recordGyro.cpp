@@ -11,11 +11,18 @@ int bandwidth,samplerate,maxt;
 int Argc;
 char** Argv;
 
+static const int APID_DESC=0;
+static const int APID_DATA=1;
+static const int APID_ARGV=2;
+static const int APID_DUMP=3;
+static const int APID_GYROCFG=4;
+static const int APID_CCSDS_ID=5;
+
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfigCSV("mpuconfig.csv",false);
 LogCSV recordCSV("record.csv",false);
 LogRawBinary dumpTBZ("attach.tbz");
-LogCCSDS pkt("packets.sds");
+LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
 LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
 LogMulti<2> record({&pkt,&recordCSV});
 LogMulti<2> dump({&pkt,&dumpTBZ});
@@ -25,12 +32,6 @@ static volatile bool done=false;
 void intHandler(int dummy) {
   done=true;
 }
-
-static const int APID_DESC=0;
-static const int APID_DATA=1;
-static const int APID_ARGV=2;
-static const int APID_DUMP=3;
-static const int APID_GYROCFG=4;
 
 void setup() {
   if(Argc>=2) bandwidth =atoi(Argv[1]); else bandwidth=3;

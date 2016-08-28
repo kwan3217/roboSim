@@ -16,7 +16,7 @@ private:
   bool hasDoc[n_apid];
   char docBuf[maxPktSize];
   int pktPtr,docPtr;
-  int pktApid,docApid;
+  int pktApid,docApid,metaDocApid;
   void writeDoc(int type, const char* fieldName);
   void writeDoc(          const char*   pktName) {writeDoc(0,pktName);};
   void start(char* buf, int& ptr, int apid);
@@ -31,8 +31,10 @@ private:
   void write(char* buf, int& ptr, const char* value, int len) {for(int i=0;i<len;i++) write(buf,ptr,(uint8_t)value[i]);};
   void write(char* buf, int& ptr, const char* value) {write(buf,ptr,value,strlen(value));};
   void end(char* buf, int& ptr, int apid);
+  void metaDoc(char* text) {start(metaDocApid,"CCSDS self-documentation");write(text);end();};
+  void metaDoc(char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
 public:
-  LogCCSDS(const char* filename, int LdocApid=0);
+  LogCCSDS(const char* filename, int LdocApid, int LmetaDocApid);
   virtual ~LogCCSDS();
   virtual void start(int apid, const char* pktName=nullptr) {pktApid=apid;writeDoc(pktName);start(pktBuf,pktPtr,pktApid);};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {writeDoc(t_u8    ,fieldName);write(pktBuf,pktPtr,value);};
@@ -46,6 +48,7 @@ public:
   virtual void write(const char* value, int len, const char* fieldName=nullptr) {writeDoc(t_binary,fieldName);write(pktBuf,pktPtr,value,len);};
   virtual void write(const char* value,          const char* fieldName=nullptr) {writeDoc(t_string,fieldName);write(pktBuf,pktPtr,value);};
   virtual void end() {end(pktBuf,pktPtr,pktApid);};
+  void metaDoc();
 };
 
 #endif /* LOG_H_ */
