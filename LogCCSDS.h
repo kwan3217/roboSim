@@ -31,8 +31,8 @@ private:
   void write(char* buf, int& ptr, const char* value, int len) {for(int i=0;i<len;i++) write(buf,ptr,(uint8_t)value[i]);};
   void write(char* buf, int& ptr, const char* value) {write(buf,ptr,value,strlen(value));};
   void end(char* buf, int& ptr, int apid);
-  void metaDoc(char* text) {start(metaDocApid,"CCSDS self-documentation");write(text);end();};
-  void metaDoc(char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
+  void metaDoc(const char* text) {start(metaDocApid,"CCSDS self-documentation");write(text);end();};
+  void metaDoc(const char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
 public:
   LogCCSDS(const char* filename, int LdocApid, int LmetaDocApid);
   virtual ~LogCCSDS();

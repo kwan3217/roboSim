@@ -9,6 +9,7 @@ ATTACH+= wiringPiDummy/*.c wiringPiDummy/*.h wiringPiDummy/Makefile
 ATTACH+=Yukari4.fzz
 ATTACH+=Doxyfile Makefile
 ATTACH+=MPU9250registers.ods
+#ATTACH+=ECX03000_Manual_EN.pdf
 ATTACH+=Robodometer.ino
 
 #Detect system type so that we can build attach.o for the host system 
@@ -23,19 +24,12 @@ BFDB := i386
 endif
 
 
-### Set the compiler options, used during the call to g++ to make each .o file. ###
-#Turn on link-time optimization. In the compile phase, this writes extra information in
-#the .o files (effectively the full parse tree) so that the linker has this information.
-#In the link phase, the linker is then able to do its own optimization, especially 
-#inlining of functions across .o files, in the final executable.
-CXXFLAGS+= -flto
-
 #Make the program make a separate section for each function and variable in the program.
 #This makes it easier for the linker to remove dead code.
 #CXXFLAGS+= -ffunction-sections -fdata-sections
 
 #Turn on debugging information
-CXXFLAGS+=-g
+CXXFLAGS+= -g
 
 #Set the language standard to C++14, the most current released standard at time of writing
 CXXFLAGS+=-std=c++14
@@ -48,7 +42,15 @@ CXXFLAGS+=-std=c++14
 #      flow of code too much, so that the generated code matches structure of the source
 #      code and it can be followed in a debugger.
 #-O3 - Turn on almost all the optimizations.
-CXXFLAGS+=-O3
+OPT=-O3 
+### Set the compiler options, used during the call to g++ to make each .o file. ###
+#Turn on link-time optimization. In the compile phase, this writes extra information in
+#the .o files (effectively the full parse tree) so that the linker has this information.
+#In the link phase, the linker is then able to do its own optimization, especially 
+#inlining of functions across .o files, in the final executable.
+#OPT+=-flto
+
+CXXFLAGS+=$(OPT)
 
 #Turn on dependency generation. This makes the preprocessor make a list of which source 
 #and header files include, and therefore depend on, which headers. This is done recursively,
@@ -113,7 +115,7 @@ attach.tbz: $(ATTACH)
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
 %.exe:
-	$(CXX) -flto -g -O3 -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v -o $@ $^ -L /usr/local/lib -lwiringPi
+	$(CXX) -g $(OPT) -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v -o $@ $^ -L /usr/local/lib -lwiringPi
 
 #Rule to compile an object file. Whenever another rule specifies a .o file as a dependency, and there
 #is a matching .cpp file, this recipe is used to make it. This rule runs the compiler twice to 

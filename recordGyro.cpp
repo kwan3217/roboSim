@@ -1,8 +1,8 @@
 #include "HardwarePi.h"
 #include "LogCSV.h"
 #include "LogRawBinary.h"
-#include "LogCCSDS.h"
-#include "LogMulti.h"
+//#include "LogCCSDS.h"
+//#include "LogMulti.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
@@ -19,13 +19,13 @@ static const int APID_GYROCFG=4;
 static const int APID_CCSDS_ID=5;
 
 HardwarePiInterfaceArduino interface;
-LogCSV mpuconfigCSV("mpuconfig.csv",false);
-LogCSV recordCSV("record.csv",false);
-LogRawBinary dumpTBZ("attach.tbz");
-LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
-LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
-LogMulti<2> record({&pkt,&recordCSV});
-LogMulti<2> dump({&pkt,&dumpTBZ});
+LogCSV mpuconfig("mpuconfig.csv",false);
+LogCSV record("record.csv",false);
+LogRawBinary dump("attach.tbz");
+//LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
+//LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
+//LogMulti<2> record({&pkt,&recordCSV});
+//LogMulti<2> dump({&pkt,&dumpTBZ});
 
 static volatile bool done=false;
 
@@ -68,7 +68,7 @@ void loop() {
   record.write(gyro[1],"gy");
   record.write(gyro[2],"gz");
   record.end();
-  usleep(2000);
+  usleep(10000);
   if(maxt>0 && t>maxt) done=true;
 }
 

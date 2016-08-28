@@ -4,7 +4,8 @@ LogCCSDS::LogCCSDS(const char* basename, int LdocApid, int LmetaDocApid):docApid
   char filename[256];
   snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
   stream=fopen(filename,"w");
-  setbuf(stream,nullptr); //Turn off buffering for this file
+//  setbuf(stream,nullptr); //Turn off buffering for this file
+  metaDoc();
 }
 
 LogCCSDS::~LogCCSDS() {
@@ -36,8 +37,6 @@ void LogCCSDS::end(char* buf, int& ptr, int apid) {
   fwrite(buf,ptr,1,stream);
 }
 
-
-
 void LogCCSDS::metaDoc() {
   metaDoc("This file contains CCSDS packets as described in CCSDS 133.0-B-1 "
 		   "with updates.");
@@ -45,10 +44,10 @@ void LogCCSDS::metaDoc() {
   metaDoc("Each packet starts with a six-byte header which holds the packet "
 		   "type (APID), sequence number and length.");
   metaDoc("All numbers in a CCSDS packet are stored Big-Endian.");
-  metaDoc("Packets start with a 16-bit unsigned integer, upper 5 bytes are "
-		   "version and type, lower 11 bytes are the APID");
-  metaDoc("Next 16-bit number is 0xC000 (flags indicating unfragmented packet) "
-		   "followed by a sequence number which increments for each APID and "
+  metaDoc("Packets start with a 16-bit unsigned integer, upper 5 bits are "
+		   "version and type, lower 11 bits are the APID");
+  metaDoc("Next is a 16-bit number with the upper 2 bits set (flags indicating unfragmented packet) "
+		   "and the lower 14 bits are a sequence number which increments for each APID and "
 		   "wraps in 14 bits.");
   metaDoc("Next 16-bit number is length of packet minus 7 since every packet "
 		   "has a 6-byte header and must have at least 1 byte of payload.");
@@ -89,4 +88,10 @@ void LogCCSDS::metaDoc() {
 		  "not leave gaps between fields -- IE all fields are contiguous");
   metaDoc("Although the Space Packet Protocol allows fields on non-byte boundaries, "
 		  "this packet writer always writes whole-byte fields.");
+  metaDoc("This file may contain \"dump\" packets. The payload of all these packets "
+          "concatenated together in order form a TAR stream compressed with the BZIP2 "
+          "algorithm.");
+  metaDoc("This stream contains the source code for the program used to write this "
+          "packet stream, along with all other files the authors felt necessary to "
+          "make a \"self-documenting robot\"");
 }
