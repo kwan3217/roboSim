@@ -71,7 +71,9 @@ EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe reco
 
 # List of all extended listings that can be made
 LSS = $(EXE:%.exe=%.lss)
+#List of all map files, so that they can be cleaned
 
+MAP = $(EXE:%.exe=%.map)
 # We make the extended listings, which have their executables as dependencies, to get all the executables
 all: $(EXE)
 
@@ -81,7 +83,7 @@ html: Doxyfile
 
 #Remove all intermediate and target files
 clean:
-	$(RM) -r $(EXE) $(LSS) *.e *.s *.o html latex attach.tbz
+	$(RM) -r $(EXE) $(LSS) $(MAP) *.e *.s *.o html latex attach.tbz
 
 #Rule for making extended listing. We use objdump to dump several sections out. Some are tables, some
 #are code, which is disassembled, some are data which is dumped in hex. If there is an archive attached
