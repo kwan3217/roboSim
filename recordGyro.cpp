@@ -13,7 +13,7 @@ char** Argv;
 
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfigCSV("mpuconfig.csv",false);
-LogCSV recordCSV("mpuconfig.csv",false);
+LogCSV recordCSV("record.csv",false);
 LogRawBinary dumpTBZ("attach.tbz");
 LogCCSDS pkt("packets.sds");
 LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
@@ -33,8 +33,6 @@ static const int APID_DUMP=3;
 static const int APID_GYROCFG=4;
 
 void setup() {
-  char buf[256];
-
   if(Argc>=2) bandwidth =atoi(Argv[1]); else bandwidth=3;
   if(Argc>=3) samplerate=atoi(Argv[2]); else samplerate=0;
   if(Argc>=4) maxt      =atoi(Argv[3]); else maxt=0;
@@ -45,11 +43,12 @@ void setup() {
   }
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
-  for(int i=0;i<sizeof(buf);i++) buf[i]=0;
-  interface.mpu.readConfig(buf);
-  for(int i=0;i<sizeof(buf);i+=16) {
+  char reg[128];
+  for(int i=0;i<sizeof(reg);i++) reg[i]=0;
+  interface.mpu.readConfig(reg);
+  for(int i=0;i<sizeof(reg);i+=16) {
     mpuconfig.start(APID_GYROCFG,"GyroConfig");
-    mpuconfig.write(buf+i,16,"registers");
+    mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();
   }
 
