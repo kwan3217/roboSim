@@ -40,10 +40,23 @@ class roboBrain: public Controller //where the robot thinks it is
 		bool sentenceStart;	///< begin status of the latest NMEA sentence
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
 		int partitions[20];	///< locations of the partitions in the NMEA sentence
+		void updateTime();
+		int16_t zDN,steerCmd;
+		double yawRate;
+		double epochTime;
+		double dt;
+		int offSet;
+		const int bufferDiscard = 300;
+		const int bufferMax = 1500;
+		int ofBuffer[bufferMax];
+		int bufferSpot;
+
+		void fillBuffer();
+		void setOffSet();
 
 		int32_t wheelCount; ///< count of sector changes taken last time by the odometer
 		uint32_t timeStamp; ///< epoch time(CURRENTLY IN MILLISECONDS) of last time readOdometer() was used
-		uint32_t dt;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
+		uint32_t dtOdometer;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
 	public:
 		roboBrain(double h, double e, double n, Interface& Linterface);
 		void navigateCompass();	//

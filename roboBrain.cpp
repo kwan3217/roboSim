@@ -15,7 +15,7 @@ using namespace std;
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
 Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0)
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0)
 { }
 
 const waypoint roboBrain::waypoints[] = {
@@ -33,29 +33,36 @@ const waypoint roboBrain::waypoints[] = {
 };
 
 void roboBrain::guide(){
-	const int wpcount = sizeof(waypoints)/sizeof(waypoint);
-	if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
-		nowpoint += 1;
-	}
-	if(nowpoint >= wpcount){
-		headingChange=400;
-                return;
-	}
-    desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
+	if(nowpoint == 0){
+			fillBuffer();
+			if(interface.button()){
+				nowpoint = 1;
+				setOffSet();
+			}
+	} else {
+		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
+		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
+			nowpoint += 1;
+		}
+		if(nowpoint >= wpcount){
+			headingChange=400;
+					return;
+		}
+		desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
 
-	headingChange = desiredHeading - heading;
-	if(headingChange > 180){
-		headingChange -= 360;
-	}
-	else if (headingChange < -180){
-		headingChange += 360;
+		headingChange = desiredHeading - heading;
+		if(headingChange > 180){
+			headingChange -= 360;
+		}
+		else if (headingChange < -180){
+			headingChange += 360;
+		}
 	}
 }
 
 void roboBrain::control(){
-	if(nowpoint == 0){
-		if(interface.button()) nowpoint = 1;
-	} else {
+	if(nowpoint == 0) return;
+	else {
 		if(headingChange >= 300){
 			interface.throttle.write(150);
 			interface.steering.write(150);
@@ -66,15 +73,35 @@ void roboBrain::control(){
 	}
 }
 
+void roboBrain::setOffSet(){
+	for(int i = 0; i < bufferMax; i++){
+		if(i > bufferDiscard) offSet += bufferSpot;
+		bufferSpot--;
+		if(bufferSpot < 0) bufferSpot = bufferMax;
+	}
+	offSet /= (bufferMax - bufferDiscard);
+}
+
 void roboBrain::navigateCompass(){
-	
-	//Intentionally ugly -- this won't work in general when the interface isn't a Simulator
-	(static_cast<Simulator&>(interface)).cheatHeading(heading);
+	updateTime();
+	int g[3];
+	interface.readGyro(g);
+	zDN=g[2];
+	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
+	heading -= yawRate * dt;
+}
+
+void roboBrain::fillBuffer(){
+	int g[3];
+	interface.readGyro[g];
+	ofBuffer[bufferSpot] = g[2];
+	bufferSpot++;
+	if(bufferSpot >= 1500) bufferSpot = 0;
 }
 
 void roboBrain::navigateOdometer(){
   uint32_t oldWheelCount = wheelCount;
-  interface.readOdometer(timeStamp, wheelCount, dt);
+  interface.readOdometer(timeStamp, wheelCount, dtOdometer);
   uint32_t newWheelCount = wheelCount - oldWheelCount;
   waypoint dir={sin(heading*PI/180),cos(heading*PI/180)};
   pos+=dir*fp(wheelRadius * (PI / 2) * newWheelCount);
