@@ -2,16 +2,21 @@
 #include "Simulator.h"
 #include "OpenLoopGuidance.h"
 #include <iostream>
+#include <wiringPi.h>
+#include "LogCSV.h"
 
 HardwarePiInterfaceArduino interface;
 //Simulator interface;
-double t[]           {0,  0,  2,  5,  7,  9,  99999999};
+double t[]           {0,  0,  2,  5,  6,  6,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};
-int servoCommand[]  {150,150,140,200,150,150,150};
+int servoCommand[]  {150,155,140,155,155,150,150};
 OpenLoopGuidance controller(interface,t,servoChannel,servoCommand);
+LogCSV logC("odometer.csv");
 
 void setup() {
   printf("WC,DT,T0,T1,ID\n");
+  pinMode(23, INPUT);
+  pinMode(24, INPUT);
 }
 
 uint32_t wheelT,dt;
@@ -21,22 +26,14 @@ int ouf;
 char buf[128];
 
 void loop() {
-  readI2Creg(interface.bus,0x55,0x00,buf,0x12);
-   int32_t WC;
-  uint32_t DT;
-  uint32_t T0;
-  uint32_t T1;
-  uint16_t ID;
-  WC=readBuf_le<int32_t>(buf, 0);
-  DT=readBuf_le<uint32_t>(buf, 4);
-  T0=readBuf_le<uint32_t>(buf, 8);
-  T1=readBuf_le<uint32_t>(buf,12);
-  ID=readBuf_le<int16_t>(buf,16);
-  //  interface.readOdometer(wheelT,wheelCount,dt);
-  if(wheelCount!=oldWheelCount) {
-    oldWheelCount=wheelCount;
-    printf("%d,%d,%d,%d,%04x\n",WC,DT,T0,T1,ID);
-  }
+  int e0=digitalRead(23);
+  int e1=digitalRead(24);
+  printf("%d %d\n",e0,e1);
+  logC.start(0);
+  logC.write(controller.time(),"t");
+  logC.write(e0,"e0");
+  logC.write(e1,"e1");
+  logC.end();
   controller.navigate();
   controller.guide();
   controller.control();
