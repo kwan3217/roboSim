@@ -115,7 +115,7 @@ attach.tbz: $(ATTACH)
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
 %.exe:
-	$(CXX) -g $(OPT) -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v -o $@ $^ -L /usr/local/lib -lwiringPi
+	$(CXX) -g $(OPT) -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle -o $@ $^ -L /usr/local/lib -lwiringPi
 
 #Rule to compile an object file. Whenever another rule specifies a .o file as a dependency, and there
 #is a matching .cpp file, this recipe is used to make it. This rule runs the compiler twice to 
@@ -144,7 +144,7 @@ RoboPi.exe: RoboPiMain.o HardwarePi.o OpenLoopGuidance.o Simulator.o MPU.o
 
 buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
-recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o
+recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o Log.o LogCSV.o
 
 recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRawBinary.o dump.o attach.o
 

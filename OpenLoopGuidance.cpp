@@ -17,6 +17,10 @@ void OpenLoopGuidance::control() {
       interface.throttle.write(servoSetting[currentRow]);
     }
     currentRow++;
+  } else if(interface.button()) {
+    printf("Button!\n");
+    t0=interface.time();
+    currentRow = 0;
   }
 }
 

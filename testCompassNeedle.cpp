@@ -21,7 +21,7 @@ int main() {
     robo.navigate();
     robo.guide();
     robo.control();
-    if(roboSim.time() > 10) break;
+//    if(roboSim.time() > 10) break;
     cout << roboSim.time() << ",";
     roboSim.showVector();
     robo.showVector();
