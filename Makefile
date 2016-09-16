@@ -1,7 +1,7 @@
 #Set the names of the tools we will be using, to make it easy to change, for instance
 #if we want to do cross-compiling on a host, or want to switch between gcc and clang.
 CC = gcc
-CXX = clang++
+CXX = g++
 OBJDUMP=objdump
 OBJCOPY=objcopy
 ATTACH = *.cpp *.h
