@@ -15,22 +15,22 @@ using namespace std;
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
 Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0)
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0).
+waypoints({
+                        {   0.00,   0.00},
+                        {- 26.42,  21.83},
+                        {- 19.53,  30.55},
+                        {   0.29,  14.32},
+                        {  11.72,  28.72},
+                        {  23.83,  19.39},
+                        {   9.70,   2.77},
+                        {   6.24,   5.57},
+                        {   3.36,   2.49},
+                        {   6.91,-  0.11},
+                        {   3.93,-  3.28},
+                })
 { }
 
-const waypoint roboBrain::waypoints[] = {
-		{   0.00,   0.00},
-		{- 26.42,  21.83},
-		{- 19.53,  30.55},
-		{   0.29,  14.32},
-		{  11.72,  28.72},
-		{  23.83,  19.39},
-		{   9.70,   2.77},
-		{   6.24,   5.57},
-		{   3.36,   2.49},
-		{   6.91,-  0.11},
-		{   3.93,-  3.28},
-};
 
 void roboBrain::guide(){
 	if(nowpoint == 0){
@@ -83,12 +83,13 @@ void roboBrain::setOffSet(){
 }
 
 void roboBrain::navigateCompass(){
-	updateTime();
-	int g[3];
-	interface.readGyro(g);
-	zDN=g[2];
-	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
-	heading -= yawRate * dt;
+	interface.cheatHeading(heading);
+//	updateTime();
+//	int g[3];
+//	interface.readGyro(g);
+//	zDN=g[2];
+//	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
+//	heading -= yawRate * dt;
 }
 
 void roboBrain::fillBuffer(){

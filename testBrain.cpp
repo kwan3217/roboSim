@@ -10,19 +10,19 @@
 #include <wiringPi.h>
 #include "LogCSV.h"
 
-testBrain::testBrain(double h, double n, Interface& Linterface, Interface& LhardInterface, LogCSV LlogC):
-roboBrain(h, n, Linterface), hardInterface(LhardInterface), logC(LlogC)
+testBrain::testBrain(double h, double n, double e, Simulator& Linterface, Interface& LhardInterface, LogCSV LlogC):
+roboBrain(h, n, e, Linterface), hardInterface(LhardInterface), logC(LlogC)
 { }
 
 
 
-void testBrain::showVector(){	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
+void testBrain::showVector() const{	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
 	logC.write(hardInterface.time(), "t");
 	logC.write(pos.easting(), "easting");
 	logC.write(pos.northing(), "northing");
 	logC.write(nowpoint, "nowpoint");
 	logC.write(waypoints[nowpoint].easting(), "targetEasting");
-	logC.write(waypoinys[nowpoint].northing(), "targetNorthing");
+	logC.write(waypoints[nowpoint].northing(), "targetNorthing");
 	logC.write(desiredHeading, "desiredHeading");
 	logC.write(headingChange, "headingChange");
 }
@@ -35,7 +35,6 @@ void testBrain::control(){
 				interface.steering.write(150);
 				hardInterface.throttle.write(150);
 				hardInterface.steering.write(150);
-
 				return;
 			}
 			interface.throttle.write(140);
@@ -47,10 +46,10 @@ void testBrain::control(){
 
 void testBrain::guide(){
 	if(nowpoint == 0){
-			fillBuffer();
+			//fillBuffer();
 			if(hardInterface.button()){
 				nowpoint = 1;
-				setOffSet();
+			//	setOffSet();
 			}
 	} else {
 		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
