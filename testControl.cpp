@@ -1,8 +1,10 @@
-#include "testbrain.h"
+#include "testBrain.h"
 #include "robot.h"
 #include "LogCSV.h"
+#include "Simulator.h"
+#include "HardwarePi.h"
 
-LogCSV logC("readOut.csv")
+LogCSV logC("readOut.csv");
 HardwarePiInterfaceArduino hardInterface;
 Simulator roboSim(309.63,0,0);
 testBrain controller(309.63,0,0,roboSim, hardInterface, logC);

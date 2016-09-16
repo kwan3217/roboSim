@@ -31,6 +31,7 @@ const waypoint roboBrain::waypoints[] = {
 		{   6.91,-  0.11},
 		{   3.93,-  3.28},
 };
+const int roboBrain::wpcount=sizeof(roboBrain::waypoints)/sizeof(waypoint);
 
 void roboBrain::guide(){
 	if(nowpoint == 0){
@@ -84,16 +85,24 @@ void roboBrain::setOffSet(){
 
 void roboBrain::navigateCompass(){
 	updateTime();
-	int g[3];
+	int16_t g[3];
 	interface.readGyro(g);
 	zDN=g[2];
 	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
 	heading -= yawRate * dt;
 }
 
+void roboBrain::updateTime(){
+  double oldTime = epochTime;
+  epochTime = interface.time();
+  dt = epochTime - oldTime;
+}
+
+
+
 void roboBrain::fillBuffer(){
-	int g[3];
-	interface.readGyro[g];
+	int16_t g[3];
+	interface.readGyro(g);
 	ofBuffer[bufferSpot] = g[2];
 	bufferSpot++;
 	if(bufferSpot >= 1500) bufferSpot = 0;
