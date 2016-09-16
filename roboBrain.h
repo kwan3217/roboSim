@@ -62,7 +62,7 @@ class roboBrain: public Controller //where the robot thinks it is
 		void navigateCompass();	//
 		void navigateGPS();
 		void navigateOdometer();
-		virtual void navigage() {navigateCompass();navigateGPS();navigateOdometer();}
+		virtual void navigate() {navigateCompass();navigateGPS();navigateOdometer();}
 		virtual void guide();
 		virtual void control();			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
