@@ -1,24 +1,30 @@
-#include "testbrain.h"
-#include "robot.h"
+#include "SimHardware.h"
+#include "Simulator.h"
+#include 
 #include "LogCSV.h"
 
 LogCSV logC("readOut.csv")
-HardwarePiInterfaceArduino hardInterface;
-Simulator roboSim(309.63,0,0);
-testBrain controller(309.63,0,0,roboSim, hardInterface, logC);
+SimHardware simHard(0,0,0);
+double t[]           {0,  0,  2,  5,  6,  6,  99999999};
+char servoChannel[] {'T','S','T','S','S','T','T'};
+int servoCommand[]  {150,130,140,150,170,170,150};
+OpenLoopGuidance controller(simHard,t,servoChannel,servoCommand);
 
-void setup(){ }
+int level = 100;
+int increment = 1;
+void setup(){ 
 
+}
 void loop(){
-	logC.start(0);
-	controller.showVector();
-	logC.end();
-	controller.navigate();
-	controller.guide();
-	controller.control();
+  logC.start(0);
+  simHard.showVector(logC);
+  logC.end();
+  controller.navigate();
+  controller.guide();
+  controller.control();
 }
 
 int main(){
-	setup();
-	while(1){loop();}
+  setup();
+  while(1) loop();
 }

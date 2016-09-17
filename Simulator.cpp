@@ -4,6 +4,7 @@
 #include <string.h>
 #include "robot.h"
 #include "Simulator.h"
+#include "LogCSV.h"
 
 using namespace std;
 
@@ -13,7 +14,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), kappa(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: heading(h), lat0(Llat0), lon0(Llon0), kappa(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -111,8 +112,13 @@ void Simulator::update(double Ldt) {
 }
 
 /** Print information related to the current stat in CSV format */
-void Simulator::showVector() const {
-  printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading, kappa);
+void Simulator::showVector(LogCSV& logC) const {
+  logC.write(pos.easting(), "easting");
+  logC.write(pos.northing(), "northing");
+  logC.write(simThrottle.read(), "throttle");
+  logC.write(simSteering.read(), "steering");
+  logC.write(heading, "heading");
+  logC.write(kappa, "kappa");
 }
 
 void Simulator::testNMEA() {

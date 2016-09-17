@@ -110,7 +110,7 @@ bool HardwarePiInterface::readGyro(int16_t g[]) {
   mpu.readGyro(g[0],g[1],g[2]);
 }
 
-HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
+HardwarePiInterface::HardwarePiInterface():t0(-1.0) {
   //Setup for GPIO (for buttons)
   wiringPiSetupGpio();
 //  ppsf=fopen("/dev/pps0","r");
@@ -131,7 +131,7 @@ HardwarePiInterface::~HardwarePiInterface() {
 //  fclose(bus);
 }
 
-HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1),HardwarePiInterface(hardSteering,hardThrottle) {
+HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1) {
   hardSteering.begin(bus);
   hardThrottle.begin(bus);
 };
