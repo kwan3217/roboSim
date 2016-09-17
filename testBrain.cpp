@@ -10,19 +10,19 @@
 #include <wiringPi.h>
 #include "LogCSV.h"
 
-testBrain::testBrain(double h, double n, Interface& Linterface, Interface& LhardInterface, LogCSV LlogC):
-roboBrain(h, n, Linterface), hardInterface(LhardInterface), logC(LlogC)
+testBrain::testBrain(double h, double e, double n, Interface& Linterface, Interface& LhardInterface, LogCSV& LlogC):
+roboBrain(h, e, n, Linterface), hardInterface(LhardInterface), logC(LlogC)
 { }
 
 
 
-void testBrain::showVector(){	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
+void testBrain::showVector() const {	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
 	logC.write(hardInterface.time(), "t");
 	logC.write(pos.easting(), "easting");
 	logC.write(pos.northing(), "northing");
 	logC.write(nowpoint, "nowpoint");
 	logC.write(waypoints[nowpoint].easting(), "targetEasting");
-	logC.write(waypoinys[nowpoint].northing(), "targetNorthing");
+	logC.write(waypoints[nowpoint].northing(), "targetNorthing");
 	logC.write(desiredHeading, "desiredHeading");
 	logC.write(headingChange, "headingChange");
 }
@@ -53,7 +53,6 @@ void testBrain::guide(){
 				setOffSet();
 			}
 	} else {
-		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
 		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
 			nowpoint += 1;
 		}
