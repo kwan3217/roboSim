@@ -10,13 +10,17 @@
 #include <wiringPi.h>
 #include "LogCSV.h"
 
-testBrain::testBrain(double h, double n, double e, Simulator& Linterface, Interface& LhardInterface, LogCSV LlogC):
-roboBrain(h, n, e, Linterface), hardInterface(LhardInterface), logC(LlogC)
+testBrain::testBrain(double h, double e, double n, Interface& Linterface, Interface& LhardInterface, LogCSV& LlogC):
+roboBrain(h, e, n, Linterface), hardInterface(LhardInterface), logC(LlogC)
 { }
 
 
 
+<<<<<<< HEAD
 void testBrain::showVector() const{	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
+=======
+void testBrain::showVector() const {	//nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange)
+>>>>>>> f59ffcfe26211862aa4463c90b8bc58e62c531bd
 	logC.write(hardInterface.time(), "t");
 	logC.write(pos.easting(), "easting");
 	logC.write(pos.northing(), "northing");
@@ -52,7 +56,6 @@ void testBrain::guide(){
 			//	setOffSet();
 			}
 	} else {
-		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
 		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
 			nowpoint += 1;
 		}

@@ -11,11 +11,10 @@ class testBrain: public roboBrain
 	protected:
 		Interface& hardInterface;
 	public:
-		testBrain(double h, double n, double e, Simulator& Linterface, Interface& LhardInterface, LogCSV LlogC);
+		testBrain(double h, double e, double n, Interface& Linterface, Interface& LhardInterface, LogCSV& LlogC);
 		LogCSV& logC;
 		void showVector() const;
 		void guide();
 		void control();
-}
-
+};
 #endif

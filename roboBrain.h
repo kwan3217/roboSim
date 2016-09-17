@@ -11,7 +11,6 @@
 class roboBrain: public Controller //where the robot thinks it is
 {
 	protected:
-		
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void
@@ -34,19 +33,8 @@ class roboBrain: public Controller //where the robot thinks it is
 		double desiredHeading;	///< Heading needed for the robot to be on course
 		double headingChange;	///< Heading change needed for the robot to be on course
 		int nowpoint = 0;	///< Current waypoint for robot to navigate to
-		const waypoint waypoints[];  // = {
-//			{   0.00,   0.00},
-//			{- 26.42,  21.83},
-//			{- 19.53,  30.55},
-//			{   0.29,  14.32},
-//			{  11.72,  28.72},
-//			{  23.83,  19.39},
-//			{   9.70,   2.77},
-//			{   6.24,   5.57},
-//			{   3.36,   2.49},
-//			{   6.91,-  0.11},
-//			{   3.93,-  3.28},
-//		};	///< Array of waypoints for the robot
+		static const waypoint waypoints[];	///< Array of waypoints for the robot
+		static const int wpcount;
 		char nmeaReceived[256];	///< NMEA sentence received by robot
 		int charsReceived;	///< Number of characters in NMEA sentence currently received
 		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
@@ -59,7 +47,8 @@ class roboBrain: public Controller //where the robot thinks it is
 		double epochTime;
 		double dt;
 		int offSet;
-		const int bufferDiscard = 300;
+		static const int bufferDiscard = 300;
+		static const int bufferMax = 1500;
 		int ofBuffer[bufferMax];
 		int bufferSpot;
 

@@ -131,8 +131,8 @@ attach.tbz: $(ATTACH)
 #assembler pass to write annotated assembly to a .s file for each .o file. 
 %.o: %.cpp
 	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
-	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 #Main executable rules. Dependencies are the .o files needed. Those .o files themselves depend on
 #the source code, so we just need to list the .o files and make will figure out which source
@@ -151,6 +151,8 @@ recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRaw
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 
 PiCompassNeedle.exe: PiCompassNeedle.o HardwarePi.o compassNeedle.o MPU.o
+
+testControl.exe: testControl.o Simulator.o HardwarePi.o Log.o LogCSV.o MPU.o
 
 i2c_echo.exe: i2c_echo.o
 
