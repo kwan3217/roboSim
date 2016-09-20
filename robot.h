@@ -98,13 +98,13 @@ private:
                  * @return true if measurement was successful and valid, false if not (I2C read error, etc)
 		 */
 		virtual bool readGyro(int16_t g[], int16_t& t) = 0;
-		Servo& steering; ///< Reference to steering servo object
-		Servo& throttle; ///< Reference to throttle servo object
+		virtual void throttle(int n) = 0;
+		virtual void steering(int n) = 0;
 		/** Construct a robot interface
 		 * @param Lsteering reference to servo object which controls steering
 		 * @param Lthrottle reference to servo object which controls throttle
 		 */
-		Interface(Servo& Lsteering, Servo& Lthrottle):steering(Lsteering),throttle(Lthrottle) {};
+		Interface(Servo& Lsteering, Servo& Lthrottle): {};
 		/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
 		 * for any class which has virtual methods.
 		 */

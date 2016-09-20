@@ -62,7 +62,7 @@ public:
   virtual bool readGyro(int16_t g[]);
   virtual bool readGyro(int16_t g[], int16_t& t);
   virtual bool button(int pin=17);
-  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
+  HardwarePiInterface();
   virtual ~HardwarePiInterface();
 };
 
@@ -76,6 +76,8 @@ private:
 public:
   HardwarePiInterfaceArduino();
   virtual ~HardwarePiInterfaceArduino();
+  void throttle(int n) {hardThrottle.write(n);};
+  void steering(int n) {hardSteering.write(n);};
 };
 
 #endif
