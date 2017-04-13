@@ -23,14 +23,15 @@ void HardwarePiServoArduino::write(int n) {
  * at the first PPS, then the epoch is set to the time of the PPS.
  *
  */
-double HardwarePiInterface::checkPPS() {
-//  pps_info_t info;
-//  static const struct timespec timeout={0,0};
-//  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
-//  double t=ts2t(info.assert_timestamp);
-//  if(t0<t) t0=t;
-//  return t-t0;
-	return 0; //Comment out PPS stuff because no PPS source is plugged in
+double HardwarePiInterface::checkPPS(bool& has_new) {
+  pps_info_t info;
+  static const struct timespec timeout={0,0};
+  time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
+  has_new=(last_pps.tv_sec!=info.assert_timestamp.tv_sec) || (last_pps.tv_nsec!=info.assert_timestamp.tv_nsec);
+  if(has_new) last_pps=info.assert_timestamp;
+  double t=ts2t(dt(info.assert_timestamp));
+  return t;
+//	return 0; //Comment out PPS stuff because no PPS source is plugged in
 }
 
 /** Makes sure that GPS buffer has data to read. If there is still data in the buffer that hasn't been spooled out, return immediately. If
@@ -38,9 +39,9 @@ double HardwarePiInterface::checkPPS() {
  * The file has been opened with O_NONBLOCK so it should return immediately even if there isn't a full buffer worth of data to read.
  */
 void HardwarePiInterface::fillGpsBuf() {
-//  if(gpsPtr<gpsLen) return;
-//  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
-//  gpsPtr=0;
+  if(gpsPtr<gpsLen) return;
+  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
+  gpsPtr=0;
 }
 
 /**
@@ -77,9 +78,7 @@ char HardwarePiInterface::readChar() {
 double HardwarePiInterface::time() {
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME,&ts);
-  double t=ts2t(ts);
-  if(t0<0) t0=t;
-  return t-t0;
+  return ts2t(dt(ts));
 }
 
 /** @copydoc Interface::button(int)
@@ -102,33 +101,54 @@ void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount,
   timeStamp =readBuf_le<uint32_t>(buf,8);
 }
 
+bool HardwarePiInterface::readAcc(int16_t a[]) {
+  return mpu.readGyro(a[0],a[1],a[2]);
+}
+
+bool HardwarePiInterface::readAcc(int16_t a[], int16_t& t) {
+  return mpu.readGyro(a[0],a[1],a[2],t);
+}
+
 bool HardwarePiInterface::readGyro(int16_t g[], int16_t& t) {
-  mpu.readGyro(g[0],g[1],g[2],t);
+  return mpu.readGyro(g[0],g[1],g[2],t);
 }
 
 bool HardwarePiInterface::readGyro(int16_t g[]) {
-  mpu.readGyro(g[0],g[1],g[2]);
+  return mpu.readGyro(g[0],g[1],g[2]);
 }
 
-HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle),t0(-1.0) {
+bool HardwarePiInterface::readMag(int16_t b[]) {
+  return ak.read(b[0],b[1],b[2]);
+}
+
+bool HardwarePiInterface::readMPU(int16_t a[], int16_t g[], int16_t& t) {
+  return mpu.readMPU(a[0],a[1],a[2],g[0],g[1],g[2],t);
+}
+
+HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Interface(Lsteering,Lthrottle) {
+  //Set epoch
+  clock_gettime(CLOCK_REALTIME,&t0);
   //Setup for GPIO (for buttons)
   wiringPiSetupGpio();
-//  ppsf=fopen("/dev/pps0","r");
-//  time_pps_create(fileno(ppsf), &pps);
+  int igps =open("/dev/ttyAMA0",O_NONBLOCK| O_RDONLY);
+  gpsf=fdopen(igps,"r");
+  setbuf(gpsf,nullptr);
+  //Open PPS source
+  ppsf=fopen("/dev/pps0","r");
+  time_pps_create(fileno(ppsf), &pps);
   //Open the I2C bus
   bus=open("/dev/i2c-1",O_RDWR);
   if(bus<0) printf("Couldn't open bus: errno %d",errno);
 
   //Initialize the MPU9250
   mpu.begin(bus);
-//  int gps=open("/dev/ttyAMA0",O_RDONLY | O_NONBLOCK);
-//  gpsf=fdopen(gps,"rb");
+  ak.begin(bus);
 }
 
 HardwarePiInterface::~HardwarePiInterface() {
-//  time_pps_destroy(pps);
-//  fclose(ppsf);
-//  fclose(bus);
+  time_pps_destroy(pps);
+  fclose(ppsf);
+  close(bus);
 }
 
 HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1),HardwarePiInterface(hardSteering,hardThrottle) {

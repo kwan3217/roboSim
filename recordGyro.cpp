@@ -17,11 +17,17 @@ static const int APID_ARGV=2;
 static const int APID_DUMP=3;
 static const int APID_GYROCFG=4;
 static const int APID_CCSDS_ID=5;
+static const int APID_AKCFG=6;
+static const int APID_EPOCH=7;
+static const int APID_PPS=8;
 
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfig("mpuconfig.csv",false);
+LogCSV akconfig("akconfig.csv",false);
 LogCSV record("record.csv",false);
 LogRawBinary dump("attach.tbz");
+LogRawBinary gps("gps.nmea");
+LogCSV pps("pps.csv",false);
 //LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
 //LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
 //LogMulti<2> record({&pkt,&recordCSV});
@@ -53,22 +59,52 @@ void setup() {
     mpuconfig.end();
   }
 
+  for(int i=0;i<sizeof(reg);i++) reg[i]=0;
+  interface.ak.readConfig(reg);
+  for(int i=0;i<sizeof(reg);i+=16) {
+    akconfig.start(APID_AKCFG,"GyroConfig");
+    akconfig.write(reg+i,16,"registers");
+    akconfig.end();
+  }
+
   dumpAttach(dump,APID_DUMP,64);
 }
 
 void loop() {
   int16_t gyro[3];
+  int16_t acc[3];
+  int16_t mag[3];
+  bool mag_ok;
   int16_t T;
   float t=interface.time();
-  interface.readGyro(gyro,T);
-  record.start(APID_DATA,"GyroData");
+  interface.readMPU(acc,gyro,T);
+  mag_ok=interface.readMag(mag);
+  record.start(APID_DATA,"MPUData");
   record.write(t,"time");
   record.write(T,"Temperature");
+  record.write(acc[0],"ax");
+  record.write(acc[1],"ay");
+  record.write(acc[2],"az");
   record.write(gyro[0],"gx");
   record.write(gyro[1],"gy");
   record.write(gyro[2],"gz");
+  record.write(uint8_t(mag_ok?1:0),"MagOK");
+  record.write(mag[0],"bx");
+  record.write(mag[1],"by");
+  record.write(mag[2],"bz");
   record.end();
-  usleep(10000);
+  while(interface.checkNavChar()){
+    int8_t ch = interface.readChar();
+    gps.write(ch);
+  }
+  bool has_new;
+  double t_pps=interface.checkPPS(has_new);
+  if(has_new) {
+    pps.start(APID_PPS,"PPS");
+    pps.write(t_pps,"t_pps");
+    pps.end();
+  }
+  usleep(5000);
   if(maxt>0 && t>maxt) done=true;
 }
 

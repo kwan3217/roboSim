@@ -6,10 +6,11 @@
 #define ROBOBRAIN_H_
 
 #include "robot.h"
+#include "Log.h"
 
 class roboBrain: public Controller //where the robot thinks it is
 {
-	private:
+	protected:
 		enum nmeaParts {	///< constants to track where in the partitions array is the spot for each part of the nmea sentence
 			timeSpot,		///< UTC time
 			statusSpot,		///< Active/Void
@@ -28,12 +29,15 @@ class roboBrain: public Controller //where the robot thinks it is
 
 		double lat0 = 100;		///< latitude at time 0, initialized to 100 for navigateGPS to set, then compare with new GPS data
 		double long0 = 200;		///< longitude at time 0, initialized to 200 for navigateGPS to set, then compare with new GPS data
+		double latdd;		///< latitude at current time
+		double longdd;		///< longitude at current time
 	    waypoint pos;		///< perceived position
 		double heading;		///< Perceived heading
 		double desiredHeading;	///< Heading needed for the robot to be on course
 		double headingChange;	///< Heading change needed for the robot to be on course
 		int nowpoint = 0;	///< Current waypoint for robot to navigate to
 		static const waypoint waypoints[];	///< Array of waypoints for the robot
+		static const int wpcount;
 		char nmeaReceived[256];	///< NMEA sentence received by robot
 		int charsReceived;	///< Number of characters in NMEA sentence currently received
 		double pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
@@ -41,32 +45,35 @@ class roboBrain: public Controller //where the robot thinks it is
 		int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
 		int partitions[20];	///< locations of the partitions in the NMEA sentence
 		void updateTime();
+                int32_t oldWheelCount;
+                waypoint odoDeltaPos;
 		int16_t zDN,steerCmd;
 		double yawRate;
 		double epochTime;
 		double dt;
 		int offSet;
-		const int bufferDiscard = 300;
-		const int bufferMax = 1500;
+		static const int bufferDiscard = 300;
+		static const int bufferMax = 1500;
 		int ofBuffer[bufferMax];
 		int bufferSpot;
-
+        Log& logC;
+        Log& logGps;
 		void fillBuffer();
 		void setOffSet();
-
+		int servoCommand;
 		int32_t wheelCount; ///< count of sector changes taken last time by the odometer
 		uint32_t timeStamp; ///< epoch time(CURRENTLY IN MILLISECONDS) of last time readOdometer() was used
 		uint32_t dtOdometer;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
 	public:
-		roboBrain(double h, double e, double n, Interface& Linterface);
+		roboBrain(double h, double e, double n, Interface& Linterface, Log& LlogC, Log& LlogGps);
 		void navigateCompass();	//
 		void navigateGPS();
 		void navigateOdometer();
-		virtual void navigage() {navigateCompass();navigateGPS();navigateOdometer();}
+		virtual void navigate();
 		virtual void guide();
 		virtual void control();			//give data to servos, which will then be read by the simulation
 		void log() const;		//take data?
-		void showVector() const;
+		virtual void showVector(Log& pkt);
 };
 
 

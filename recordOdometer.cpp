@@ -9,7 +9,7 @@ HardwarePiInterfaceArduino interface;
 //Simulator interface;
 double t[]           {0,  0,  2,  5,  6,  6,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};
-int servoCommand[]  {150,155,140,155,155,150,150};
+int servoCommand[]  {150,155,140,200,200,150,150};
 OpenLoopGuidance controller(interface,t,servoChannel,servoCommand);
 LogCSV logC("odometer.csv");
 

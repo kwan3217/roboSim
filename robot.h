@@ -1,14 +1,16 @@
 /*
  * robot.h
  */
+#ifndef ROBOT_H_
+#define ROBOT_H_
+
 #include<stdint.h>
 #include <cmath>
 #include "Vector.h"
+#include "Log.h"
 
-#ifndef ROBOT_H_
-#define ROBOT_H_
 const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
-const double wheelRadius = .03175;
+const double tickDistance=0.30198;
 
 class waypoint: public Vector<2,fp> {
 public:
@@ -55,7 +57,7 @@ private:
 	     * is valid, IE a PPS pulse is generated, then some time later a new position is transmitted.
 	     * @return epoch time of the most recent PPS in seconds
 	     */
-		virtual double checkPPS() = 0;
+		virtual double checkPPS(bool& has_new) = 0;
 		/** Check if a character of GPS data is available
 		 * @return true if a character is available, false if not
 		 */
@@ -88,7 +90,25 @@ private:
 		 * IE element 0 is X, 1 is Y, and 2 is Z.
                  * @return true if measurement was successful and valid, false if not (I2C read error, etc)
 		 */
-		virtual bool readGyro(int16_t g[]) = 0;
+		virtual bool readGyro(int16_t g[]) {int16_t t; return readGyro(g,t);};
+		/** Read the accelerometer
+		 * @param[out] g vector of gyroscope readings, in DN. One DN typically represents
+		 * a constant fraction of a degree per second rotation rate around each axis. Number
+		 * is a raw readout of the sensor, in two's complement integer, in proper axis order,
+		 * IE element 0 is X, 1 is Y, and 2 is Z.
+                 * @return true if measurement was successful and valid, false if not (I2C read error, etc)
+		 */
+		virtual bool readAcc(int16_t g[])=0;
+		/** Read the whole MPU sensor
+		 * @param[out] a vector of accelerometer readings, in DN.
+		 * @param[out] g vector of gyroscope readings, in DN.
+                 * @param[out] t temperature reading in DN.
+                 * @return true if measurement was successful and valid, false if not (I2C read error, etc)
+		 */
+		virtual bool readMPU(int16_t a[], int16_t g[], int16_t& t) {
+                  if(!readAcc(a)) return false;
+                  return readGyro(g,t);
+                }
 		/** Read the gyroscope
 		 * @param[out] g vector of gyroscope readings, in DN. One DN typically represents
 		 * a constant fraction of a degree per second rotation rate around each axis. Number
@@ -98,6 +118,18 @@ private:
                  * @return true if measurement was successful and valid, false if not (I2C read error, etc)
 		 */
 		virtual bool readGyro(int16_t g[], int16_t& t) = 0;
+               /** Read the magnetometer
+                 * @param[out] b vector of magnetometer readings, in DN. Number
+                 * is a raw readout of the sensor, in two's complement integer, in proper axis or$
+                 * IE element 0 is X, 1 is Y, and 2 is Z. In hardware, the AK8963 part does not
+                 * have its axes aligned with the rest of the MPU. This routine does the axis
+                 * rotation (merely axis swap and/or negation) to make the axes match the rest
+                 * of the MPU
+                 * @param[out] t temperature reading in DN
+                 * @return true if measurement was successful and valid, false if not (I2C read e$
+                 */
+                virtual bool readMag(int16_t b[]) = 0;
+
 		Servo& steering; ///< Reference to steering servo object
 		Servo& throttle; ///< Reference to throttle servo object
 		/** Construct a robot interface
@@ -115,6 +147,7 @@ class Controller {
 protected:
   Interface& interface;
 public:
+  virtual void showVector(Log& pkt)=0;
   virtual void navigate() {};
   virtual void guide() {};
   virtual void control() {};

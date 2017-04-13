@@ -35,7 +35,7 @@ public:
  */
 class HardwarePiInterface: public Interface {
 private:
-  double t0; ///<Epoch time in Unix seconds, so we don't have to deal with an epoch over a billion seconds ago
+  struct timespec t0,last_pps; ///<Epoch time in Unix seconds, so we don't have to deal with an epoch over a billion seconds ago
   FILE* ppsf; ///< PPS stream
   pps_handle_t pps; ///<PPS instance handle
   /** Convert a struct timespec into a count of seconds. The integer part of the return will be specified by tv_sec, while the fractional
@@ -44,6 +44,21 @@ private:
    * @return equivalent timestamp in double precision count of seconds.
    */
   static double ts2t(struct timespec ts) {return ts.tv_sec+double(ts.tv_nsec)/1'000'000'000.0;};
+  /** Figure the distance from the epoch to a given timespec using pure integer math
+   @param ts given timespec
+   @return a deltat timespec, where tv_sec and tv_nsec represent the difference between the timestamps
+  */
+  struct timespec dt(struct timespec ts) {
+    struct timespec result;
+    result.tv_sec=ts.tv_sec-t0.tv_sec;
+    if(ts.tv_nsec<t0.tv_nsec) {
+      result.tv_sec++;
+      result.tv_nsec=(ts.tv_nsec+1'000'000'000)-t0.tv_nsec;
+    } else {
+      result.tv_nsec=ts.tv_nsec-t0.tv_nsec;
+    }
+    return result;
+  }
   static const int ODOMETER_ADDRESS=0x55; ///< 7-bit I2C address of Arduino used as odometer
   char gpsBuf[128]; ///< GPS data buffer
   FILE* gpsf; ///<GPS NMEA stream
@@ -54,13 +69,19 @@ protected:
 public:
   I2C_t bus; ///< I2C bus stream
   MPUI2C mpu;
-  virtual double checkPPS();
+  AK ak;
+  virtual double checkPPS(bool& has_new);
   virtual bool checkNavChar();
   virtual char readChar();
   virtual double time();
+  struct timespec epoch() {return t0;};
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
+  virtual bool readAcc(int16_t a[]);
+  virtual bool readAcc(int16_t a[], int16_t& t);
+  virtual bool readMag(int16_t b[]);
   virtual bool readGyro(int16_t g[]);
   virtual bool readGyro(int16_t g[], int16_t& t);
+  virtual bool readMPU(int16_t a[], int16_t g[], int16_t& t);
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
   virtual ~HardwarePiInterface();

@@ -137,6 +137,19 @@ bool MPU::readGyro(int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
   return true;
 }
 
+/** \copydoc MPU::readAcc(int16_t&,int16_t&,int16_t&)
+ * \internal
+ * Implemented by reading 6 bytes the I2C bus, starting at register 0x3B
+ */
+bool MPU::readAcc(int16_t& ax, int16_t& ay, int16_t& az) {
+  char buf[sizeof(int16_t)*3];
+  if(!read(ACCEL_XOUT_H,buf,sizeof(buf))) return false;
+  ax=readBuf_be<int16_t>(buf,0);
+  ay=readBuf_be<int16_t>(buf,2);
+  az=readBuf_be<int16_t>(buf,4);
+  return true;
+}
+
 /** \copydoc MPU::readAcc(int16_t&,int16_t&,int16_t&,int16_t&)
  * \internal
  * Implemented by reading 8 bytes the I2C bus, starting at register 0x3B
@@ -154,7 +167,7 @@ bool MPU::readAcc(int16_t& ax, int16_t& ay, int16_t& az, int16_t& t) {
  * \internal
  * Implemented by reading 14 bytes the I2C bus, starting at register 0x3B
  */
-bool MPU::read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
+bool MPU::readMPU(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz, int16_t& t) {
   char buf[sizeof(int16_t)*7];
   if(!read(ACCEL_XOUT_H,buf,sizeof(buf))) return false;
   ax=readBuf_be<int16_t>(buf, 0);
@@ -165,5 +178,96 @@ bool MPU::read(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, 
   gy=readBuf_be<int16_t>(buf,10);
   gz=readBuf_be<int16_t>(buf,12);
   return true;
+}
+
+/** Start the AK8963 and initialize the configuration. Do anything necessary to init the part. Bus is available at this point.
+*/
+bool AK::begin() {
+  bool success;
+  uint8_t who=whoami(success);
+  if(!success||who!=0x48) {
+//    printf("Failed: %02x=whoami(%s)",who,success?"true":"false");
+    return false;
+  }
+  configure();
+  return true;
+}
+
+/** Configure the AK8963
+ \param mode Sensor read mode selected from this table:
+   mode      | description
+  ---------- | ---------------------
+       0     | Power-down mode. Majority of part is asleep, but I2C bus is active
+       1     | Single measurement mode - Take one measurement then automatically go to mode 0
+       2     | Continuous measurement mode 1 - Sample sensor at 8Hz
+       6     | Continuous measurement mode 2 - Sample sensor at 100Hz
+       4     | External trigger mode - not useful since external trigger not exposed in MPU9xxx
+       8     | Self-test mode. Take self-test measurement, then automatically go to mode 0
+      15     | Fuse ROM mode - read Fuse ROM but don't do anything else
+ \param bit16 If true, sensor read values are 16-bit, else 14-bit.
+ \return true if all writes are successful, false otherwise.
+*/
+bool AK::configure(uint8_t mode, bool bit16) {
+  char cntl1=mode & 0x0F |
+              (bit16?(1<<4):0);
+  //Transition to mode 0 first
+  if(!write(CNTL1,0)) return false;
+  //Wait at least 100us for transition to happen
+  usleep(100);
+  //Transition to desired mode
+  if(!write(CNTL1,cntl1)) return false;
+  return true;
+}
+
+/** Read configuration registers
+ \param buf buffer to hold registers. Must be at least 19 bytes, and
+    config registers are read into that buffer. Not all registers are read,
+    so buffer space for those that are not are left as-is. The result is
+    that the index into the buffer directly maps to the address of the register,
+    so that register 0x00 (whoami) is found at index 0x00
+ \return true if all reads are successful, false otherwise.
+
+ Note: This sets the CNTL1 register to make the Fuse ROM registers visible. This will
+       disrupt any measurement in progress. If any of the I2C accesses fail, the part
+       may be left in Fuse ROM mode, and will not take any further measurements.
+*/
+bool AK::readConfig(char buf[]) {
+  //Read CNTL1 to get the current mode
+  char cntl1_old;
+  const char cntl1_new=0x0F; //Put the part into Fuse ROM access mode, so that the sensitivity settings are readable
+  if(!read(CNTL1,&cntl1_old,1)) return false;
+  if(!write(CNTL1,cntl1_new)) return false;
+  //First few bytes written out are gyro configuration. Gyro is
+  //configured in the constructor for HardwarePiInterfaceArduino,
+  //so the configuration is finished by this point.
+  //First are registers 0x00 to 0x0C inclusive (13 bytes). This inculdes sensor values.
+  if(!read(0x00,buf+0x00,13)) return false;
+  //Next are registers 0x0F to 0x12 inclusive (4 bytes).
+  if(!read(0x0F,buf+0x0F,4)) return false;
+  if(!write(CNTL1,0)) return false; //Set the mode to powerdown
+  usleep(100); //Wait for mode change
+  if(!write(CNTL1,cntl1_old)) return false; //Set the mode back to the original mode
+  return true;
+}
+
+/** \copydoc AK::read(int16_t&,int16_t&,int16_t&)
+ * \internal
+ * Reads the ST1 register, and returns false if data is not ready yet. If
+ * the data IS ready, read the sensor values and ST2.
+ * @return true if the sensor is read successfully. False if not.
+ *         If the data isn't ready yet, return false and zero in all data values
+ *         If the sensor saturates, return false, but return the (presumably
+ *         nonzero) data that we got.
+ */
+bool AK::read(int16_t& bx, int16_t& by, int16_t& bz) {
+  bx=by=bz=0; //Clear out the return values
+  char buf[7]; //Enough data for the three 16-bit sensor values and one status register
+  if(!read(ST1,buf,1)) return false;
+  if((buf[0] & 0x01) == 0x00) return false; //Data not ready yet
+  if(!read(HXL,buf,sizeof(buf))) return false;
+  bx=readBuf_le<int16_t>(buf, 0);
+  by=readBuf_le<int16_t>(buf, 2);
+  bz=readBuf_le<int16_t>(buf, 4);
+  return (buf[6] & (1<<3)) == 0; //ST2 is in buf[6]. Bit 3 is magnetic sensor overflow (analog saturate).
 }
 

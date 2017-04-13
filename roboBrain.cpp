@@ -13,9 +13,9 @@ using namespace std;
 
 
 
-roboBrain::roboBrain(double h, double e, double n, Interface& Linterface):
+roboBrain::roboBrain(double h, double e, double n, Interface& Linterface, Log& LlogC, Log& LlogGps):
 Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0)
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0),logC(LlogC),logGps(LlogGps)
 { }
 
 const waypoint roboBrain::waypoints[] = {
@@ -31,15 +31,10 @@ const waypoint roboBrain::waypoints[] = {
 		{   6.91,-  0.11},
 		{   3.93,-  3.28},
 };
+const int roboBrain::wpcount=sizeof(roboBrain::waypoints)/sizeof(waypoint);
 
 void roboBrain::guide(){
-	if(nowpoint == 0){
-			fillBuffer();
-			if(interface.button()){
-				nowpoint = 1;
-				setOffSet();
-			}
-	} else {
+	if(nowpoint != 0) {
 		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
 		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
 			nowpoint += 1;
@@ -61,21 +56,28 @@ void roboBrain::guide(){
 }
 
 void roboBrain::control(){
-	if(nowpoint == 0) return;
-	else {
+
+	if(nowpoint == 0) {
+          interface.throttle.write(150);
+          interface.steering.write(155);
+
+	} else {
 		if(headingChange >= 300){
 			interface.throttle.write(150);
 			interface.steering.write(150);
 			return;
 		}
 		interface.throttle.write(140);
-		interface.steering.write(headingChange * double (50)/180+150);
+		servoCommand = (headingChange * 7 * double(50)/180+155);
+		if(servoCommand > 200) servoCommand = 200;
+		if(servoCommand < 100) servoCommand = 100;
+		interface.steering.write(servoCommand);
 	}
 }
 
 void roboBrain::setOffSet(){
 	for(int i = 0; i < bufferMax; i++){
-		if(i > bufferDiscard) offSet += bufferSpot;
+		if(i > bufferDiscard) offSet += ofBuffer[bufferSpot];
 		bufferSpot--;
 		if(bufferSpot < 0) bufferSpot = bufferMax;
 	}
@@ -83,46 +85,44 @@ void roboBrain::setOffSet(){
 }
 
 void roboBrain::navigateCompass(){
-	updateTime();
-	int g[3];
+	int16_t g[3];
 	interface.readGyro(g);
 	zDN=g[2];
 	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
 	heading -= yawRate * dt;
 }
 
+void roboBrain::updateTime(){
+  double oldTime = epochTime;
+  epochTime = interface.time();
+  dt = epochTime - oldTime;
+}
+
 void roboBrain::fillBuffer(){
-	int g[3];
-	interface.readGyro[g];
-	ofBuffer[bufferSpot] = g[2];
-	bufferSpot++;
-	if(bufferSpot >= 1500) bufferSpot = 0;
+  int16_t g[3];
+  interface.readGyro(g);
+  ofBuffer[bufferSpot] = g[2];
+  zDN=g[2];
+  bufferSpot++;
+  if(bufferSpot >= 1500) bufferSpot = 0;
 }
 
 void roboBrain::navigateOdometer(){
-  uint32_t oldWheelCount = wheelCount;
-  interface.readOdometer(timeStamp, wheelCount, dtOdometer);
-  uint32_t newWheelCount = wheelCount - oldWheelCount;
-  waypoint dir={sin(heading*PI/180),cos(heading*PI/180)};
-  pos+=dir*fp(wheelRadius * (PI / 2) * newWheelCount);
+  oldWheelCount = wheelCount;
+  int32_t tempWheelCount;
+  interface.readOdometer(timeStamp, tempWheelCount, dtOdometer);
+  int32_t deltaWheelCount = tempWheelCount - oldWheelCount;
+  if (deltaWheelCount>4 || deltaWheelCount<-4) return;
+  wheelCount=tempWheelCount;
+  odoDeltaPos={sin(heading*PI/180),cos(heading*PI/180)};
+  pos+=odoDeltaPos*fp(fp(tickDistance * deltaWheelCount)/4.0);
 }
 
 void roboBrain::navigateGPS(){
-	//TO BE CLEANED ONCE COMPLETED --> start by reading in the NMEA sentence from the simulator as possible.
-	//				Then look at the received data an pull the latitude, longitude, speed and heading.
-	//				Use math to convert latitude and longitude to northing and easting, then place
-	//				these values in the robot's data. Once I have finished the basic version, I need to 
-	//				account for the .4 second lag and create projected easting, northing data from that.
-
-//	if(interface.checkPPS() != pps){	//if PPS doesn't match, reset and prep for a new sentence
-//		sentenceDone = false;
-//		charsReceived = 0;
-//		partCount = 0;
-//		pps = interface.checkPPS();
-//	}
-//	if(sentenceDone) return;		//if I've taken in an entire sentence, then I don't need to do anything else here.
 	while(interface.checkNavChar()){
 		char ch = interface.readChar();
+           printf("%c",ch);
+                logGps.write(ch);
 		if(ch == '$') sentenceStart = true;
 		if(!sentenceStart) continue;
 
@@ -167,7 +167,7 @@ void roboBrain::navigateGPS(){
 				double latpos = atof(nmeaReceived + partitions[latSpot] + 1);
 				int degrees = floor(latpos)/100;
 				double minutes = (latpos - degrees * 100);
-				double latdd = degrees + minutes/60;
+				latdd = degrees + minutes/60;
 
 				if(nmeaReceived[partitions[nsSpot]+1] == 'S') latdd = -latdd;
 
@@ -175,13 +175,12 @@ void roboBrain::navigateGPS(){
 				double longpos = atof(nmeaReceived + partitions[longSpot] + 1);
 				degrees = floor(longpos)/100;
 				minutes = (longpos - degrees * 100);
-				double longdd = degrees + minutes/60;
+				longdd = degrees + minutes/60;
 
 
 				if(nmeaReceived[partitions[ewSpot]+1] == 'W') longdd = -longdd;
 
 
-				heading = atof(nmeaReceived + partitions[headingSpot] + 1);
 				if(lat0 > 90 && long0 > 180){
 					lat0 = latdd;
 					long0 = longdd;
@@ -201,7 +200,39 @@ void roboBrain::navigateGPS(){
 	}
 }
 
+void roboBrain::navigate() {
+  updateTime();
+  navigateGPS();
+  navigateOdometer();
+  if(nowpoint == 0){
+    fillBuffer();
+    if(interface.button()){
+      nowpoint = 1;
+      pos = {0,0};
+      setOffSet();
+    }
+  } else {
+    navigateCompass();
+  }
+}
 
-void roboBrain::showVector() const {
-	printf(",%06.2f,%06.2f,,%i,%06.2f,%06.2f,%06.2f, %07.2f\n",pos.easting(), pos.northing(), nowpoint,waypoints[nowpoint].easting(), waypoints[nowpoint].northing(),desiredHeading,headingChange);
+void roboBrain::showVector(Log& pkt) {
+//  pkt.write(latdd,"lat from gps");
+//  pkt.write(longdd,"lon from gps");
+  pkt.write(interface.button(), "button status");
+  pkt.write(zDN,"zDN");
+  pkt.write(offSet, "offset");
+  pkt.write(ofBuffer[bufferSpot], "current buffer's value");
+  pkt.write(bufferSpot, "buffer spot");
+//  pkt.write(wheelCount,"wheelCount");
+//  pkt.write(pos.easting(),"est easting");
+//  pkt.write(pos.northing(),"est northing");
+//  pkt.write(nowpoint,"nowpoint");
+//  pkt.write(waypoints[nowpoint].easting(),"waypoint easting");
+// pkt.write(waypoints[nowpoint].northing(),"waypoint northing");
+  pkt.write(yawRate, "yaw rate");
+  pkt.write(heading, "est heading");
+  pkt.write(desiredHeading,"desired heading");
+  pkt.write(headingChange,"heading change");
+  pkt.write(servoCommand, "steering command");
 }

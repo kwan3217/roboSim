@@ -42,7 +42,7 @@ CXXFLAGS+=-std=c++14
 #      flow of code too much, so that the generated code matches structure of the source
 #      code and it can be followed in a debugger.
 #-O3 - Turn on almost all the optimizations.
-OPT=-O3 
+OPT=-Og 
 ### Set the compiler options, used during the call to g++ to make each .o file. ###
 #Turn on link-time optimization. In the compile phase, this writes extra information in
 #the .o files (effectively the full parse tree) so that the linker has this information.
@@ -69,7 +69,7 @@ CXXFLAGS+=-MMD -MP -MF .dep/$(@F).d
 CXXFLAGS+=-fverbose-asm 
 
 # List of all the executable images that can be made
-EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe
+EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe testControl.exe Yukari4.exe
 
 # List of all extended listings that can be made
 LSS = $(EXE:%.exe=%.lss)
@@ -151,6 +151,10 @@ recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRaw
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 
 PiCompassNeedle.exe: PiCompassNeedle.o HardwarePi.o compassNeedle.o MPU.o
+
+testControl.exe: testControl.o Simulator.o HardwarePi.o Log.o LogCSV.o MPU.o OpenLoopGuidance.o
+
+Yukari4.exe: Yukari4.o roboBrain.o HardwarePi.o Log.o LogCSV.o MPU.o OpenLoopGuidance.o LogRawBinary.o dump.o attach.o
 
 i2c_echo.exe: i2c_echo.o
 

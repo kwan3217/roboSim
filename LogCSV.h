@@ -53,7 +53,7 @@ public:
   virtual void write(uint16_t    value,          const char* fieldName=nullptr) {write((uint32_t)value,fieldName);};
   virtual void write(uint32_t    value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%u":",%u",value);  firstField=false;};
   virtual void write(float       value,          const char* fieldName=nullptr) {write((double)value,fieldName);};
-  virtual void write(double      value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%f":",%f",value);  firstField=false;};
+  virtual void write(double      value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%15.10f":",%15.10f",value);  firstField=false;};
   virtual void write(const char* value, int len, const char* fieldName=nullptr);
   virtual void write(const char* value,          const char* fieldName=nullptr);
   virtual void end();
