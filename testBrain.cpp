@@ -35,7 +35,6 @@ void testBrain::control(){
 				interface.steering.write(150);
 				hardInterface.throttle.write(150);
 				hardInterface.steering.write(150);
-
 				return;
 			}
 			interface.throttle.write(140);
@@ -47,10 +46,10 @@ void testBrain::control(){
 
 void testBrain::guide(){
 	if(nowpoint == 0){
-			fillBuffer();
+			//fillBuffer();
 			if(hardInterface.button()){
 				nowpoint = 1;
-				setOffSet();
+			//	setOffSet();
 			}
 	} else {
 		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){

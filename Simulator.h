@@ -5,6 +5,7 @@
 #define SIMULATOR_H_
 #include <stdint.h>
 #include "robot.h"
+#include "LogCSV.h"
 
 /** Simulated servo. Keeps track of physical value of servo (steering angle, speed of robot, etc) and manages servo slewing */
 class SimServo:public Servo {
@@ -98,7 +99,7 @@ public:
    */
   virtual ~Simulator() {};
   void update(double dt);
-  void showVector() const;									//reports data for storage in .csv file
+  void showVector(LogCSV& logC) const;									//reports data for storage in .csv file
   static void testNMEA(); ///< Test the NMEA generation code
 
   virtual double checkPPS();
@@ -107,6 +108,9 @@ public:
   virtual void readOdometer(uint32_t& timeStamp, int32_t& wheelCount, uint32_t& dt);
   virtual bool readGyro(int16_t g[]);
   virtual bool readGyro(int16_t g[], int16_t& t);
+  virtual bool checkPPS(double& t) {return false;}; //PPS doesn't work yet -- all attempts to read will fail
+  virtual bool readAcc(int16_t g[]) {return false;}; //Acc doesn't do anything yet -- all attempts to read will fail
+  virtual bool readMag(int16_t b[]) {return false;}; //Mag doesn't do anything yet -- all attempts to read will fail
   virtual double time() {return epochTime;};
   virtual bool button(int pin=17) {return epochTime >= 1;};
   /** Back-door direct access to heading

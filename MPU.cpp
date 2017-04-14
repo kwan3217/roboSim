@@ -182,7 +182,7 @@ bool MPU::readMPU(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& g
 
 /** Start the AK8963 and initialize the configuration. Do anything necessary to init the part. Bus is available at this point.
 */
-bool AK::begin() {
+bool AK89xx::begin() {
   bool success;
   uint8_t who=whoami(success);
   if(!success||who!=0x48) {
@@ -207,7 +207,7 @@ bool AK::begin() {
  \param bit16 If true, sensor read values are 16-bit, else 14-bit.
  \return true if all writes are successful, false otherwise.
 */
-bool AK::configure(uint8_t mode, bool bit16) {
+bool AK89xx::configure(uint8_t mode, bool bit16) {
   char cntl1=mode & 0x0F |
               (bit16?(1<<4):0);
   //Transition to mode 0 first
@@ -231,7 +231,7 @@ bool AK::configure(uint8_t mode, bool bit16) {
        disrupt any measurement in progress. If any of the I2C accesses fail, the part
        may be left in Fuse ROM mode, and will not take any further measurements.
 */
-bool AK::readConfig(char buf[]) {
+bool AK89xx::readConfig(char buf[]) {
   //Read CNTL1 to get the current mode
   char cntl1_old;
   const char cntl1_new=0x0F; //Put the part into Fuse ROM access mode, so that the sensitivity settings are readable
@@ -259,7 +259,7 @@ bool AK::readConfig(char buf[]) {
  *         If the sensor saturates, return false, but return the (presumably
  *         nonzero) data that we got.
  */
-bool AK::read(int16_t& bx, int16_t& by, int16_t& bz) {
+bool AK89xx::read(int16_t& bx, int16_t& by, int16_t& bz) {
   bx=by=bz=0; //Clear out the return values
   char buf[7]; //Enough data for the three 16-bit sensor values and one status register
   if(!read(ST1,buf,1)) return false;

@@ -68,9 +68,8 @@ private:
 protected:
 public:
   I2C_t bus; ///< I2C bus stream
-  MPUI2C mpu;
-  AK ak;
-  virtual double checkPPS(bool& has_new);
+  MPU9250 mpu;
+  virtual bool checkPPS(double& t);
   virtual bool checkNavChar();
   virtual char readChar();
   virtual double time();
@@ -83,7 +82,7 @@ public:
   virtual bool readGyro(int16_t g[], int16_t& t);
   virtual bool readMPU(int16_t a[], int16_t g[], int16_t& t);
   virtual bool button(int pin=17);
-  HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle);
+  HardwarePiInterface(Servo& steering, Servo& throttle);
   virtual ~HardwarePiInterface();
 };
 

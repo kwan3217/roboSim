@@ -14,23 +14,23 @@ using namespace std;
 
 
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface, Log& LlogC, Log& LlogGps):
-Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0),logC(LlogC),logGps(LlogGps)
+Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),logC(LlogC),logGps(LlogGps),
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0).waypoints({
+                        {   0.00,   0.00},
+                        {- 26.42,  21.83},
+                        {- 19.53,  30.55},
+                        {   0.29,  14.32},
+                        {  11.72,  28.72},
+                        {  23.83,  19.39},
+                        {   9.70,   2.77},
+                        {   6.24,   5.57},
+                        {   3.36,   2.49},
+                        {   6.91,-  0.11},
+                        {   3.93,-  3.28},
+                })
+,logC(LlogC),logGps(LlogGps)
 { }
 
-const waypoint roboBrain::waypoints[] = {
-		{   0.00,   0.00},
-		{- 26.42,  21.83},
-		{- 19.53,  30.55},
-		{   0.29,  14.32},
-		{  11.72,  28.72},
-		{  23.83,  19.39},
-		{   9.70,   2.77},
-		{   6.24,   5.57},
-		{   3.36,   2.49},
-		{   6.91,-  0.11},
-		{   3.93,-  3.28},
-};
 const int roboBrain::wpcount=sizeof(roboBrain::waypoints)/sizeof(waypoint);
 
 void roboBrain::guide(){
@@ -85,6 +85,7 @@ void roboBrain::setOffSet(){
 }
 
 void roboBrain::navigateCompass(){
+	updateTime();
 	int16_t g[3];
 	interface.readGyro(g);
 	zDN=g[2];

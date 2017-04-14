@@ -19,4 +19,5 @@ latex
 *.tar
 *.tbz
 *.sds
+*.map
 

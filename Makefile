@@ -6,7 +6,7 @@ OBJDUMP=objdump
 OBJCOPY=objcopy
 ATTACH = *.cpp *.h
 ATTACH+= wiringPiDummy/*.c wiringPiDummy/*.h wiringPiDummy/Makefile
-ATTACH+=Yukari4.fzz
+ATTACH+=Yukari.fzz
 ATTACH+=Doxyfile Makefile
 ATTACH+=MPU9250registers.ods
 #ATTACH+=ECX03000_Manual_EN.pdf
@@ -22,7 +22,6 @@ else
 BFDO := elf64-x86-64
 BFDB := i386
 endif
-
 
 #Make the program make a separate section for each function and variable in the program.
 #This makes it easier for the linker to remove dead code.
@@ -69,7 +68,7 @@ CXXFLAGS+=-MMD -MP -MF .dep/$(@F).d
 CXXFLAGS+=-fverbose-asm 
 
 # List of all the executable images that can be made
-EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe testControl.exe Yukari4.exe
+EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe testControl.exe Yukari.exe
 
 # List of all extended listings that can be made
 LSS = $(EXE:%.exe=%.lss)
@@ -79,8 +78,8 @@ MAP = $(EXE:%.exe=%.map)
 # We make the extended listings, which have their executables as dependencies, to get all the executables
 all: $(EXE)
 
-# Don't include this in all, since doxygen is not present on the Pi.
 html: Doxyfile
+	ln -sv /mnt/big/home/chrisj/public_html/Yukari4_doxygen html        
 	doxygen
 
 #Remove all intermediate and target files
@@ -130,9 +129,9 @@ attach.tbz: $(ATTACH)
 #The second pass uses -c to compile but not link, generating a .o file. -Wa passes arguments to the
 #assembler pass to write annotated assembly to a .s file for each .o file. 
 %.o: %.cpp
-	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
-	#$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+#	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 #Main executable rules. Dependencies are the .o files needed. Those .o files themselves depend on
 #the source code, so we just need to list the .o files and make will figure out which source
@@ -154,7 +153,7 @@ PiCompassNeedle.exe: PiCompassNeedle.o HardwarePi.o compassNeedle.o MPU.o
 
 testControl.exe: testControl.o Simulator.o HardwarePi.o Log.o LogCSV.o MPU.o OpenLoopGuidance.o
 
-Yukari4.exe: Yukari4.o roboBrain.o HardwarePi.o Log.o LogCSV.o MPU.o OpenLoopGuidance.o LogRawBinary.o dump.o attach.o
+Yukari.exe: Yukari.o roboBrain.o HardwarePi.o Log.o LogCSV.o MPU.o OpenLoopGuidance.o LogRawBinary.o dump.o attach.o
 
 i2c_echo.exe: i2c_echo.o
 

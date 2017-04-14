@@ -3,6 +3,7 @@
 
 #include "roboBrain.h"
 #include "LogCSV.h"
+#include "Simulator.h"
 
 class testBrain: public roboBrain
 {

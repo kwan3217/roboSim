@@ -2,7 +2,7 @@
 #include "HardwarePi.h"
 #include <wiringPi.h>
 #include <fcntl.h>
-
+#include <termios.h>
 
 /**
  * @copydoc Servo::write(int)
@@ -23,14 +23,14 @@ void HardwarePiServoArduino::write(int n) {
  * at the first PPS, then the epoch is set to the time of the PPS.
  *
  */
-double HardwarePiInterface::checkPPS(bool& has_new) {
+bool HardwarePiInterface::checkPPS(double& t) {
   pps_info_t info;
   static const struct timespec timeout={0,0};
   time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
-  has_new=(last_pps.tv_sec!=info.assert_timestamp.tv_sec) || (last_pps.tv_nsec!=info.assert_timestamp.tv_nsec);
+  t=ts2t(dt(info.assert_timestamp));
+  bool has_new=(last_pps.tv_sec!=info.assert_timestamp.tv_sec) || (last_pps.tv_nsec!=info.assert_timestamp.tv_nsec);
   if(has_new) last_pps=info.assert_timestamp;
-  double t=ts2t(dt(info.assert_timestamp));
-  return t;
+
 //	return 0; //Comment out PPS stuff because no PPS source is plugged in
 }
 
@@ -72,8 +72,8 @@ char HardwarePiInterface::readChar() {
 /**
  * @copydoc Interface::time()
  * \internal
- * Implemented by reading the system clock, then subtracting off the epoch of the first time the clock was read. If this *is* the first time
- *  the clock was read, records this time as the epoch in t0.
+ * Implemented by reading the system clock, then subtracting off the epoch of the first time the clock was read.
+ * Keeps timestamps and integers as long as possible so as not to lose precision.
  */
 double HardwarePiInterface::time() {
   struct timespec ts;
@@ -118,7 +118,9 @@ bool HardwarePiInterface::readGyro(int16_t g[]) {
 }
 
 bool HardwarePiInterface::readMag(int16_t b[]) {
-  return ak.read(b[0],b[1],b[2]);
+  bool result=mpu.ak.read(b[1],b[0],b[2]);
+  b[2]=-b[2];
+  return result;
 }
 
 bool HardwarePiInterface::readMPU(int16_t a[], int16_t g[], int16_t& t) {
@@ -130,19 +132,39 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
   clock_gettime(CLOCK_REALTIME,&t0);
   //Setup for GPIO (for buttons)
   wiringPiSetupGpio();
+
+  //Open the GPS serial port
   int igps =open("/dev/ttyAMA0",O_NONBLOCK| O_RDONLY);
-  gpsf=fdopen(igps,"r");
-  setbuf(gpsf,nullptr);
+
+  /* set the other settings (in this case, 9600 8N1) */
+  struct termios settings;
+  tcgetattr(igps, &settings);
+
+  cfsetospeed(&settings, B9600); /* baud rate */
+  cfsetispeed(&settings, B9600); /* baud rate */
+  settings.c_cflag &= ~PARENB; /* no parity */
+  settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
+  settings.c_cflag &= ~CSIZE;
+  settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
+  settings.c_lflag = ICANON; /* canonical mode */
+  settings.c_oflag &= ~OPOST; /* raw output */
+
+  tcsetattr(igps, TCSANOW, &settings); /* apply the settings */
+  tcflush(igps, TCOFLUSH);
+
+  gpsf=fdopen(igps,"r"); //Get a FILE* from the int file descriptor
+  setbuf(gpsf,nullptr);  //Turn off buffering
+
   //Open PPS source
   ppsf=fopen("/dev/pps0","r");
   time_pps_create(fileno(ppsf), &pps);
+
   //Open the I2C bus
   bus=open("/dev/i2c-1",O_RDWR);
   if(bus<0) printf("Couldn't open bus: errno %d",errno);
 
   //Initialize the MPU9250
   mpu.begin(bus);
-  ak.begin(bus);
 }
 
 HardwarePiInterface::~HardwarePiInterface() {
@@ -151,7 +173,8 @@ HardwarePiInterface::~HardwarePiInterface() {
   close(bus);
 }
 
-HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():hardSteering(0),hardThrottle(1),HardwarePiInterface(hardSteering,hardThrottle) {
+HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():
+HardwarePiInterface(hardSteering, hardThrottle), hardSteering(0),hardThrottle(1) {
   hardSteering.begin(bus);
   hardThrottle.begin(bus);
 };

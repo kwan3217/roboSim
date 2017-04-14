@@ -123,7 +123,7 @@ public:
  *  AK part to even be visible to the host.
  *
  */
-class AK {
+class AK89xx {
 private:
   I2C_t bus;
   /** Write a byte register
@@ -185,14 +185,24 @@ public:
    * @return true if read worked, false if not
    */
   bool read(int16_t& gx, int16_t& gy, int16_t& gz);
-public:
-  static const int ADDRESS=0x0C;///< 7-bit I2C address of MPU9250 used as gyrocompass
+  static const int ADDRESS=0x0C;///< 7-bit I2C address of AX89xx
   bool begin(I2C_t Lbus) {
     bus=Lbus;
     return begin();
   }
 };
 
-
+/** Driver for MPU9250, which is accesed by I2C and includes an AK8963 magnetometer. As it happens,
+ * the register map for the MPU9150 is close enough to the same, and the map of the AK8975 (embedded
+ * in a 9150) is close enough to the same, that this driver should work for an MPU9150 with no changes.
+ */
+class MPU9250: public MPUI2C {
+public:
+  AK89xx ak;
+  bool begin(I2C_t Lbus) {
+    if(!MPUI2C::begin(Lbus)) return false;
+    return ak.begin(Lbus);
+  }
+};
 
 #endif

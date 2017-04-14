@@ -4,6 +4,7 @@
 #include <string.h>
 #include "robot.h"
 #include "Simulator.h"
+#include "LogCSV.h"
 
 using namespace std;
 
@@ -13,7 +14,7 @@ using namespace std;
  * @param Llon0 initial longitude in degrees east of WGS84 prime meridian
  */
 Simulator::Simulator(double h, double Llat0, double Llon0)
-: Interface(simSteering,simThrottle), heading(h), lat0(Llat0), lon0(Llon0), kappa(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
+: Interface(simSteering,simThrottle),heading(h), lat0(Llat0), lon0(Llon0), kappa(0),simThrottle(100, 200, 10, -10, 5), simSteering(100, 200, -15, 15, 75),epochTime(0),distanceTraveled(0)
 {
     generateNewFix();
 }
@@ -25,10 +26,10 @@ double Simulator::checkPPS() {
 }
 
 void Simulator::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt){
-	//All time is in units of microseconds
-	wheelCount = floor(distanceTraveled/(wheelRadius*PI/2)); //Since it is PI/2 instead of PI*2, this is in quarter-turns, as appropriate.
-	timeStamp =time()*10000000; //Not quite accurate, should be the time that the last click happened, but roboBrain doesn't care.
-	dt=0; //We will eventually fake this from the current wheel speed. Not quite accurate, but it will do for now, especially as the roboBrain doesn't currently use it.
+  //All time is in units of microseconds
+  wheelCount = floor(distanceTraveled/tickDistance); //Since it is PI/2 instead of PI*2, this is in quarter-turns, as appropriate.
+  timeStamp =time()*10000000; //Not quite accurate, should be the time that the last click happened, but roboBrain doesn't care.
+  dt=0; //We will eventually fake this from the current wheel speed. Not quite accurate, but it will do for now, especially as the roboBrain doesn't currently use it.
 }
 
 bool Simulator::checkNavChar() {
@@ -111,8 +112,13 @@ void Simulator::update(double Ldt) {
 }
 
 /** Print information related to the current stat in CSV format */
-void Simulator::showVector() const {
-  printf("%10.2lf, %10.2lf, %4.1f, %5.1f, %10.2f, ", pos.easting(), pos.northing(), simThrottle.read(), heading, kappa);
+void Simulator::showVector(LogCSV& logC) const {
+  logC.write(pos.easting(), "easting");
+  logC.write(pos.northing(), "northing");
+  logC.write(simThrottle.read(), "throttle");
+  logC.write(simSteering.read(), "steering");
+  logC.write(heading, "heading");
+  logC.write(kappa, "kappa");
 }
 
 void Simulator::testNMEA() {

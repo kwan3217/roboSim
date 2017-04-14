@@ -23,7 +23,6 @@ static const int APID_PPS=8;
 
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfig("mpuconfig.csv",false);
-LogCSV akconfig("akconfig.csv",false);
 LogCSV record("record.csv",false);
 LogRawBinary dump("attach.tbz");
 LogRawBinary gps("gps.nmea");
@@ -60,11 +59,11 @@ void setup() {
   }
 
   for(int i=0;i<sizeof(reg);i++) reg[i]=0;
-  interface.ak.readConfig(reg);
+  interface.mpu.ak.readConfig(reg);
   for(int i=0;i<sizeof(reg);i+=16) {
-    akconfig.start(APID_AKCFG,"GyroConfig");
-    akconfig.write(reg+i,16,"registers");
-    akconfig.end();
+    mpuconfig.start(APID_AKCFG,"MagConfig");
+    mpuconfig.write(reg+i,16,"registers");
+    mpuconfig.end();
   }
 
   dumpAttach(dump,APID_DUMP,64);
@@ -97,9 +96,8 @@ void loop() {
     int8_t ch = interface.readChar();
     gps.write(ch);
   }
-  bool has_new;
-  double t_pps=interface.checkPPS(has_new);
-  if(has_new) {
+  double t_pps;
+  if(interface.checkPPS(t_pps)) {
     pps.start(APID_PPS,"PPS");
     pps.write(t_pps,"t_pps");
     pps.end();
