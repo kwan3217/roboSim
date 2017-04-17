@@ -1,39 +1,8 @@
 /*
- * robot.h
+ * Interface.h
  */
-#ifndef ROBOT_H_
-#define ROBOT_H_
-
-#include<stdint.h>
-#include <cmath>
-#include "Vector.h"
-#include "Log.h"
-
-const double re=6378137.0;     ///< radius of Earth, used to convert between lat/lon and northing/easting
-const double tickDistance=0.30198;
-
-class waypoint: public Vector<2,fp> {
-public:
-  fp& easting()  {return comp[0];}; ///< Associate the name "easting" with component 0
-  fp& northing() {return comp[1];}; ///< Associate the name "northing" with component 1
-  fp easting() const {return comp[0];}; ///< Get the easting component, used in const context (see http://www.cprogramming.com/tutorial/const_correctness.html)
-  fp northing() const {return comp[1];};///< Get the northing component, used in const context
-  /** Compute the heading of this waypoint relative to the origin.
-   * @return Heading in degrees east of true north, from 0 to almost 360
-   */
-  fp heading() {
-    fp result=atan2(easting(),northing())*180/PI;
-    if(result<0) result+=360;
-    return result;
-  }
-  /** Construct a waypoint
-   * @param e easting value
-   * @param n northing value
-   */
-  waypoint(fp e=0, fp n=0) {easting()=e;northing()=n;};
-  /** Copy constructor */
-  waypoint(Vector<2,fp> other):waypoint(other[0],other[1]) {};
-};
+#ifndef Interface_h
+#define Interface_h
 
 /** Abstract interface to a servo. This is write-only, because a real physical servo is write-only */
 class Servo {
@@ -49,7 +18,6 @@ public:
  * and the real or virtual robot it is controlling.
  */
 class Interface {
-private:
 public:
   /** Gets time of last PPS in seconds from epoch. You may call this function as often as you like -- it wil
    * only return a new value whenever a new PPS has arrived. This represents the time at which the *next* GPS fix
@@ -69,7 +37,6 @@ public:
    * @return one character of GPS data in NMEA format
    */
   virtual char readChar() = 0;
-
   /** Get the current time
    * @return Current epoch time in seconds
    */
@@ -144,18 +111,6 @@ public:
    * for any class which has virtual methods.
    */
   virtual ~Interface() {};
-};
-
-class Controller {
-protected:
-  Interface& interface;
-public:
-  virtual void showVector(Log& pkt)=0;
-  virtual void navigate() {};
-  virtual void guide() {};
-  virtual void control() {};
-  Controller(Interface& Linterface):interface(Linterface) {};
-  virtual ~Controller() {};
 };
 
 #endif /* ROBOT_H_ */
