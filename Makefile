@@ -11,6 +11,8 @@ ATTACH+=Doxyfile Makefile
 ATTACH+=MPU9250registers.ods
 #ATTACH+=ECX03000_Manual_EN.pdf
 ATTACH+=Robodometer.ino
+ATTACH+=eagle/*
+ATTACH+=datasheet/DownloadDatasheet.sh
 
 #Detect system type so that we can build attach.o for the host system 
 #(no cross-compile here).
