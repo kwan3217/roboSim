@@ -1,50 +1,50 @@
 /*
  * Simulator.h
  */
-#ifndef SIMULATOR_H_
-#define SIMULATOR_H_
+#ifndef Simulator_h
+#define Simulator_h
 #include <stdint.h>
-#include "robot.h"
-#include "LogCSV.h"
+#include "interface/interface.h"
+#include "log/Log.h"
 
 /** Simulated servo. Keeps track of physical value of servo (steering angle, speed of robot, etc) and manages servo slewing */
 class SimServo:public Servo {
 private:
-	int commanded; ///< Commanded value in DN
-	const int cmdmin; ///< Minimum allowed commanded value in DN
-	const int cmdmax; ///< Maximum allowed commanded value in DN
-	double physical;  ///< Current value of servo in physical units
-	const double physmin; ///< Physical value corresponding to minimum possible command
-	const double physmax; ///< Physical value corresponding to maximum possible command
-	const double slewrate; ///< Rate of change of physical value in response to command changes, in physical units/second
+  int commanded; ///< Commanded value in DN
+  const int cmdmin; ///< Minimum allowed commanded value in DN
+  const int cmdmax; ///< Maximum allowed commanded value in DN
+  double physical;  ///< Current value of servo in physical units
+  const double physmin; ///< Physical value corresponding to minimum possible command
+  const double physmax; ///< Physical value corresponding to maximum possible command
+  const double slewrate; ///< Rate of change of physical value in response to command changes, in physical units/second
 public:
-	/** Construct a servo
-	 * @param cmdmin value for cmdmin field
-	 * @param cmdmax value for cmdmax field
-	 * @param physmin value for physmin field
-	 * @param physmax value for physmax field
-	 * @param slewrate value for slewrate field
-	 */
-	SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate);
-	virtual void write(int n);
-	/** Read the current value of the servo
-	 * @return current value of the servo in physical units. May not match commanded value, due to slew rate.
-	 */
-	double read() const {return physical;}
-	/** Step the servo in time. This allows the physical value to slew to the commanded value.
-	 * @param t Interval since last timestep in seconds
-	 */
-	void timeStep(double t);
-	/** Run the test case for the servo. This test case can't be evaluated automatically. It should be run through
-	 * a chart on a spreadsheet in order for a human to evaluate it.
-	 */
-	static void test();
-	/** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
-	 * for any class which has virtual methods.
-	 */
-    virtual ~SimServo() {};
-
+  /** Construct a servo
+   * @param cmdmin value for cmdmin field
+   * @param cmdmax value for cmdmax field
+   * @param physmin value for physmin field
+   * @param physmax value for physmax field
+   * @param slewrate value for slewrate field
+   */
+  SimServo(int cmdmin, int cmdmax, double physmin, double physmax, double slewrate);
+  virtual void write(int n);
+  /** Read the current value of the servo
+   * @return current value of the servo in physical units. May not match commanded value, due to slew rate.
+   */
+  double read() const {return physical;}
+  /** Step the servo in time. This allows the physical value to slew to the commanded value.
+   * @param t Interval since last timestep in seconds
+   */
+  void timeStep(double t);
+  /** Run the test case for the servo. This test case can't be evaluated automatically. It should be run through
+   * a chart on a spreadsheet in order for a human to evaluate it.
+   */
+  static void test();
+  /** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
+   * for any class which has virtual methods.
+   */
+  virtual ~SimServo() {};
 };
+
 /** Simulated implementation of robot interface. This keeps track of where the robot actually is
  *
  */
@@ -99,8 +99,8 @@ public:
    */
   virtual ~Simulator() {};
   void update(double dt);
-  void showVector(LogCSV& logC) const;									//reports data for storage in .csv file
-  static void testNMEA(); ///< Test the NMEA generation code
+  void showVector(Log& logC) const;  ///<reports data for storage in .csv file
+  static void testNMEA();            ///< Test the NMEA generation code
 
   virtual double checkPPS();
   virtual bool checkNavChar();
