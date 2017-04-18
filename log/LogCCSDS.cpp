@@ -1,16 +1,4 @@
-#include "LogCCSDS.h"
-
-LogCCSDS::LogCCSDS(const char* basename, int LdocApid, int LmetaDocApid):docApid(LdocApid),metaDocApid(LmetaDocApid) {
-  char filename[256];
-  snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
-  stream=fopen(filename,"w");
-//  setbuf(stream,nullptr); //Turn off buffering for this file
-  metaDoc();
-}
-
-LogCCSDS::~LogCCSDS() {
-  fclose(stream);
-}
+#include "log/LogCCSDS.h"
 
 void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;
@@ -52,8 +40,7 @@ void LogCCSDS::metaDoc() {
   metaDoc("Next 16-bit number is length of packet minus 7 since every packet "
 		   "has a 6-byte header and must have at least 1 byte of payload.");
   metaDoc("Packets of apid %d contain this English meta-documentation. ",metaDocApid);
-  metaDoc("Packets of apid %d describe the detailed format of the other "
-		  "packets.",docApid);
+  metaDoc("Packets of apid %d describe the detailed format of the other packets.",docApid);
   metaDoc("In those packets, the first field is a 16-bit number in the payload is the "
 		  "packet APID being described.");
   metaDoc("The second field is a 16-bit number in the payload is the position in the "

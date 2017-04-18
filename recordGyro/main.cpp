@@ -1,8 +1,8 @@
 #include "HardwarePi.h"
-#include "LogCSV.h"
-#include "LogRawBinary.h"
-//#include "LogCCSDS.h"
-//#include "LogMulti.h"
+#include "log/LogCSV.h"
+#include "log/LogRawBinary.h"
+#include "log/LogCCSDS.h"
+#include "log/LogMulti.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
@@ -22,13 +22,13 @@ static const int APID_EPOCH=7;
 static const int APID_PPS=8;
 
 HardwarePiInterfaceArduino interface;
-LogCSV mpuconfig("mpuconfig.csv",false);
+LogCSV mpuconfigCSV("mpuconfig.csv",false);
 LogCSV record("record.csv",false);
 LogRawBinary dump("attach.tbz");
 LogRawBinary gps("gps.nmea");
 LogCSV pps("pps.csv",false);
-//LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
-//LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
+LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
+LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
 //LogMulti<2> record({&pkt,&recordCSV});
 //LogMulti<2> dump({&pkt,&dumpTBZ});
 
@@ -75,7 +75,7 @@ void loop() {
   int16_t mag[3];
   bool mag_ok;
   int16_t T;
-  float t=interface.time();
+  fp t=interface.time();
   interface.readMPU(acc,gyro,T);
   mag_ok=interface.readMag(mag);
   record.start(APID_DATA,"MPUData");
@@ -96,7 +96,7 @@ void loop() {
     int8_t ch = interface.readChar();
     gps.write(ch);
   }
-  double t_pps;
+  fp t_pps;
   if(interface.checkPPS(t_pps)) {
     pps.start(APID_PPS,"PPS");
     pps.write(t_pps,"t_pps");

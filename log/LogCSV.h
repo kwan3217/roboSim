@@ -1,17 +1,13 @@
 #ifndef LogCSV_h
 #define LogCSV_h
 
-#include "Log.h"
+#include "log/LogFile.h"
 #include <stdio.h>
 
 /** Log packets into multiple CSV files, one for each apid. Documentation is in the form of column headers for each file.
  */
-class LogCSV: public Log {
+class LogCSV: public LogFile {
 private:
-  /** Number of APIDs allowed. The possible APIDs run from 0 to n_apid-1
-   *  inclusive. APIDs equal or greater than n_apid will write off the
-   *  end of at least one array. */
-  static const int nApid=64;
   /** Under some conditions a packet is buffered into an in-memory array before
    *  it is written out. The condition is when we are documenting a packet for
    *  the first time. This packet must have a length less than or equal to
@@ -21,18 +17,16 @@ private:
   /** Pointer to the APID map.
    */
   char buf[bufSize];
-  FILE* stream;
   FILE* fbuf; //Used to write to buf with fprintf
   int pktApid;
-  bool hasDoc[nApid];
-  bool firstField;
+  bool firstField; ///< True if this is the first field in a packet, used to control whether to write a comma or not
+  bool inDoc;
   void writeDoc(const char* fieldName) {
     if(!hasDoc[pktApid] && fieldName!=nullptr) {
       inDoc=true;
-	  fprintf(stream,firstField?"%s":",%s",fieldName);
-	}
+      fprintf(stream,firstField?"%s":",%s",fieldName);
+    }
   }
-  bool inDoc;
 public:
   /** Construct a LogCSV packet stream.
    * \param basename Base name (name of filename without path) to use for the
@@ -59,4 +53,4 @@ public:
   virtual void end();
 };
 
-#endif /* LOG_H_ */
+#endif /* LogCSV_h */

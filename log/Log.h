@@ -1,5 +1,5 @@
-#ifndef LOG_H_
-#define LOG_H_
+#ifndef Log_h
+#define Log_h
 
 #include <inttypes.h>
 
@@ -18,12 +18,19 @@
  *  would look up which stream this packet goes into and makes subsequent writes go to it.
  */
 class Log {
-private:
-  void getRecordPath();
 protected:
-  static char recordPath[256];
+  /** Number of APIDs allowed. The possible APIDs run from 0 to n_apid-1
+   *  inclusive. APIDs equal or greater than n_apid will write off the
+   *  end of at least one array. */
+  static const int nApid=64;
+  /** Indicates whether a packet APID has been documented yet. Once
+   *  the first packet of a given APID has been finished, the documentation
+   *  for that packet is written in a packet-type specific way, and
+   *  further writes of packets of this APID will not be documented again.
+   */
+  bool hasDoc[nApid];
 public:
-  Log() {getRecordPath();};
+  Log() {};
   virtual ~Log() {};
   /** Start a packet with a particular APID
    \param[in] apid APID to use for this packet

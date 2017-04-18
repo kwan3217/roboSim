@@ -1,12 +1,12 @@
 #ifndef LogCCSDS_h
 #define LogCCSDS_h
 
-#include "Log.h"
+#include "log/LogFile.h"
 #include <stdio.h>
 #include "buffer.h" //for writeBuf_be<>()
 #include <string.h> //for strlen()
 
-class LogCCSDS: public Log {
+class LogCCSDS: public LogFile {
 private:
   static const int n_apid=64;
   static const int maxPktSize=256;
@@ -34,8 +34,8 @@ private:
   void metaDoc(const char* text) {start(metaDocApid,"CCSDS self-documentation");write(text);end();};
   void metaDoc(const char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
 public:
-  LogCCSDS(const char* filename, int LdocApid, int LmetaDocApid);
-  virtual ~LogCCSDS();
+  LogCCSDS(const char* basename, int LdocApid, int LmetaDocApid):LogFile(basename,true),docApid(LdocApid),metaDocApid(LmetaDocApid) {};
+  virtual ~LogCCSDS() {};
   virtual void start(int apid, const char* pktName=nullptr) {pktApid=apid;writeDoc(pktName);start(pktBuf,pktPtr,pktApid);};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {writeDoc(t_u8    ,fieldName);write(pktBuf,pktPtr,value);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {writeDoc(t_i16   ,fieldName);write(pktBuf,pktPtr,value);};
@@ -51,4 +51,4 @@ public:
   void metaDoc();
 };
 
-#endif /* LOG_H_ */
+#endif /* LogCCSDS_h */

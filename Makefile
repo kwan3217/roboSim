@@ -4,12 +4,13 @@ CC = gcc
 CXX = g++
 OBJDUMP=objdump
 OBJCOPY=objcopy
+ATTACH = interface/*.cpp interface/*.h
+ATTACH = interface/sensor/*.cpp interface/sensor/*.h
 ATTACH = *.cpp *.h
 ATTACH+= wiringPiDummy/*.c wiringPiDummy/*.h wiringPiDummy/Makefile
 ATTACH+=Yukari.fzz
 ATTACH+=Doxyfile Makefile
-ATTACH+=MPU9250registers.ods
-#ATTACH+=ECX03000_Manual_EN.pdf
+ATTACH+=interface/sensor/MPU9250registers.ods
 ATTACH+=Robodometer.ino
 ATTACH+=eagle/*
 ATTACH+=datasheet/DownloadDatasheet.sh
@@ -67,7 +68,9 @@ CXXFLAGS+=$(OPT)
 CXXFLAGS+=-MMD -MP -MF .dep/$(@F).d
 
 #Make the compiler write more comments in the generated assembly code
-CXXFLAGS+=-fverbose-asm 
+CXXFLAGS+=-fverbose-asm
+
+CXXFLAGS+= -I.
 
 # List of all the executable images that can be made
 EXE = RoboSim.exe RoboPi.exe buttonTest.exe recordOdometer.exe i2c_echo.exe recordGyro.exe testCompassNeedle.exe PiCompassNeedle.exe testControl.exe Yukari.exe
@@ -81,7 +84,7 @@ MAP = $(EXE:%.exe=%.map)
 all: $(EXE)
 
 html: Doxyfile
-	ln -sv /mnt/big/home/chrisj/public_html/Yukari4_doxygen html        
+	ln -sv /mnt/big/home/chrisj/public_html/Yukari4_doxygen html
 	doxygen
 
 #Remove all intermediate and target files
@@ -147,7 +150,7 @@ buttonTest.exe: buttonTest.o HardwarePi.o MPU.o
 
 recordOdometer.exe: recordOdometer.o HardwarePi.o MPU.o Simulator.o OpenLoopGuidance.o Log.o LogCSV.o
 
-recordGyro.exe: recordGyro.o HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRawBinary.o dump.o attach.o
+recordGyro.exe: recordGyro.o interface/HardwarePi.o MPU.o Log.o LogCCSDS.o LogCSV.o LogRawBinary.o dump.o attach.o
 
 testCompassNeedle.exe: testCompassNeedle.o Simulator.o compassNeedle.o
 

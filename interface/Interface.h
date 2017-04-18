@@ -4,6 +4,9 @@
 #ifndef Interface_h
 #define Interface_h
 
+#include "float.h"
+#include <inttypes.h>
+
 /** Abstract interface to a servo. This is write-only, because a real physical servo is write-only */
 class Servo {
 public:
@@ -27,7 +30,7 @@ public:
    */
 
   //GPS Interface
-  virtual bool checkPPS(double& t) = 0;
+  virtual bool checkPPS(fp& t) = 0;
   /** Check if a character of GPS data is available
    * @return true if a character is available, false if not
    */
@@ -40,7 +43,7 @@ public:
   /** Get the current time
    * @return Current epoch time in seconds
    */
-  virtual double time()=0;
+  virtual fp time()=0;
   /** Check whether a button is pushed
    * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17
    * @return true if the button is pushed (pin is low voltage)

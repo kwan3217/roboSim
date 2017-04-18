@@ -1,7 +1,7 @@
 #ifndef LogMulti_h
 #define LogMulti_h
 
-#include "Log.h"
+#include "log/Log.h"
 #include <initializer_list>
 
 /** Log packets into multiple streams
@@ -27,4 +27,4 @@ public:
   virtual void end() {for(int i=0;i<nLogs;i++) logs[i]->end();};
 };
 
-#endif /* LOG_H_ */
+#endif /* LogMulti_h */

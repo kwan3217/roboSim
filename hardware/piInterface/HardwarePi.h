@@ -2,12 +2,12 @@
 #define HardwarePi_h
 /** @file */
 
-#include "robot.h"
+#include "Interface.h"
 #include <sys/timepps.h>
 #include <cstdio> //used for FILE*
 #include "buffer.h"
 #include "I2C.h"
-#include "MPU.h"
+#include "sensor/MPU.h"
 
 class HardwarePiServo: public Servo {
 public:
@@ -43,7 +43,7 @@ private:
    * @param ts a struct timespec to convert
    * @return equivalent timestamp in double precision count of seconds.
    */
-  static double ts2t(struct timespec ts) {return ts.tv_sec+double(ts.tv_nsec)/1'000'000'000.0;};
+  static fp ts2t(struct timespec ts) {return ts.tv_sec+fp(ts.tv_nsec)/1'000'000'000.0;};
   /** Figure the distance from the epoch to a given timespec using pure integer math
    @param ts given timespec
    @return a deltat timespec, where tv_sec and tv_nsec represent the difference between the timestamps
@@ -51,7 +51,7 @@ private:
   struct timespec dt(struct timespec ts) {
     struct timespec result;
     result.tv_sec=ts.tv_sec-t0.tv_sec;
-    if(ts.tv_nsec<t0.tv_nsec) {
+    if(ts.tv_nsec>t0.tv_nsec) {
       result.tv_sec++;
       result.tv_nsec=(ts.tv_nsec+1'000'000'000)-t0.tv_nsec;
     } else {
@@ -69,10 +69,10 @@ protected:
 public:
   I2C_t bus; ///< I2C bus stream
   MPU9250 mpu;
-  virtual bool checkPPS(double& t);
+  virtual bool checkPPS(fp& t);
   virtual bool checkNavChar();
   virtual char readChar();
-  virtual double time();
+  virtual fp time();
   struct timespec epoch() {return t0;};
   virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
   virtual bool readAcc(int16_t a[]);

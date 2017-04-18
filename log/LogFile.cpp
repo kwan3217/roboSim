@@ -1,12 +1,12 @@
-#include "Log.h"
+#include "log/LogFile.h"
 #include <ctime> //for struct tm
 #include <unistd.h> //for readlink
 #include <cstring> //for strlen
 #include <sys/stat.h> //for mkdir
 #include <stdio.h> //for snprintf
 
-char Log::recordPath[256]={0};
-void Log::getRecordPath() {
+char LogFile::recordPath[256]={0};
+void LogFile::getRecordPath() {
   if(recordPath[0]==0) {
     time_t rawtime;
     struct tm* ptm;
@@ -20,4 +20,17 @@ void Log::getRecordPath() {
     mkdir(recordPath,0755);
   }
 }
+
+LogFile::LogFile(const char* basename, bool bufEnabled) {
+  getRecordPath();
+  char filename[256];
+  snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
+  stream=fopen(filename,"w");
+  if(!bufEnabled) setbuf(stream,nullptr);//If requested, turn off buffering
+}
+
+LogFile::~LogFile() {
+  fclose(stream);
+}
+
 

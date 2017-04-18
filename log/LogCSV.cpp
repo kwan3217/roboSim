@@ -1,11 +1,4 @@
-#include "LogCSV.h"
-
-LogCSV::LogCSV(const char* basename, bool bufEnabled) {
-  char filename[256];
-  snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);
-  stream=fopen(filename,"w");
-  if(!bufEnabled) setbuf(stream,nullptr);//If requested, turn off buffering
-}
+#include "log/LogCSV.h"
 
 LogCSV::~LogCSV() {
   fclose(stream);
@@ -15,11 +8,11 @@ void LogCSV::start(int apid, const char* pktName) {
   pktApid=apid;
   firstField=true;
   if(hasDoc[apid]) {
-	//Write directly to the stream
-	fbuf=stream;
+    //Write directly to the stream
+    fbuf=stream;
   } else {
-	//Write the packet to the buffer, so we can write the documentation to the stream
-	fbuf=fmemopen(buf,sizeof(buf),"w");
+    //Write the packet to the buffer, so we can write the documentation to the stream
+    fbuf=fmemopen(buf,sizeof(buf),"w");
   }
 }
 
@@ -41,8 +34,8 @@ void LogCSV::end() {
     fprintf(stream,"\n"); //Write the linefeed for the packet
   } else {
     fprintf(stream,"\n"); //Write the linefeed for the packet documentation
-	fclose(fbuf);         //close the in-memory buffer for the packet data
-	if(inDoc) fprintf(stream,"%s\n",buf); //write the packet data to the stream, with its linefeed
+    fclose(fbuf);         //close the in-memory buffer for the packet data
+    if(inDoc) fprintf(stream,"%s\n",buf); //write the packet data to the stream, with its linefeed
   }
   hasDoc[pktApid]=true; //Either way, our chance to document has ended
 }
