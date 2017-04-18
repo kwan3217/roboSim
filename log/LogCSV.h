@@ -1,7 +1,7 @@
 #ifndef LogCSV_h
 #define LogCSV_h
 
-#include "log/LogFile.h"
+#include "LogFile.h"
 #include <stdio.h>
 
 /** Log packets into multiple CSV files, one for each apid. Documentation is in the form of column headers for each file.

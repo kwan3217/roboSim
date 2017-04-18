@@ -1,7 +1,7 @@
 #ifndef LogRawBinary_h
 #define LogRawBinary_h
 
-#include "log/LogFile.h"
+#include "LogFile.h"
 #include <stdio.h>
 #include <string.h> //for strlen()
 
