@@ -1,4 +1,4 @@
-#include "log/LogFile.h"
+#include "LogFile.h"
 #include <ctime> //for struct tm
 #include <unistd.h> //for readlink
 #include <cstring> //for strlen

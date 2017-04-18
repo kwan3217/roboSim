@@ -2,7 +2,8 @@
 #define LogFile_h
 
 #include <inttypes.h>
-#include "log/Log.h"
+#include <cstdio>
+#include "Log.h"
 
 /** Logging class. Default implementation ignores logging messages. This is suitable for something with no filesystem
  *  like an Arduino, but an actual implementation will be needed to record data in a file or set of files. Can cover

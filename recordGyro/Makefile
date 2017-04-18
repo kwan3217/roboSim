@@ -6,5 +6,6 @@ ATTACH+=eagle/*
 ATTACH+=datasheet/DownloadDatasheet.sh
 
 include ../hardware/piInterface/Makefile
+include ../log/Makefile
 include ../system/Makefile
 

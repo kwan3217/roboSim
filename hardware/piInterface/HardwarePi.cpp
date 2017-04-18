@@ -23,15 +23,14 @@ void HardwarePiServoArduino::write(int n) {
  * at the first PPS, then the epoch is set to the time of the PPS.
  *
  */
-bool HardwarePiInterface::checkPPS(double& t) {
+bool HardwarePiInterface::checkPPS(fp& t) {
   pps_info_t info;
   static const struct timespec timeout={0,0};
   time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
   t=ts2t(dt(info.assert_timestamp));
   bool has_new=(last_pps.tv_sec!=info.assert_timestamp.tv_sec) || (last_pps.tv_nsec!=info.assert_timestamp.tv_nsec);
   if(has_new) last_pps=info.assert_timestamp;
-
-//	return 0; //Comment out PPS stuff because no PPS source is plugged in
+  return has_new;
 }
 
 /** Makes sure that GPS buffer has data to read. If there is still data in the buffer that hasn't been spooled out, return immediately. If
@@ -75,7 +74,7 @@ char HardwarePiInterface::readChar() {
  * Implemented by reading the system clock, then subtracting off the epoch of the first time the clock was read.
  * Keeps timestamps and integers as long as possible so as not to lose precision.
  */
-double HardwarePiInterface::time() {
+fp HardwarePiInterface::time() {
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME,&ts);
   return ts2t(dt(ts));

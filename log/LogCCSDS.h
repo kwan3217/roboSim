@@ -1,7 +1,7 @@
 #ifndef LogCCSDS_h
 #define LogCCSDS_h
 
-#include "log/LogFile.h"
+#include "LogFile.h"
 #include <stdio.h>
 #include "buffer.h" //for writeBuf_be<>()
 #include <string.h> //for strlen()

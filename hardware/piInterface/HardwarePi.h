@@ -19,9 +19,9 @@ public:
  */
 class HardwarePiServoArduino: public HardwarePiServo {
 private:
+  int channel; ///<Channel number to write, either 0 or 1
   I2C_t bus; ///<I2C bus stream, opened somewhere else because other devices are on the bus
   static const int ADDRESS=0x55; ///< 7-bit address of Arduino
-  int channel; ///<Channel number to write, either 0 or 1
 public:
   virtual void write(int n);
   virtual void begin(I2C_t Lbus) {bus=Lbus;};

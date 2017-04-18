@@ -1,4 +1,4 @@
-#include "log/LogCCSDS.h"
+#include "LogCCSDS.h"
 
 void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;

@@ -1,7 +1,7 @@
 #ifndef LogMulti_h
 #define LogMulti_h
 
-#include "log/Log.h"
+#include "Log.h"
 #include <initializer_list>
 
 /** Log packets into multiple streams

@@ -1,8 +1,8 @@
 #include "HardwarePi.h"
-#include "log/LogCSV.h"
-#include "log/LogRawBinary.h"
-#include "log/LogCCSDS.h"
-#include "log/LogMulti.h"
+#include "LogCSV.h"
+#include "LogRawBinary.h"
+#include "LogCCSDS.h"
+#include "LogMulti.h"
 #include "dump.h"
 #include <iostream>
 #include <signal.h>
