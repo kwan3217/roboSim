@@ -208,8 +208,8 @@ bool AK89xx::begin() {
  \return true if all writes are successful, false otherwise.
 */
 bool AK89xx::configure(uint8_t mode, bool bit16) {
-  char cntl1=mode & 0x0F |
-              (bit16?(1<<4):0);
+  char cntl1=(mode & 0x0F) |
+             ((bit16?1:0)<<4);
   //Transition to mode 0 first
   if(!write(CNTL1,0)) return false;
   //Wait at least 100us for transition to happen

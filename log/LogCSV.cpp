@@ -1,9 +1,5 @@
 #include "LogCSV.h"
 
-LogCSV::~LogCSV() {
-  fclose(stream);
-}
-
 void LogCSV::start(int apid, const char* pktName) {
   pktApid=apid;
   firstField=true;

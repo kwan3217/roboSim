@@ -1,7 +1,7 @@
-#ifndef dump_h
-#define dump_h
+#ifndef attach_h
+#define attach_h
 
-#include "log/Log.h"
+#include "Log.h"
 
 extern char _binary_attach_tbz_start[];
 extern char _binary_attach_tbz_end[];

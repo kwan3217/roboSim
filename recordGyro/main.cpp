@@ -3,7 +3,7 @@
 #include "LogRawBinary.h"
 #include "LogCCSDS.h"
 #include "LogMulti.h"
-#include "dump.h"
+#include "attach.h"
 #include <iostream>
 #include <signal.h>
 
@@ -50,17 +50,17 @@ void setup() {
 
   interface.mpu.configure(0,0,bandwidth,samplerate);
   char reg[128];
-  for(int i=0;i<sizeof(reg);i++) reg[i]=0;
+  for(size_t i=0;i<sizeof(reg);i++) reg[i]=0;
   interface.mpu.readConfig(reg);
-  for(int i=0;i<sizeof(reg);i+=16) {
+  for(size_t i=0;i<sizeof(reg);i+=16) {
     mpuconfig.start(APID_GYROCFG,"GyroConfig");
     mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();
   }
 
-  for(int i=0;i<sizeof(reg);i++) reg[i]=0;
+  for(size_t i=0;i<sizeof(reg);i++) reg[i]=0;
   interface.mpu.ak.readConfig(reg);
-  for(int i=0;i<sizeof(reg);i+=16) {
+  for(size_t i=0;i<sizeof(reg);i+=16) {
     mpuconfig.start(APID_AKCFG,"MagConfig");
     mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();

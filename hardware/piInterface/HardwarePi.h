@@ -30,6 +30,22 @@ public:
   ~HardwarePiServoArduino() {};
 };
 
+/** Figure the distance from the epoch to a given timespec using pure integer math
+  @param ts given timespec
+  @return a deltat timespec, where tv_sec and tv_nsec represent the difference between the timestamps
+ */
+inline struct timespec operator-(const struct timespec& a, const struct timespec& b) {
+  struct timespec result;
+  result.tv_sec=a.tv_sec-b.tv_sec;
+  if(a.tv_nsec<b.tv_nsec) {
+    result.tv_sec++;
+    result.tv_nsec=(a.tv_nsec+1'000'000'000)-b.tv_nsec;
+  } else {
+    result.tv_nsec=a.tv_nsec-b.tv_nsec;
+  }
+  return result;
+}
+
 /** Hardware interface using a Raspberry Pi, as currently intended for Yukari 4
  *
  */
@@ -44,21 +60,6 @@ private:
    * @return equivalent timestamp in double precision count of seconds.
    */
   static fp ts2t(struct timespec ts) {return ts.tv_sec+fp(ts.tv_nsec)/1'000'000'000.0;};
-  /** Figure the distance from the epoch to a given timespec using pure integer math
-   @param ts given timespec
-   @return a deltat timespec, where tv_sec and tv_nsec represent the difference between the timestamps
-  */
-  struct timespec dt(struct timespec ts) {
-    struct timespec result;
-    result.tv_sec=ts.tv_sec-t0.tv_sec;
-    if(ts.tv_nsec>t0.tv_nsec) {
-      result.tv_sec++;
-      result.tv_nsec=(ts.tv_nsec+1'000'000'000)-t0.tv_nsec;
-    } else {
-      result.tv_nsec=ts.tv_nsec-t0.tv_nsec;
-    }
-    return result;
-  }
   static const int ODOMETER_ADDRESS=0x55; ///< 7-bit I2C address of Arduino used as odometer
   char gpsBuf[128]; ///< GPS data buffer
   FILE* gpsf; ///<GPS NMEA stream

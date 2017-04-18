@@ -27,7 +27,7 @@ bool HardwarePiInterface::checkPPS(fp& t) {
   pps_info_t info;
   static const struct timespec timeout={0,0};
   time_pps_fetch(pps,PPS_TSFMT_TSPEC,&info,&timeout);
-  t=ts2t(dt(info.assert_timestamp));
+  t=ts2t(info.assert_timestamp-t0);
   bool has_new=(last_pps.tv_sec!=info.assert_timestamp.tv_sec) || (last_pps.tv_nsec!=info.assert_timestamp.tv_nsec);
   if(has_new) last_pps=info.assert_timestamp;
   return has_new;
@@ -77,7 +77,7 @@ char HardwarePiInterface::readChar() {
 fp HardwarePiInterface::time() {
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME,&ts);
-  return ts2t(dt(ts));
+  return ts2t(ts-t0);
 }
 
 /** @copydoc Interface::button(int)

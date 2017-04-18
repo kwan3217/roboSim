@@ -8,12 +8,9 @@
 
 class LogCCSDS: public LogFile {
 private:
-  static const int n_apid=64;
   static const int maxPktSize=256;
-  FILE* stream;
   char pktBuf[maxPktSize];
-  int seq[n_apid];
-  bool hasDoc[n_apid];
+  int seq[nApid];
   char docBuf[maxPktSize];
   int pktPtr,docPtr;
   int pktApid,docApid,metaDocApid;

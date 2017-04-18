@@ -22,8 +22,8 @@
 class LogFile:public Log {
 private:
   void getRecordPath();
-protected:
   static char recordPath[256];
+protected:
   FILE* stream;
 public:
   LogFile(const char* name, bool bufEnabled);

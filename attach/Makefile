@@ -1,6 +1,6 @@
 CPPSRC += ../attach/attach.cpp
 LIBMAKE+=../attach/Makefile
-EXTRAINCDIRS+=../libraries/attach/
+EXTRAINCDIRS+=../attach/
 
 # $(ALLSRC) and $(HDEP) are figured in the system Makefile
 ATTACH+= $(ALLSRC) $(HDEP) $(LIBMAKE) 
@@ -8,9 +8,10 @@ SATTACH=$(sort $(ATTACH))
 DDATTACH=$(addprefix $(TARGETBASE)/,$(SATTACH))
 TARBALL = attach.tbz
 ATTACHOBJ = $(TARBALL).o
-
+EXTRAOBJ+=$(ATTACHOBJ)
+EXTRACLEAN+=$(TARBALL)
 $(TARBALL): $(SATTACH)
-	tar cjhvf $@ -C .. $(DDATTACH)
+	tar chv -C .. $(DDATTACH) | bzip2 -9 > $@
 
 ifndef BFDO
 #Detect system type so that we can build attach.o for the host system 

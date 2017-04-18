@@ -11,7 +11,7 @@ TARGET=$(TARGETBASE)
 endif
 
 ATTACH += ../system/Doxyfile.template
-LIBMAKE += Makefile ../System/Makefile
+LIBMAKE += Makefile ../system/Makefile
 CPPSRC += main.cpp
 reduce = $(if $(strip $2),$(call reduce,$1,$(wordlist 2,$(words $2),$2),$(call $1,$(firstword $2),$3)),$3)
 
@@ -42,7 +42,7 @@ OPT = -O$(OPTLEVEL) -fomit-frame-pointer -ffast-math -fno-math-errno
 # Debugging format.
 # Needed in order to get source code listings in .lst and .lss files
 ifndef USE_CLANG
-DEBUG = -gstabs
+DEBUG = -g
 endif
 #DEBUG = -gdwarf-2
 
@@ -82,7 +82,7 @@ CPPFLAGS = -std=c++14
 #  -Wl,...:     tell GCC to pass this to linker.
 #    -Map:      create map file
 #    --cref:    add cross reference to  map file
-LDFLAGS = -Wl,-Map,$(@:.elf=.map),--cref,--gc-sections,--demangle,-v
+LDFLAGS = -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle,-v
 LDFLAGS += $(patsubst %,-L%,$(EXTRA_LIBDIRS))
 LDFLAGS += $(patsubst %,-l%,$(EXTRA_LIBS))
 
@@ -93,7 +93,6 @@ OBJCOPY=objcopy
 
 # Define all object files.
 CPPOBJ    = $(CPPSRC:.cpp=.o)
-ALLOBJ    = $(CPPOBJ)
 
 # Define all listing files.
 LST = $(CPPSRC:.cpp=.lst)
@@ -140,9 +139,7 @@ html: Doxyfile $(ALLTAR)
 	if [ -s $<.tmp.tbz ] ;then  echo "Source tarball contents:" >> $@ ; tar tvf $<.tmp.tbz >> $@; fi
 	$(RM) -f $<.tmp.tbz 
 	$(OBJDUMP) -s                        -j .data $< |c++filt |  tail -n +4 >> $@
-	$(OBJDUMP) -S -j .text_lib $< |c++filt | tail -n +4 >> $@
 	$(OBJDUMP) -s -j .ARM.exidx -j .ARM.extab -j .glue -j .vtable_lib -j .rtti_info -j .rtti_name -j .rodata_str_lib -j .rodata_lib -j .ctors_lib $< | tail -n +4 >> $@
-	$(OBJDUMP) -s                        -j .data_lib $< |c++filt |  tail -n +4 >> $@
 	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] |  sort | c++filt >> $@
 
 ALLOBJ = $(CPPOBJ) $(EXTRAOBJ)
@@ -151,8 +148,7 @@ $(TARGET).exe: $(ALLOBJ)
 #Rule to link an executable. Whenever another rule specifies a .exe with dependency .o files but no
 #recipe, this recipe is used.
 %.exe:
-	$(CXX) -g $(OPT) -Wl,-Map,$(@:.exe=.map),--cref,--gc-sections,--demangle -o $@ $^ -L /usr/local/lib -lwiringPi
-	$(CPP) $^ -o $@ $(LDFLAGS)
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
 # Compile: create object files from C++ source files. ARM/Thumb
 #Rule to compile an object file. Whenever another rule specifies a .o file as a dependency, and there
@@ -168,28 +164,23 @@ $(TARGET).exe: $(ALLOBJ)
 #The second pass uses -c to compile but not link, generating a .o file. -Wa passes arguments to the
 #assembler pass to write annotated assembly to a .s file for each .o file. 
 $(CPPOBJ) : %.o : %.cpp
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
+	$(CXX) $(CFLAGS) $(GENDEPFLAGS) $(CPPFLAGS) $(CXXFLAGS) -E $< -o $(@:.o=.e)
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) -Wa,-a,-ad,-aln=$(@:.o=.s) -c $< -o $@
 
 # Target: clean project.
 clean:
 	@echo
-	$(REMOVE) Doxyfile
-	$(REMOVE) -r html
-	$(REMOVE) -r latex
-	$(REMOVE) $(TARGET).exe
-	$(REMOVE) $(TARGET).map
-	$(REMOVE) $(TARGET).lss
-	$(REMOVE) $(ALLOBJ)
-	$(REMOVE) $(EXTRACLEAN)
-	$(REMOVE) $(CPPSRC:.cpp=.s) 
-	$(REMOVE) $(CPPSRC:.cpp=.d)
-	$(REMOVE) $(CPPSRC:.cpp=.e)
-	echo rm cppsrc .ii
-	$(REMOVE) $(notdir $(CPPSRC:.cpp=.ii))
-	$(REMOVE) $(notdir $(CPPSRC:.cpp=.s))
-	$(REMOVE) .dep/*
-	$(REMOVE) doxygen*.tmp
+	$(RM) Doxyfile
+	$(RM) -r html
+	$(RM) -r latex
+	$(RM) $(TARGET).exe $(TARGET).map $(TARGET).lss
+	$(RM) $(ALLOBJ)
+	$(RM) $(EXTRACLEAN)
+	$(RM) $(CPPSRC:.cpp=.s) 
+	$(RM) $(CPPSRC:.cpp=.d)
+	$(RM) $(CPPSRC:.cpp=.e)
+	$(RM) .dep/*
+	$(RM) doxygen*.tmp
 
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(ALLDEP)

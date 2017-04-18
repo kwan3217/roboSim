@@ -13,7 +13,7 @@
 template<typename T>
 inline T readBuf_le(char buf[], int ofs) {
   T result=0;
-  for(int i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << i*8;
+  for(size_t i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << i*8;
   return result;
 }
 
@@ -25,7 +25,7 @@ inline T readBuf_le(char buf[], int ofs) {
 template<typename T>
 inline T readBuf_be(char buf[], int ofs) {
   T result=0;
-  for(int i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << (sizeof(T)-1-i)*8;
+  for(size_t i=0;i<sizeof(T);i++) result |= (T(buf[ofs+i]) & 0xFF) << (sizeof(T)-1-i)*8;
   return result;
 }
 
@@ -36,7 +36,7 @@ inline T readBuf_be(char buf[], int ofs) {
  */
 template<typename T>
 inline void writeBuf_le(char buf[], int ofs, T data) {
-  for(int i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> i*8) & 0xFF);
+  for(size_t i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> i*8) & 0xFF);
 }
 
 /** Insert a big-endian integer into a byte buffer
@@ -46,7 +46,7 @@ inline void writeBuf_le(char buf[], int ofs, T data) {
  */
 template<typename T>
 inline void writeBuf_be(char buf[], int ofs, T data) {
-  for(int i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> (sizeof(T)-1-i)*8) & 0xFF);
+  for(size_t i=0;i<sizeof(T);i++) buf[ofs+i] = char((data >> (sizeof(T)-1-i)*8) & 0xFF);
 }
 
 template<>

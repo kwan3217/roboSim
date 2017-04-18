@@ -37,8 +37,8 @@ public:
    *                    after 4096 bytes. If false, then buffering is disabled
    *                    and packets are immediately written to the filesystem.
    */
-  LogCSV(const char* filenames, bool bufEnabled=true);
-  virtual ~LogCSV();
+  LogCSV(const char* filenames, bool bufEnabled=true):LogFile(filenames,bufEnabled) {};
+  virtual ~LogCSV() {};
   virtual void start(int apid, const char* pktName=nullptr);
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
