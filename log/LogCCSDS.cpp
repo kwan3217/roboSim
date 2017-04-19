@@ -29,6 +29,8 @@ void LogCCSDS::metaDoc() {
   metaDoc("This file contains CCSDS packets as described in CCSDS 133.0-B-1 "
 		   "with updates.");
   metaDoc("https://public.ccsds.org/Pubs/133x0b1c2.pdf");
+  metaDoc("There are no padding bytes or sync markers between packets.");
+  metaDoc("All packets are an integer number of whole bytes.");
   metaDoc("Each packet starts with a six-byte header which holds the packet "
 		   "type (APID), sequence number and length.");
   metaDoc("All numbers in a CCSDS packet are stored Big-Endian.");
@@ -41,9 +43,9 @@ void LogCCSDS::metaDoc() {
 		   "has a 6-byte header and must have at least 1 byte of payload.");
   metaDoc("Packets of apid %d contain this English meta-documentation. ",metaDocApid);
   metaDoc("Packets of apid %d describe the detailed format of the other packets.",docApid);
-  metaDoc("In those packets, the first field is a 16-bit number in the payload is the "
+  metaDoc("In those packets, the first field in the payload is a 16-bit number, the "
 		  "packet APID being described.");
-  metaDoc("The second field is a 16-bit number in the payload is the position in the "
+  metaDoc("The second field in the payload is a 16-bit number, the position in the "
 		  "packet of the field being described.");
   metaDoc("This value is zero if the whole packet is being named.");
   metaDoc("Otherwise the position is a zero-based count of bytes from the beginning "
@@ -52,7 +54,7 @@ void LogCCSDS::metaDoc() {
 		  "string or binary, but usually such fields are the last field in a packet.");
   metaDoc("For packets with multiple variable-length fields, the position written "
 		  "follows from the first packet of this APID to be written");
-  metaDoc("The third field is an 8-bit number in the payload is the type of the field"
+  metaDoc("The third field in the payload is an 8-bit number, the type of the field"
 		  "from the following table: ");
   metaDoc("0x%02x: This name describes the whole packet, not any one field",0);
   metaDoc("0x%02x: t_u8 (8-bit unsigned integer)",t_u8);
@@ -62,15 +64,18 @@ void LogCCSDS::metaDoc() {
   metaDoc("0x%02x: t_u32 (32-bit unsigned integer)",t_u32);
   metaDoc("0x%02x: t_float (32-bit IEEE-754 floating point)",t_float);
   metaDoc("0x%02x: t_double (64-bit IEEE-754 floating point)",t_double);
-  metaDoc("0x%02x: t_string (ASCII text)",t_string);
+  metaDoc("0x%02x: t_string (UTF-8 text)",t_string);
   metaDoc("0x%02x: t_binary (unformatted data dump)",t_binary);
-  metaDoc("The fourth field is an ASCII text string with the name of the field");
+  metaDoc("The fourth field is a UTF-8 text string with the name of the field");
   metaDoc("For all strings and binary data, no length information is included.");
-  metaDoc("If the string or binary is the only such field in the packet, its"
+  metaDoc("If the string or binary is the only such field in the packet, its "
 		  "length can be deduced from the packet length.");
   metaDoc("Otherwise the packet will need some indication of the length.");
-  metaDoc("ASCII text might have a null-termination, but binary data will usually need"
+  metaDoc("UTF-8 text might have a null-termination, but binary data will usually need"
 		  "a prefix length, which is described in its own field.");
+  metaDoc("UTF-8 length descriptions, if present, will be of the number of bytes, not code points.");
+  metaDoc("Normally text will be ASCII, meaning that the high bit will be cleared.");
+  metaDoc("UTF-8 is chosen merely to give a concrete interpretation to set upper-bits");
   metaDoc("Although the Space Packet Protocol allows it, this packet writer does "
 		  "not leave gaps between fields -- IE all fields are contiguous");
   metaDoc("Although the Space Packet Protocol allows fields on non-byte boundaries, "
