@@ -136,20 +136,20 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
   int igps =open("/dev/ttyAMA0",O_NONBLOCK| O_RDONLY);
 
   /* set the other settings (in this case, 9600 8N1) */
-  struct termios settings;
-  tcgetattr(igps, &settings);
+//  struct termios settings;
+//  tcgetattr(igps, &settings);
 
-  cfsetospeed(&settings, B9600); /* baud rate */
-  cfsetispeed(&settings, B9600); /* baud rate */
-  settings.c_cflag &= ~PARENB; /* no parity */
-  settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
-  settings.c_cflag &= ~CSIZE;
-  settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
-  settings.c_lflag = ICANON; /* canonical mode */
-  settings.c_oflag &= ~OPOST; /* raw output */
+//  cfsetospeed(&settings, B9600); /* baud rate */
+//  cfsetispeed(&settings, B9600); /* baud rate */
+//  settings.c_cflag &= ~PARENB; /* no parity */
+//  settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
+//  settings.c_cflag &= ~CSIZE;
+//  settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
+//  settings.c_lflag = ICANON; /* canonical mode */
+//  settings.c_oflag &= ~OPOST; /* raw output */
 
-  tcsetattr(igps, TCSANOW, &settings); /* apply the settings */
-  tcflush(igps, TCOFLUSH);
+//  tcsetattr(igps, TCSANOW, &settings); /* apply the settings */
+//  tcflush(igps, TCOFLUSH);
 
   gpsf=fdopen(igps,"r"); //Get a FILE* from the int file descriptor
   setbuf(gpsf,nullptr);  //Turn off buffering

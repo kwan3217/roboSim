@@ -38,7 +38,7 @@ inline struct timespec operator-(const struct timespec& a, const struct timespec
   struct timespec result;
   result.tv_sec=a.tv_sec-b.tv_sec;
   if(a.tv_nsec<b.tv_nsec) {
-    result.tv_sec++;
+    result.tv_sec--;
     result.tv_nsec=(a.tv_nsec+1'000'000'000)-b.tv_nsec;
   } else {
     result.tv_nsec=a.tv_nsec-b.tv_nsec;
@@ -70,6 +70,8 @@ protected:
 public:
   I2C_t bus; ///< I2C bus stream
   MPU9250 mpu;
+  struct timespec get_raw_t0() {return t0;};
+  struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);
   virtual bool checkNavChar();
   virtual char readChar();
