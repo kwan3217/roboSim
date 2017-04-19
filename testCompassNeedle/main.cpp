@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "robot.h"
+#include "Interface.h"
 #include "Simulator.h"
 #include "compassNeedle.h"
 #include <stdio.h>

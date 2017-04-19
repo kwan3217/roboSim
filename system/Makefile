@@ -133,6 +133,7 @@ html: Doxyfile $(ALLTAR)
 # testing: option -C
 %.lss: %.exe
 	$(OBJDUMP) -h $< > $@
+	$(OBJDUMP) -p $< >> $@
 	$(OBJDUMP) -S -j .text $< | c++filt | tail -n +4 >> $@
 	$(OBJDUMP) -s -j .vtable -j .rodata_str -j .rodata -j .ctors $< |c++filt |  tail -n +4 >> $@
 	$(OBJCOPY) -O binary -j .source $< $<.tmp.tbz
