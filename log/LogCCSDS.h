@@ -30,8 +30,9 @@ private:
   void end(char* buf, int& ptr, int apid);
   void metaDoc(const char* text) {start(metaDocApid,"CCSDS self-documentation");write(text);end();};
   void metaDoc(const char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
+  void metaDoc();
 public:
-  LogCCSDS(const char* basename, int LdocApid, int LmetaDocApid):LogFile(basename,true),docApid(LdocApid),metaDocApid(LmetaDocApid) {};
+  LogCCSDS(const char* basename, int LdocApid, int LmetaDocApid):LogFile(basename,true),docApid(LdocApid),metaDocApid(LmetaDocApid) {metaDoc();};
   virtual ~LogCCSDS() {};
   virtual void start(int apid, const char* pktName=nullptr) {pktApid=apid;writeDoc(pktName);start(pktBuf,pktPtr,pktApid);};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {writeDoc(t_u8    ,fieldName);write(pktBuf,pktPtr,value);};
@@ -45,7 +46,6 @@ public:
   virtual void write(const char* value, int len, const char* fieldName=nullptr) {writeDoc(t_binary,fieldName);write(pktBuf,pktPtr,value,len);};
   virtual void write(const char* value,          const char* fieldName=nullptr) {writeDoc(t_string,fieldName);write(pktBuf,pktPtr,value);};
   virtual void end() {end(pktBuf,pktPtr,pktApid);};
-  void metaDoc();
 };
 
 #endif /* LogCCSDS_h */
