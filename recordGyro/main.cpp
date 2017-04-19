@@ -23,14 +23,15 @@ static const int APID_PPS=8;
 
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfigCSV("mpuconfig.csv",false);
-LogCSV record("record.csv",false);
-LogRawBinary dump("attach.tbz");
+LogCSV recordCSV("record.csv",false);
+LogRawBinary dumpTBZ("attach.tbz");
 LogRawBinary gps("gps.nmea");
-LogCSV pps("pps.csv",false);
+LogCSV ppsCSV("pps.csv",false);
 LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
 LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
-//LogMulti<2> record({&pkt,&recordCSV});
-//LogMulti<2> dump({&pkt,&dumpTBZ});
+LogMulti<2> record({&pkt,&recordCSV});
+LogMulti<2> dump({&pkt,&dumpTBZ});
+LogMulti<2> pps({&pkt,&ppsCSV});
 
 static volatile bool done=false;
 
@@ -98,7 +99,13 @@ void loop() {
   }
   fp t_pps;
   if(interface.checkPPS(t_pps)) {
+    struct timespec raw_pps=interface.get_raw_pps();
+    struct timespec t0=interface.get_raw_t0();
     pps.start(APID_PPS,"PPS");
+    pps.write(int32_t(t0.tv_sec),"t0_sec");
+    pps.write(int32_t(t0.tv_nsec),"t0_nsec");
+    pps.write(int32_t(raw_pps.tv_sec),"pps_sec");
+    pps.write(int32_t(raw_pps.tv_nsec),"pps_nsec");
     pps.write(t_pps,"t_pps");
     pps.end();
   }
