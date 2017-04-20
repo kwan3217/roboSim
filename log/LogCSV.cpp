@@ -1,6 +1,6 @@
 #include "LogCSV.h"
 
-void LogCSV::start(int apid, const char* pktName) {
+void LogCSV::start(Log::Apids apid, const char* pktName) {
   pktApid=apid;
   firstField=true;
   if(hasDoc[apid]) {

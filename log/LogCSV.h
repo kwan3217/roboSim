@@ -14,11 +14,9 @@ private:
    *  this value or the code will write off the end of the array.
    */
   static const int bufSize=256;
-  /** Pointer to the APID map.
-   */
   char buf[bufSize];
   FILE* fbuf; //Used to write to buf with fprintf
-  int pktApid;
+  Log::Apids pktApid;
   bool firstField; ///< True if this is the first field in a packet, used to control whether to write a comma or not
   bool inDoc;
   void writeDoc(const char* fieldName) {
@@ -39,7 +37,7 @@ public:
    */
   LogCSV(const char* filenames, bool bufEnabled=true):LogFile(filenames,bufEnabled) {};
   virtual ~LogCSV() {};
-  virtual void start(int apid, const char* pktName=nullptr);
+  virtual void start(Log::Apids apid, const char* pktName=nullptr);
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
   virtual void write(int32_t     value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%d":",%d",value);  firstField=false;};

@@ -3,15 +3,15 @@
 void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;
   if(hasDoc[pktApid]) return;
-  start(docBuf,docPtr,docApid);
+  start(docBuf,docPtr,Apids::doc);
   write(docBuf,docPtr,(uint16_t)pktApid);
   write(docBuf,docPtr,(uint16_t)pktPtr);
   write(docBuf,docPtr,(uint8_t)type);
   write(docBuf,docPtr,fieldName);
-  end(docBuf,docPtr,docApid);
+  end(docBuf,docPtr,Apids::doc);
 }
 
-void LogCCSDS::start(char* buf, int& ptr, int apid) {
+void LogCCSDS::start(char* buf, int& ptr, Apids apid) {
   writeBuf_be<uint16_t>(buf,0,apid);
   writeBuf_be<uint16_t>(buf,2,0xC000 | seq[apid]);
   seq[apid]++;
@@ -19,7 +19,7 @@ void LogCCSDS::start(char* buf, int& ptr, int apid) {
   ptr=6;
 }
 
-void LogCCSDS::end(char* buf, int& ptr, int apid) {
+void LogCCSDS::end(char* buf, int& ptr, Apids apid) {
   hasDoc[apid]=true;
   writeBuf_be<uint16_t>(buf,4,ptr-7);
   fwrite(buf,ptr,1,stream);
@@ -41,8 +41,8 @@ void LogCCSDS::metaDoc() {
 		   "wraps in 14 bits.");
   metaDoc("Next 16-bit number is length of packet minus 7 since every packet "
 		   "has a 6-byte header and must have at least 1 byte of payload.");
-  metaDoc("Packets of apid %d contain this English meta-documentation. ",metaDocApid);
-  metaDoc("Packets of apid %d describe the detailed format of the other packets.",docApid);
+  metaDoc("Packets of apid %d contain this English meta-documentation. ",Apids::metaDoc);
+  metaDoc("Packets of apid %d describe the detailed format of the other packets.",Apids::doc);
   metaDoc("In those packets, the first field in the payload is a 16-bit number, the "
 		  "packet APID being described.");
   metaDoc("The second field in the payload is a 16-bit number, the position in the "

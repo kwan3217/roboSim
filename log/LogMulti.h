@@ -13,7 +13,7 @@ private:
 public:
   LogMulti(std::initializer_list<Log*> Llogs) {auto a=Llogs.begin();for(int i=0;i<nLogs;i++)logs[i]=a[i];};
   virtual ~LogMulti() {};
-  virtual void start(int apid, const char* pktName=nullptr) {for(int i=0;i<nLogs;i++) logs[i]->start(apid,pktName);};
+  virtual void start(Apids apid, const char* pktName=nullptr) {for(int i=0;i<nLogs;i++) logs[i]->start(apid,pktName);};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {for(int i=0;i<nLogs;i++) logs[i]->write(value,fieldName);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {for(int i=0;i<nLogs;i++) logs[i]->write(value,fieldName);};
   virtual void write(int32_t     value,          const char* fieldName=nullptr) {for(int i=0;i<nLogs;i++) logs[i]->write(value,fieldName);};

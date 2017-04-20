@@ -17,7 +17,7 @@ LogCSV logServoCmd("servoCmd.csv");
 LogRawBinary dump("attach.tbz");
 LogRawBinary gps("gps.nmea");
 HardwarePiInterfaceArduino hardInterface;
-PassengerInterface passInterface(hardInterface,logServoCmd,0,1);
+PassengerInterface passInterface(hardInterface,logServoCmd);
 roboBrain passenger(309.63,0,0,passInterface, logC);
 double t[]           {0,  0,  2,  5,  6,  6,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};

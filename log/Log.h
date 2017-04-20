@@ -30,7 +30,10 @@ enum Apids {
   epoch,
   pps,
   nmea,
-  nApid
+  servo,
+  doc,
+  metaDoc,
+  nApid  //Must be the last element
 };
 protected:
   /** Indicates whether a packet APID has been documented yet. Once
@@ -52,7 +55,7 @@ public:
                       was only documented once. This means that you can leave
                       the documentation on a packet writer in a loop.
    */
-  virtual void start(int apid, const char* pktName=nullptr)=0;
+  virtual void start(Apids apid, const char* pktName=nullptr)=0;
   /** Add a signed 8-bit value to the packet
    \param[in] value value to write
    \param[in] fieldName Name of this field, used for self-documentation purposes.

@@ -11,23 +11,13 @@ int bandwidth,samplerate,maxt;
 int Argc;
 char** Argv;
 
-static const int APID_DESC=0;
-static const int APID_DATA=1;
-static const int APID_ARGV=2;
-static const int APID_DUMP=3;
-static const int APID_GYROCFG=4;
-static const int APID_CCSDS_ID=5;
-static const int APID_AKCFG=6;
-static const int APID_EPOCH=7;
-static const int APID_PPS=8;
-
 HardwarePiInterfaceArduino interface;
 LogCSV mpuconfigCSV("mpuconfig.csv",false);
 LogCSV recordCSV("record.csv",false);
 LogRawBinary dumpTBZ("attach.tbz");
 LogRawBinary gps("gps.nmea");
 LogCSV ppsCSV("pps.csv",false);
-LogCCSDS pkt("packets.sds",APID_DESC,APID_CCSDS_ID);
+LogCCSDS pkt("packets.sds");
 LogMulti<2> mpuconfig({&pkt,&mpuconfigCSV});
 LogMulti<2> record({&pkt,&recordCSV});
 LogMulti<2> dump({&pkt,&dumpTBZ});
@@ -44,7 +34,7 @@ void setup() {
   if(Argc>=3) samplerate=atoi(Argv[2]); else samplerate=0;
   if(Argc>=4) maxt      =atoi(Argv[3]); else maxt=0;
   for(int i=0;i<Argc;i++) {
-    mpuconfig.start(APID_ARGV,"CommandLineParameters");
+    mpuconfig.start(Log::Apids::argv,"CommandLineParameters");
     mpuconfig.write(Argv[i],"Parameter");
     mpuconfig.end();
   }
@@ -54,7 +44,7 @@ void setup() {
   for(size_t i=0;i<sizeof(reg);i++) reg[i]=0;
   interface.mpu.readConfig(reg);
   for(size_t i=0;i<sizeof(reg);i+=16) {
-    mpuconfig.start(APID_GYROCFG,"GyroConfig");
+    mpuconfig.start(Log::Apids::gyroCfg,"GyroConfig");
     mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();
   }
@@ -62,12 +52,12 @@ void setup() {
   for(size_t i=0;i<sizeof(reg);i++) reg[i]=0;
   interface.mpu.ak.readConfig(reg);
   for(size_t i=0;i<sizeof(reg);i+=16) {
-    mpuconfig.start(APID_AKCFG,"MagConfig");
+    mpuconfig.start(Log::Apids::akCfg,"MagConfig");
     mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();
   }
 
-  dumpAttach(dump,APID_DUMP,64);
+  dumpAttach(dump,64);
 }
 
 void loop() {
@@ -79,7 +69,7 @@ void loop() {
   fp t=interface.time();
   interface.readMPU(acc,gyro,T);
   mag_ok=interface.readMag(mag);
-  record.start(APID_DATA,"MPUData");
+  record.start(Log::Apids::mpu,"MPUData");
   record.write(t,"time");
   record.write(T,"Temperature");
   record.write(acc[0],"ax");
@@ -101,7 +91,7 @@ void loop() {
   if(interface.checkPPS(t_pps)) {
     struct timespec raw_pps=interface.get_raw_pps();
     struct timespec t0=interface.get_raw_t0();
-    pps.start(APID_PPS,"PPS");
+    pps.start(Log::Apids::pps,"PPS");
     pps.write(int32_t(t0.tv_sec),"t0_sec");
     pps.write(int32_t(t0.tv_nsec),"t0_nsec");
     pps.write(int32_t(raw_pps.tv_sec),"pps_sec");

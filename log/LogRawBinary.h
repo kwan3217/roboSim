@@ -12,7 +12,7 @@ class LogRawBinary: public LogFile {
 public:
   LogRawBinary(const char* filename):LogFile(filename,true) {};
   virtual ~LogRawBinary() {};
-  virtual void start(int apid, const char* pktName=nullptr) {};
+  virtual void start(Apids apid, const char* pktName=nullptr) {};
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};
   virtual void write(int32_t     value,          const char* fieldName=nullptr) {fwrite(&value,sizeof(value),1,stream);};

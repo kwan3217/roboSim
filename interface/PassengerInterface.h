@@ -11,14 +11,14 @@ class PassengerServo:public Servo {
 private:
   Interface& interface;
   Log& log;
-  int apid;
+  int channel;
 public:
-  PassengerServo(Interface& Linterface, Log& Llog, int Lapid):interface(Linterface),log(Llog),apid(Lapid) {};
+  PassengerServo(Interface& Linterface, Log& Llog, int Lchannel):interface(Linterface),log(Llog),channel(Lchannel) {};
   virtual ~PassengerServo() {};
   /** Command the servo to a particular position
    * @param n new commanded value in DN
    */
-  virtual void write(int n) {log.start(apid,"PassengerServoLog");log.write(interface.time(),"t");log.write(n,"ServoCmd");log.end();};
+  virtual void write(int n) {log.start(Log::Apids::servo,"PassengerServoLog");log.write(interface.time(),"t");log.write(channel,"channel");log.write(n,"cmd");log.end();};
 };
 
 /** Abstract class representing the interface between the robot navigation, guidance, and control (GNC) software
@@ -47,8 +47,8 @@ public:
    * @param Linterface reference to Interface object which will be used to echo the real sensors
    * @param Llog reference to Log object used to record servo commands
    */
-  PassengerInterface(Interface& Linterface, Log& Llog, int apidSteer, int apidThrottle):
-  Interface(psSteer,psThrottle), interface(Linterface), log(Llog), psSteer(*this,log,apidSteer),psThrottle(*this,log,apidThrottle) {};
+  PassengerInterface(Interface& Linterface, Log& Llog):
+  Interface(psSteer,psThrottle), interface(Linterface), log(Llog), psSteer(*this,log,0),psThrottle(*this,log,1) {};
   /** Destructor. Doesn't do anything explicitly, but it's good form to include a virtual destructor
    * for any class which has virtual methods.
    */
