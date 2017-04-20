@@ -1,17 +1,15 @@
-#include "robot.h"
+#include "Interface.h"
 #include "LogCSV.h"
 #include "LogRawBinary.h"
 #include "HardwarePi.h"
 #include "roboBrain.h"
-#include "dump.h"
+#include "attach.h"
 #include "wiringPi.h"
 
 #include "OpenLoopGuidance.h"
 
 #include <signal.h>
 #include <stdlib.h>
-
-
 
 LogCSV logC("readOut.csv");
 LogRawBinary dump("attach.tbz");
@@ -21,7 +19,7 @@ roboBrain passenger(309.63,0,0,hardInterface, logC, gps);
 double t[]           {0,  0,  2,  5,  6,  6,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};
 int servoCommand[]  {150,110,140,150,190,150,150};
-OpenLoopGuidance controller(simHard,t,servoChannel,servoCommand);
+OpenLoopGuidance controller(hardInterface,t,servoChannel,servoCommand);
 
 volatile bool done=false;
 
@@ -45,10 +43,6 @@ void loop(){
   passenger.navigate();
   passenger.guide();
 
-  logC.start(0);
-  logC.write(hardInterface.time(),"t");
-  controller.showVector(logC);
-  logC.end();
   controller.navigate();
   controller.guide();
   controller.control();
@@ -59,14 +53,3 @@ int main(){
 	while(!done){loop();}
 }
 
-
-
-void setup(){
-}
-void loop(){
-}
-
-int main(){
-  setup();
-  while(1) loop();
-}

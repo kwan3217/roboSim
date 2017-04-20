@@ -5,7 +5,9 @@
 #ifndef ROBOBRAIN_H_
 #define ROBOBRAIN_H_
 
-#include "robot.h"
+#include "Interface.h"
+#include "controller.h"
+#include "waypoint.h"
 
 class roboBrain: public Controller {
 protected:
@@ -67,7 +69,7 @@ public:
   void navigateCompass();	//
   void navigateGPS();
   void navigateOdometer();
-  virtual void navigate() {navigateCompass();navigateGPS();navigateOdometer();}
+  virtual void navigate();
   virtual void guide();
   virtual void control();			//give data to servos, which will then be read by the simulation
   void log() const;		//take data?

@@ -7,21 +7,21 @@ void OpenLoopGuidance::control() {
       printf("Button!\n");
       t0=interface.time();
     }
-    interface.steering(150);
-    interface.throttle(150);
+    interface.steering.write(150);
+    interface.throttle.write(150);
   } else if(t[currentRow]<(interface.time()-t0)) {
     printf("Controller: t=%f, i=%d, t_cmd=%f, s=%c, s=%d\n",interface.time()-t0,currentRow,t[currentRow],servoChannel[currentRow],servoSetting[currentRow]);
     if(servoChannel[currentRow]=='S') {
-      interface.steering(servoSetting[currentRow]);
+      interface.steering.write(servoSetting[currentRow]);
     } else {
-      interface.throttle(servoSetting[currentRow]);
+      interface.throttle.write(servoSetting[currentRow]);
     }
     currentRow++;
   } else if(t[currentRow]>=(interface.time()-t0)) {
     if(servoChannel[currentRow]=='S') {
-      interface.steering(servoSetting[currentRow-1]);
+      interface.steering.write(servoSetting[currentRow-1]);
     } else {
-      interface.throttle(servoSetting[currentRow-1]);
+      interface.throttle.write(servoSetting[currentRow-1]);
     }
   }else if(interface.button()) {
     printf("Button!\n");

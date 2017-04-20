@@ -1,7 +1,7 @@
 #ifndef OPENLOOPGUIDANCE_H_
 #define OPENLOOPGUIDANCE_H_
 
-#include "robot.h"
+#include "controller.h"
 
 class OpenLoopGuidance: public Controller {
 private:

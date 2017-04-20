@@ -5,17 +5,16 @@
 #include <string.h>
 #include <stdint.h>
 //#include "HeaderSimRobo.h"
-#include "robot.h"
 #include "roboBrain.h"
-#include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
+//#include "Simulator.h" //quick-and-dirty solution to let the cheat compass take information from Simulator class
 
 using namespace std;
 
-
-
 roboBrain::roboBrain(double h, double e, double n, Interface& Linterface, Log& LlogC, Log& LlogGps):
 Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),logC(LlogC),logGps(LlogGps),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0).waypoints({
+partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0) { }
+
+const waypoint roboBrain::waypoints[]={
                         {   0.00,   0.00},
                         {- 26.42,  21.83},
                         {- 19.53,  30.55},
@@ -27,15 +26,11 @@ partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(
                         {   3.36,   2.49},
                         {   6.91,-  0.11},
                         {   3.93,-  3.28},
-                })
-,logC(LlogC),logGps(LlogGps)
-{ }
-
+                };
 const int roboBrain::wpcount=sizeof(roboBrain::waypoints)/sizeof(waypoint);
 
 void roboBrain::guide(){
 	if(nowpoint != 0) {
-		const int wpcount = sizeof(waypoints)/sizeof(waypoint);
 		if(dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos) < 0){
 			nowpoint += 1;
 		}
@@ -76,21 +71,21 @@ void roboBrain::control(){
 }
 
 void roboBrain::setOffSet(){
-	for(int i = 0; i < bufferMax; i++){
-		if(i > bufferDiscard) offSet += ofBuffer[bufferSpot];
-		bufferSpot--;
-		if(bufferSpot < 0) bufferSpot = bufferMax;
-	}
-	offSet /= (bufferMax - bufferDiscard);
+  for(int i = 0; i < bufferMax; i++){
+    if(i > bufferDiscard) offSet += ofBuffer[bufferSpot];
+    bufferSpot--;
+    if(bufferSpot < 0) bufferSpot = bufferMax;
+  }
+  offSet /= (bufferMax - bufferDiscard);
 }
 
 void roboBrain::navigateCompass(){
-	updateTime();
-	int16_t g[3];
-	interface.readGyro(g);
-	zDN=g[2];
-	yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
-	heading -= yawRate * dt;
+  updateTime();
+  int16_t g[3];
+  interface.readGyro(g);
+  zDN=g[2];
+  yawRate = double(g[2] - offSet)/ 0x7FFF * 250;
+  heading -= yawRate * dt;
 }
 
 void roboBrain::updateTime(){
