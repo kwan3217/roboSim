@@ -10,10 +10,6 @@
 
 using namespace std;
 
-roboBrain::roboBrain(double h, double e, double n, Interface& Linterface, Log& LlogC, Log& LlogGps):
-Controller(Linterface), heading(h), pos(e, n),headingChange(0),desiredHeading(0),logC(LlogC),logGps(LlogGps),
-partCount(0), charsReceived(0), sentenceStart(false), wheelCount(0), bufferSpot(0) { }
-
 const waypoint roboBrain::waypoints[]={
                         {   0.00,   0.00},
                         {- 26.42,  21.83},
@@ -118,7 +114,6 @@ void roboBrain::navigateGPS(){
 	while(interface.checkNavChar()){
 		char ch = interface.readChar();
            printf("%c",ch);
-                logGps.write(ch);
 		if(ch == '$') sentenceStart = true;
 		if(!sentenceStart) continue;
 
@@ -149,6 +144,8 @@ void roboBrain::navigateGPS(){
   				checksum ^= nmeaReceived[i];
   			}
   			nmeaReceived[partitions[checksumSpot] + 3] = '\0';
+                        log.start(Log::Apids::nmea,"NMEA");
+                        log.write(nmeaReceived);
   			if(checksum == strtol(nmeaReceived + partitions[checksumSpot] + 1, NULL, 16)){	//validate checksum
 				printf("Parsing RMC data...");
 				for(int i = 0; i < charsReceived; i++){

@@ -1,4 +1,5 @@
 #include "Interface.h"
+#include "PassengerInterface.h"
 #include "LogCSV.h"
 #include "LogRawBinary.h"
 #include "HardwarePi.h"
@@ -12,10 +13,12 @@
 #include <stdlib.h>
 
 LogCSV logC("readOut.csv");
+LogCSV logServoCmd("servoCmd.csv");
 LogRawBinary dump("attach.tbz");
 LogRawBinary gps("gps.nmea");
 HardwarePiInterfaceArduino hardInterface;
-roboBrain passenger(309.63,0,0,hardInterface, logC, gps);
+PassengerInterface passInterface(hardInterface,logServoCmd,0,1);
+roboBrain passenger(309.63,0,0,passInterface, logC);
 double t[]           {0,  0,  2,  5,  6,  6,  99999999};
 char servoChannel[] {'T','S','T','S','S','T','T'};
 int servoCommand[]  {150,110,140,150,190,150,150};
@@ -42,6 +45,7 @@ void loop(){
 
   passenger.navigate();
   passenger.guide();
+  passenger.control();
 
   controller.navigate();
   controller.guide();
