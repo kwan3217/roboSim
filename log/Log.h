@@ -33,6 +33,11 @@ enum Apids {
   servo,
   doc,
   metaDoc,
+  guidance,
+  control,
+  setOffSet,
+  compass,
+  averageG,
   nApid  //Must be the last element
 };
 protected:
