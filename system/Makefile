@@ -171,7 +171,7 @@ $(CPPOBJ) : %.o : %.cpp
 # Target: clean project.
 clean:
 	@echo
-	$(RM) Doxyfile
+	$(RM) Doxyfile doxygen_sqlite3.db
 	$(RM) -r html
 	$(RM) -r latex
 	$(RM) $(TARGET).exe $(TARGET).map $(TARGET).lss
@@ -180,7 +180,7 @@ clean:
 	$(RM) $(CPPSRC:.cpp=.s) 
 	$(RM) $(CPPSRC:.cpp=.d)
 	$(RM) $(CPPSRC:.cpp=.e)
-	$(RM) .dep/*
+	$(RM) -r .dep/
 	$(RM) doxygen*.tmp
 
 # Include the dependency files.
