@@ -36,7 +36,7 @@ public:
   virtual char readChar()                                                           {return interface.readChar();};
   virtual fp time()                                                                 {return interface.time();};
   virtual bool button(int pin=17)                                                   {return interface.button(pin);};
-  virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {       interface.readOdometer(timeStamp, wheelCount, dt);};
+  virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {return interface.readOdometer(timeStamp, wheelCount, dt);};
   virtual bool readGyro(int16_t g[])                                                {return interface.readGyro(g);};
   virtual bool readAcc(int16_t g[])                                                 {return interface.readAcc(g);};
   virtual bool readMPU(int16_t a[], int16_t g[], int16_t& t)                        {return interface.readMPU(a,g,t);};

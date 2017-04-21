@@ -180,7 +180,7 @@ clean:
 	$(RM) $(CPPSRC:.cpp=.s) 
 	$(RM) $(CPPSRC:.cpp=.d)
 	$(RM) $(CPPSRC:.cpp=.e)
-	$(RM) -r .dep/
+	$(RM) .dep/*
 	$(RM) doxygen*.tmp
 
 # Include the dependency files.

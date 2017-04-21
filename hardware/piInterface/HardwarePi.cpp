@@ -89,15 +89,16 @@ bool HardwarePiInterface::button(int pin) {
   return 0==digitalRead(pin);
 }
 
-void HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
-  ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS);
+bool HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
+  if(ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS)<0) return false;
   char buf[0x0C];
   buf[0]=0x00;
-  write(bus,buf,1);
-  read(bus,buf,12);
+  if(1!=write(bus,buf,1)) return false;
+  if(12!=read(bus,buf,12)) return false;
   wheelCount=readBuf_le<int32_t>(buf,0);
   dt        =readBuf_le<uint32_t>(buf,4);
   timeStamp =readBuf_le<uint32_t>(buf,8);
+  return true;
 }
 
 bool HardwarePiInterface::readAcc(int16_t a[]) {

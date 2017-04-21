@@ -77,7 +77,7 @@ public:
   virtual char readChar();
   virtual fp time();
   struct timespec epoch() {return t0;};
-  virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
+  virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
   virtual bool readAcc(int16_t a[]);
   virtual bool readAcc(int16_t a[], int16_t& t);
   virtual bool readMag(int16_t b[]);
