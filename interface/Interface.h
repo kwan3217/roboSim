@@ -54,7 +54,7 @@ public:
    * @param wheelCount [out] number of sectors read since the odometer was reset
    * @param dt [out] time since last call of readOdometer in microseconds
    * 		 */
-  virtual void readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt)=0;
+  virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt)=0;
   /** Read the gyroscope
    * @param[out] g vector of gyroscope readings, in DN. One DN typically represents
    * a constant fraction of a degree per second rotation rate around each axis. Number

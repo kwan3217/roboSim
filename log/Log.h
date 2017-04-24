@@ -38,6 +38,7 @@ enum Apids {
   setOffSet,
   compass,
   averageG,
+  odometer,
   nApid  //Must be the last element
 };
 protected:

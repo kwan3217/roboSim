@@ -67,22 +67,23 @@ void loop() {
   bool mag_ok;
   int16_t T;
   fp t=interface.time();
-  interface.readMPU(acc,gyro,T);
-  mag_ok=interface.readMag(mag);
-  record.start(Log::Apids::mpu,"MPUData");
-  record.write(t,"time");
-  record.write(T,"Temperature");
-  record.write(acc[0],"ax");
-  record.write(acc[1],"ay");
-  record.write(acc[2],"az");
-  record.write(gyro[0],"gx");
-  record.write(gyro[1],"gy");
-  record.write(gyro[2],"gz");
-  record.write(uint8_t(mag_ok?1:0),"MagOK");
-  record.write(mag[0],"bx");
-  record.write(mag[1],"by");
-  record.write(mag[2],"bz");
-  record.end();
+  if(interface.readMPU(acc,gyro,T)) {
+    mag_ok=interface.readMag(mag);
+    record.start(Log::Apids::mpu,"MPUData");
+    record.write(t,"time");
+    record.write(T,"Temperature");
+    record.write(acc[0],"ax");
+    record.write(acc[1],"ay");
+    record.write(acc[2],"az");
+    record.write(gyro[0],"gx");
+    record.write(gyro[1],"gy");
+    record.write(gyro[2],"gz");
+    record.write(uint8_t(mag_ok?1:0),"MagOK");
+    record.write(mag[0],"bx");
+    record.write(mag[1],"by");
+    record.write(mag[2],"bz");
+    record.end();
+  }
   while(interface.checkNavChar()){
     int8_t ch = interface.readChar();
     gps.write(ch);

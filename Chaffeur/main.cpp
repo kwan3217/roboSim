@@ -53,7 +53,7 @@ void loop(){
 }
 
 int main(){
-	setup();
-	while(!done){loop();}
+  setup();
+  while(!done){loop();}
 }
 
