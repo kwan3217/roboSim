@@ -70,6 +70,7 @@ protected:
 public:
   I2C_t bus; ///< I2C bus stream
   MPU9250 mpu;
+  uint32_t cksumSent,cksumCalc;
   struct timespec get_raw_t0() {return t0;};
   struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);

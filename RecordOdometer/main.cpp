@@ -24,14 +24,16 @@ void loop() {
   uint32_t ts,dt;
   int32_t wc;
   fp t=interface.time();
-  interface.readOdometer(ts,wc,dt);
-  record.start(Log::Apids::odometer,"Odometer");
-  record.write(t,"time");
-  record.write(ts,"timestamp");
-  record.write(wc,"wheelcount");
-  record.write(dt,"deltat");
-  record.end();
-  usleep(5000);
+  if(interface.readOdometer(ts,wc,dt)) {
+    record.start(Log::Apids::odometer,"Odometer");
+    record.write(t,"time");
+    record.write(ts,"timestamp");
+    record.write(wc,"wheelcount");
+    record.write(dt,"deltat");
+    record.end();
+  }
+  printf("%d,%f,%d,%d,%d,%08x,%08x\n",interface.cksumSent==interface.cksumCalc,t,ts,wc,dt,interface.cksumSent,interface.cksumCalc);
+  usleep(50000);
   if(maxt>0 && t>maxt) done=true;
 }
 

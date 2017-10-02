@@ -38,7 +38,10 @@ void setup() {
     mpuconfig.write(Argv[i],"Parameter");
     mpuconfig.end();
   }
-
+  mpuconfig.start(Log::Apids::epoch,"Time Epoch");
+  mpuconfig.write((uint32_t)(interface.epoch().tv_sec),"Epoch Seconds");
+  mpuconfig.write((uint32_t)(interface.epoch().tv_nsec),"Epoch Nanoseconds");
+  mpuconfig.end();
   interface.mpu.configure(0,0,bandwidth,samplerate);
   char reg[128];
   for(size_t i=0;i<sizeof(reg);i++) reg[i]=0;

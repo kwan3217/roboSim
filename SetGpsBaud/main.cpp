@@ -1,8 +1,11 @@
 #include <stdio.h>
 
 int main() {
-  FILE* ouf=fopen("/dev/ttyAMA0","rw");
-  fprintf(ouf,"$PMTK414*33\x0D\x0A");
+  FILE* ouf=fopen("/dev/ttyAMA0","w");
+  if(!ouf) {
+    printf("failed");
+  }
+  fprintf(ouf,"$PMTK251,115200*1F\x0D\x0A");
   fclose(ouf);
 }
 
