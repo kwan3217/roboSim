@@ -35,7 +35,7 @@ BACKUP = $(addsuffix ~,$(ALLTAR))
 # 0 = turn off optimization. s = optimize for size.
 # (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
 ifndef OPTLEVEL
-OPTLEVEL = g
+OPTLEVEL = 3
 endif
 OPT = -O$(OPTLEVEL) -fomit-frame-pointer -ffast-math -fno-math-errno
 

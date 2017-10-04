@@ -33,9 +33,9 @@ protected:
   fp latdd;		///< latitude at current time
   fp longdd;		///< longitude at current time
   Quaternion q;       ///< Current robot orientaiton estimate
-  fp heading;		///< Perceived heading
-  fp desiredHeading;	///< Heading needed for the robot to be on course
-  fp headingChange;	///< Heading change needed for the robot to be on course
+  fp heading;		///< Perceived heading, degrees east of true north, [0..360)
+  fp desiredHeading;	///< Heading needed for the robot to be on course, degrees east of true north, [0..360)
+  fp headingChange;	///< Heading change needed for the robot to be on course, degrees right of current heading, [-180,180)
   int nowpoint = 0;	///< Current waypoint for robot to navigate to
   static const waypoint waypoints[];	///< Array of waypoints for the robot
   static const int wpcount;

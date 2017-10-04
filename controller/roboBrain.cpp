@@ -116,6 +116,7 @@ void roboBrain::setOffSet(){
   log.start(Log::Apids::setOffSet,"setOffSet");
   log.write(bufferMax,"bufferMax");
   log.write(bufferDiscard,"bufferDiscard");
+  log.write(n,"n");
   log.write(offSet[0],"offSetBefore.x");
   log.write(offSet[1],"offSetBefore.y");
   log.write(offSet[2],"offSetBefore.z");
@@ -163,6 +164,15 @@ bool roboBrain::navigateCompass(){
   log.write(nose.y(),"nose.y");
   log.write(nose.z(),"nose.z");
   log.write(nose.w(),"nose.w");
+  log.end();
+  log.start(Log::Apids::compass,"compass");
+  log.write(compassEpochTime,"t");
+  log.write(nose.x(),"nose.x");
+  log.write(nose.y(),"nose.y");
+  heading=atan2(nose.y(),nose.x())*180/PI;
+  if(heading<0) heading+=360;
+  if(heading>360) heading-=360;
+  log.write(heading,"heading");
   log.end();
   return true;
 }

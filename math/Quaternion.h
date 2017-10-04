@@ -48,7 +48,7 @@ public:
   /** Construct an identity quaternion, IE 0i+0j+0k+1 . This also represents an
       identity orientation */
   Quaternion() {x()=0;y()=0;z()=0;w()=1;};
-  Quaternion(Vector<4,fp> other):Quaternion(comp[0],comp[1],comp[2],comp[3]) {};
+  Quaternion(Vector<4,fp> other):Quaternion(other.comp[0],other.comp[1],other.comp[2],other.comp[3]) {};
   /** Construct a quaternion from the components of a 3D vector. Quaternion
       will be Lx*i+Ly*j+Lz*k+0 . Does not have to be a unit quaternion or unit
       vector.
