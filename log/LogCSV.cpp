@@ -1,6 +1,8 @@
 #include "LogCSV.h"
 
 void LogCSV::start(Log::Apids apid, const char* pktName) {
+  ignoreThis=accept<Log::Apids::nApid && accept!=apid;
+  if(ignoreThis) return;
   pktApid=apid;
   firstField=true;
   if(hasDoc[apid]) {
@@ -13,6 +15,7 @@ void LogCSV::start(Log::Apids apid, const char* pktName) {
 }
 
 void LogCSV::write(const char* value, int len, const char* fieldName) {
+  if(ignoreThis) return;
   writeDoc(fieldName);
   if(!firstField) fprintf(fbuf,",");
   for(int i=0;i<len;i++) fprintf(fbuf,"%02x",value[i]);
@@ -20,12 +23,17 @@ void LogCSV::write(const char* value, int len, const char* fieldName) {
 }
 
 void LogCSV::write(const char* value, const char* fieldName) {
+  if(ignoreThis) return;
   writeDoc(fieldName);
   fprintf(fbuf,firstField?"%s":",%s",value);
   firstField=false;
 }
 
 void LogCSV::end() {
+  if(ignoreThis) {
+    ignoreThis=false;
+    return;
+  }
   if(hasDoc[pktApid]||!inDoc) { //True if the packet was already documented or we didn't have any documentation
     fprintf(stream,"\n"); //Write the linefeed for the packet
   } else {

@@ -17,9 +17,46 @@ public:
   T comp[n]; ///< Component array. This is the actual data for the vector, all else is code to act on this.
   /** Enables access to component array directly */
   T& operator[](int i) {return comp[i];};
+  /** Accessor for x vector component
+   * \return reference to component 0, which is the X vector component by convention */
+  T& x() {return comp[0];};
+  /** Accessor for y vector component
+   * \return reference to component 1, which is the Y vector component by convention */
+  T& y() {return comp[1];};
+  /** Accessor for z vector component
+   * \return reference to component 2, which is the Z vector component by convention */
+  T& z() {return comp[2];};
+  /** Accessor for scalar component
+   * \return reference to component 3, which is the scalar component by convention */
+  T& w() {return comp[3];};
+  /** Read-only accessor for x vector component, used in const context
+   * \return value of component 0, which is the X vector component by convention */
+  T  x() const {return comp[0];};
+  /** Read-only accessor for y vector component, used in const context
+   * \return value of component 1, which is the Y vector component by convention */
+  T  y() const {return comp[1];};
+  /** Read-only accessor for z vector component, used in const context
+   * \return value of component 2, which is the Z vector component by convention */
+  T  z() const {return comp[2];};
+  /** Read-only accessor for scalar component, used in const context
+   * \return value of component 3, which is the scalar component by convention */
+  T  w() const {return comp[3];};
   /** Construct a zero vector */
   Vector<n,T>() {for(int i=0;i<n;i++) comp[i]=0;};
-  /** Assignment operator. Components of source vector are copied into this vector
+  /** Constructor with components specified
+   @param[in] Lx initial x component
+   @param[in] Ly initial y component
+   @param[in] Lz initial z component
+  */
+  Vector<n,T>(T Lx, T Ly, T Lz):Vector<n,T>(){x()=Lx;y()=Ly;z()=Lz;};
+   /** Constructor with components specified
+   @param[in] Lx initial x component
+   @param[in] Ly initial y component
+   @param[in] Lz initial z component
+   @param[in] Lw initial w component
+  */
+  Vector<n,T>(T Lx, T Ly, T Lz, T Lw):Vector<n,T>(){x()=Lx;y()=Ly;z()=Lz;w()=Lw;};
+   /** Assignment operator. Components of source vector are copied into this vector
     @param[in] rhs vector to copy components from
     @return a reference to this now-modified vector
   */
@@ -27,7 +64,7 @@ public:
     for(int i=0;i<n;i++)comp[i]=rhs[i];
     return *this;
   }
-  /** Vector addition, component by component 
+  /** Vector addition, component by component
     @param[in] rhs vector to add components from
     @return a reference to this now-modified vector
    */
@@ -35,7 +72,7 @@ public:
     for(int i=0;i<n;i++) comp[i]+=rhs.comp[i];
     return *this;
   }
-  /** Vector-scalar addition. Add the scalar to each component of the vector 
+  /** Vector-scalar addition. Add the scalar to each component of the vector
     @param[in] rhs scalar to add to each component
     @return a reference to this now-modified vector
    */
@@ -43,7 +80,7 @@ public:
     for(int i=0;i<n;i++) comp[i]+=rhs;
     return *this;
   }
-  /** Vector subtraction, component by component 
+  /** Vector subtraction, component by component
     @param[in] rhs vector to subtract components from
     @return a reference to this now-modified vector
    */
@@ -51,7 +88,7 @@ public:
     for(int i=0;i<n;i++) comp[i]-=rhs.comp[i];
     return *this;
   }
-  /** Vector-scalar subtraction. Subtract the scalar from each component of the vector 
+  /** Vector-scalar subtraction. Subtract the scalar from each component of the vector
     @param[in] rhs scalar to subtract from each component
     @return a reference to this now-modified vector
    */
@@ -59,7 +96,7 @@ public:
     for(int i=0;i<n;i++) comp[i]-=rhs;
     return *this;
   }
-  /** Vector component-by-component multiplication (not dot or cross product) 
+  /** Vector component-by-component multiplication (not dot or cross product)
     @param[in] rhs vector to multiply components by
     @return a reference to this now-modified vector
    */
@@ -67,7 +104,7 @@ public:
     for(int i=0;i<n;i++) comp[i]*=rhs.comp[i];
     return *this;
   }
-  /** Vector-scalar multiplication. Multiply each component by the scalar 
+  /** Vector-scalar multiplication. Multiply each component by the scalar
     @param[in] rhs scalar to multiply each component by
     @return a reference to this now-modified vector
    */
@@ -75,7 +112,7 @@ public:
     for(int i=0;i<n;i++) comp[i]*=rhs;
     return *this;
   }
-  /** Vector component-by-component division 
+  /** Vector component-by-component division
     @param[in] rhs vector to divide components by
     @return a reference to this now-modified vector
    */
@@ -83,7 +120,7 @@ public:
     for(int i=0;i<n;i++) comp[i]/=rhs.comp[i];
     return *this;
   }
-  /** Vector-scalar division. Divide each component by the scalar 
+  /** Vector-scalar division. Divide each component by the scalar
     @param[in] rhs scalar to divide each component by
     @return a reference to this now-modified vector
    */
@@ -94,18 +131,18 @@ public:
 };
 
 /** Vector addition operator. Follows the operator overloading recipe
-@relates Vector 
+@relates Vector
 @param[in] lhs left hand operand (order doesn't matter as addition is commutative)
-@param[in] rhs right hand operand 
+@param[in] rhs right hand operand
 @return a vector which is the sum of these two vectors*/
 template<int n, typename T=fp> static inline Vector<n,T> operator+(Vector<n,T> lhs, const Vector<n,T>& rhs) {lhs+=rhs;return lhs;};
-/** Vector-scalar addition operator. Follows the operator overloading recipe. 
-  Note that since scalar addition is commutative, so is this operator and 
+/** Vector-scalar addition operator. Follows the operator overloading recipe.
+  Note that since scalar addition is commutative, so is this operator and
   scalar-vector addition will produce exactly the same result as vector-scalar
   addition.
-@relates Vector 
+@relates Vector
 @param[in] lhs left hand (vector) operand
-@param[in] rhs right hand (scalar) operand 
+@param[in] rhs right hand (scalar) operand
 @return a vector which is a copy of the input vector with the scalar added to each component*/
 template<int n, typename T=fp> static inline Vector<n,T> operator+(Vector<n,T> lhs, const T rhs)            {lhs+=rhs;return lhs;};
 /** Scalar-vector addition operator. Follows the operator overloading recipe.

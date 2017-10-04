@@ -25,6 +25,8 @@ private:
       fprintf(stream,firstField?"%s":",%s",fieldName);
     }
   }
+  Apids accept;
+  bool ignoreThis;
 public:
   /** Construct a LogCSV packet stream.
    * \param basename Base name (name of filename without path) to use for the
@@ -35,17 +37,17 @@ public:
    *                    after 4096 bytes. If false, then buffering is disabled
    *                    and packets are immediately written to the filesystem.
    */
-  LogCSV(const char* filenames, bool bufEnabled=true):LogFile(filenames,bufEnabled) {};
+  LogCSV(const char* filenames, bool bufEnabled=true,Apids Laccept=Apids::nApid):LogFile(filenames,bufEnabled),accept(Laccept),ignoreThis(false) {};
   virtual ~LogCSV() {};
   virtual void start(Log::Apids apid, const char* pktName=nullptr);
   virtual void write(int8_t      value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
   virtual void write(int16_t     value,          const char* fieldName=nullptr) {write(( int32_t)value,fieldName);};
-  virtual void write(int32_t     value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%d":",%d",value);  firstField=false;};
+  virtual void write(int32_t     value,          const char* fieldName=nullptr) {if(!ignoreThis){writeDoc(fieldName);fprintf(fbuf,firstField?"%d":",%d",value);  firstField=false;}};
   virtual void write(uint8_t     value,          const char* fieldName=nullptr) {write((uint32_t)value,fieldName);};
   virtual void write(uint16_t    value,          const char* fieldName=nullptr) {write((uint32_t)value,fieldName);};
-  virtual void write(uint32_t    value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%u":",%u",value);  firstField=false;};
+  virtual void write(uint32_t    value,          const char* fieldName=nullptr) {if(!ignoreThis){writeDoc(fieldName);fprintf(fbuf,firstField?"%u":",%u",value);  firstField=false;}};
   virtual void write(float       value,          const char* fieldName=nullptr) {write((double)value,fieldName);};
-  virtual void write(double      value,          const char* fieldName=nullptr) {writeDoc(fieldName);fprintf(fbuf,firstField?"%15.10f":",%15.10f",value);  firstField=false;};
+  virtual void write(double      value,          const char* fieldName=nullptr) {if(!ignoreThis){writeDoc(fieldName);fprintf(fbuf,firstField?"%15.10f":",%15.10f",value);  firstField=false;}};
   virtual void write(const char* value, int len, const char* fieldName=nullptr);
   virtual void write(const char* value,          const char* fieldName=nullptr);
   virtual void end();

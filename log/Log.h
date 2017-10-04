@@ -39,6 +39,8 @@ enum Apids {
   compass,
   averageG,
   odometer,
+  quaternion,
+  calcOffset,
   nApid  //Must be the last element
 };
 protected:
@@ -50,7 +52,7 @@ protected:
   bool hasDoc[Apids::nApid];
 public:
   Log() {};
-  virtual ~Log() {};
+  virtual ~Log() {}
   /** Start a packet with a particular APID
    \param[in] apid APID to use for this packet
    \param[in] ptkName Name of this packet, used for self-documentation purposes.

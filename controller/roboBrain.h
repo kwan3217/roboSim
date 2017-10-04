@@ -8,6 +8,7 @@
 #include "Interface.h"
 #include "controller.h"
 #include "waypoint.h"
+#include "Quaternion.h"
 
 class roboBrain: public Controller {
 protected:
@@ -21,7 +22,7 @@ protected:
     speedSpot, 		///< space for speed in knots
     headingSpot, 	///< heading
     dateSpot, 		///< current date in ddmmyyyy
-    magSpot,		///< magnetic variation I DON'T KNOW WHAT THIS MEANS YET
+    magSpot,		///< magnetic variation (difference between magnetic and true north)
     magewSpot,		///< magnetic variation east or west
     modeSpot,		///< mode of nmea sentence
     checksumSpot	///< checksum
@@ -31,6 +32,7 @@ protected:
   fp long0 = 200;		///< longitude at time 0, initialized to 200 for navigateGPS to set, then compare with new GPS data
   fp latdd;		///< latitude at current time
   fp longdd;		///< longitude at current time
+  Quaternion q;       ///< Current robot orientaiton estimate
   fp heading;		///< Perceived heading
   fp desiredHeading;	///< Heading needed for the robot to be on course
   fp headingChange;	///< Heading change needed for the robot to be on course
@@ -49,13 +51,13 @@ protected:
   int16_t zDN,steerCmd;
   fp yawRate;
   fp epochTime;
+  fp compassEpochTime;  ///< Time that the compass was read
   fp dt;
-  int offSet;
+  fp offSet[3];
   static const int bufferDiscard = 300;
   static const int bufferMax = 1500;
-  int ofBuffer[bufferMax];
+  int ofBuffer[bufferMax][3];
   int bufferSpot;
-  Log& log;
   void fillBuffer();
   void setOffSet();
   int servoCommand;
@@ -63,16 +65,16 @@ protected:
   uint32_t timeStamp; ///< epoch time(CURRENTLY IN MILLISECONDS) of last time readOdometer() was used
   uint32_t dtOdometer;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
   waypoint pos;		///< perceived position
+  Log& log;
 public:
   roboBrain(fp h, fp e, fp n, Interface& Linterface, Log& Llog):
     Controller(Linterface), heading(h), pos(e, n),log(Llog) { }
-  void navigateCompass();	//
+  bool navigateCompass();	//
   void navigateGPS();
-  void navigateOdometer();
+  bool navigateOdometer();
   virtual void navigate();
   virtual void guide();
   virtual void control();			//give data to servos, which will then be read by the simulation
-  virtual void showVector(Log& pkt);
 };
 
 #endif /* ROBOBRAIN_H_ */

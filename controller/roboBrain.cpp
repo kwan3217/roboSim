@@ -63,14 +63,11 @@ void roboBrain::control(){
     //Haven't started yet
     mode=0;
     throttleCmd=150;
-    steeringCmd=155;
-    interface.throttle.write(150);
-    interface.steering.write(155);
+    steeringCmd=150;
   } else if(headingChange < 300){
     //In progress
     mode=1;
     throttleCmd=140;
-    interface.throttle.write(140);
     servoCommand = (headingChange * 7 * double(50)/180+155);
     if(servoCommand > 200) servoCommand = 200;
     if(servoCommand < 100) servoCommand = 100;
@@ -78,8 +75,8 @@ void roboBrain::control(){
   } else {
     //Finished
     mode=2;
-    interface.throttle.write(150);
-    interface.steering.write(150);
+    steeringCmd=150;
+    throttleCmd=150;
   }
   interface.steering.write(steeringCmd);
   interface.throttle.write(throttleCmd);
@@ -91,32 +88,83 @@ void roboBrain::control(){
 }
 
 void roboBrain::setOffSet(){
+  int n=0;
   for(int i = 0; i < bufferMax; i++){
-    if(i > bufferDiscard) offSet += ofBuffer[bufferSpot];
+    if(i > bufferDiscard) {
+      log.start(Log::Apids::calcOffset,"calcOffset");
+      log.write(bufferSpot,"bufferSpot");
+      log.write(offSet[0],"offSetBefore[0]");
+      log.write(offSet[1],"offSetBefore[1]");
+      log.write(offSet[2],"offSetBefore[2]");
+      log.write(n,"nBefore");
+      log.write(ofBuffer[bufferSpot][0],"ofBuffer[0]");
+      log.write(ofBuffer[bufferSpot][1],"ofBuffer[1]");
+      log.write(ofBuffer[bufferSpot][2],"ofBuffer[2]");
+      offSet[0] += ofBuffer[bufferSpot][0];
+      offSet[1] += ofBuffer[bufferSpot][1];
+      offSet[2] += ofBuffer[bufferSpot][2];
+      n++;
+      log.write(offSet[0],"offSetAfter[0]");
+      log.write(offSet[1],"offSetAfter[1]");
+      log.write(offSet[2],"offSetAfter[2]");
+      log.write(n,"nAfter");
+      log.end();
+    }
     bufferSpot--;
     if(bufferSpot < 0) bufferSpot = bufferMax;
   }
-  offSet /= (bufferMax - bufferDiscard);
   log.start(Log::Apids::setOffSet,"setOffSet");
-  log.write(offSet,"offSet");
   log.write(bufferMax,"bufferMax");
   log.write(bufferDiscard,"bufferDiscard");
+  log.write(offSet[0],"offSetBefore.x");
+  log.write(offSet[1],"offSetBefore.y");
+  log.write(offSet[2],"offSetBefore.z");
+  offSet[0] /= n;
+  offSet[1] /= n;
+  offSet[2] /= n;
+  log.write(offSet[0],"offSetAfter.x");
+  log.write(offSet[1],"offSetAfter.y");
+  log.write(offSet[2],"offSetAfter.z");
   log.end();
 }
 
-void roboBrain::navigateCompass(){
-  updateTime();
+bool roboBrain::navigateCompass(){
   int16_t g[3];
-  interface.readGyro(g);
-  zDN=g[2];
-  yawRate = fp(g[2] - offSet)/ 0x7FFF * 250;
-  heading -= yawRate * dt;
-  log.start(Log::Apids::compass,"compass");
-  log.write(dt,"dt");
-  log.write(zDN,"zDN");
-  log.write(yawRate,"yawRate");
-  log.write(heading,"heading");
+  if(!interface.readGyro(g)) return false;
+  fp oldCompassEpochTime=compassEpochTime;
+  compassEpochTime=interface.time();
+  if(oldCompassEpochTime==0) return false; //Don't integrate the compass if this is the first reading
+  fp compassDt=compassEpochTime-oldCompassEpochTime;
+  Vector<3> omega(
+    //Convert from DN, through deg/s
+    //(with assumed sensitivity of +/-250deg/s FS)
+    //to rad/s
+    (fp(g[0])-offSet[0])/0x7FFF * 250 * PI/180,
+    (fp(g[1])-offSet[1])/0x7FFF * 250 * PI/180,
+    (fp(g[2])-offSet[2])/0x7FFF * 250 * PI/180
+  );
+  q.integrate(omega,compassDt);              //Update the quaternion based on this gyro reading
+  Quaternion nose(1,0,0);
+  nose=q.b2r(nose);  //Convert the nose vector from body to world coordinates
+  log.start(Log::Apids::quaternion,"quaternion");
+  log.write(compassEpochTime,"t");
+  log.write(compassDt,"dt");
+  log.write(g[0],"g.x");
+  log.write(g[1],"g.y");
+  log.write(g[2],"g.z");
+  log.write(fp(omega[0]),"omega.x");
+  log.write(fp(omega[1]),"omega.y");
+  log.write(fp(omega[2]),"omega.z");
+  log.write(q.x(),"q.x");
+  log.write(q.y(),"q.y");
+  log.write(q.z(),"q.z");
+  log.write(q.w(),"q.w");
+  log.write(nose.x(),"nose.x");
+  log.write(nose.y(),"nose.y");
+  log.write(nose.z(),"nose.z");
+  log.write(nose.w(),"nose.w");
   log.end();
+  return true;
 }
 
 void roboBrain::updateTime(){
@@ -128,24 +176,34 @@ void roboBrain::updateTime(){
 void roboBrain::fillBuffer(){
   int16_t g[3];
   interface.readGyro(g);
-  ofBuffer[bufferSpot] = g[2];
-  zDN=g[2];
+  ofBuffer[bufferSpot][0] = g[0];
+  ofBuffer[bufferSpot][1] = g[1];
+  ofBuffer[bufferSpot][2] = g[2];
   log.start(Log::Apids::averageG,"averageG");
-  log.write(ofBuffer[bufferSpot],"ofBuffer");
   log.write(bufferSpot,"bufferSpot");
+  log.write(ofBuffer[bufferSpot][0],"ofBuffer[0]");
+  log.write(ofBuffer[bufferSpot][1],"ofBuffer[1]");
+  log.write(ofBuffer[bufferSpot][2],"ofBuffer[2]");
+  log.end();
   bufferSpot++;
-  if(bufferSpot >= 1500) bufferSpot = 0;
+  if(bufferSpot >= 1500) {
+    bufferSpot = 0;
+    //If button is enabled, don't use the following code
+    nowpoint = 1;
+    pos = {0,0};
+    setOffSet();
+  }
 }
 
-void roboBrain::navigateOdometer(){
+bool roboBrain::navigateOdometer(){
   oldWheelCount = wheelCount;
   int32_t tempWheelCount;
-  interface.readOdometer(timeStamp, tempWheelCount, dtOdometer);
+  if(!interface.readOdometer(timeStamp, tempWheelCount, dtOdometer)) return false;
   int32_t deltaWheelCount = tempWheelCount - oldWheelCount;
-  if (deltaWheelCount>4 || deltaWheelCount<-4) return;
   wheelCount=tempWheelCount;
   odoDeltaPos={sin(heading*PI/180),cos(heading*PI/180)};
   pos+=odoDeltaPos*fp(fp(tickDistance * deltaWheelCount)/4.0);
+  return true;
 }
 
 void roboBrain::navigateGPS(){
@@ -251,23 +309,3 @@ void roboBrain::navigate() {
   }
 }
 
-void roboBrain::showVector(Log& pkt) {
-//  pkt.write(latdd,"lat from gps");
-//  pkt.write(longdd,"lon from gps");
-  pkt.write(interface.button(), "button status");
-  pkt.write(zDN,"zDN");
-  pkt.write(offSet, "offset");
-  pkt.write(ofBuffer[bufferSpot], "current buffer's value");
-  pkt.write(bufferSpot, "buffer spot");
-//  pkt.write(wheelCount,"wheelCount");
-//  pkt.write(pos.easting(),"est easting");
-//  pkt.write(pos.northing(),"est northing");
-//  pkt.write(nowpoint,"nowpoint");
-//  pkt.write(waypoints[nowpoint].easting(),"waypoint easting");
-// pkt.write(waypoints[nowpoint].northing(),"waypoint northing");
-  pkt.write(yawRate, "yaw rate");
-  pkt.write(heading, "est heading");
-  pkt.write(desiredHeading,"desired heading");
-  pkt.write(headingChange,"heading change");
-  pkt.write(servoCommand, "steering command");
-}
