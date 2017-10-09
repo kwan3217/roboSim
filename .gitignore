@@ -23,4 +23,6 @@ latex
 .dep/
 Doxyfile
 doxygen_sqlite3.db
+testOutputData/
+gpsd.txt
 
