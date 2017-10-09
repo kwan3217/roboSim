@@ -77,7 +77,13 @@ void setup() {
 }
 
 void loop() {
-  brain.navigate();
+  static int count=0;
+  brain.loop();
+  if(count==100) {
+    printf("%f,%f\n",interface.time(),brain.getHeading());
+    count=0;
+  }
+  count++;
   if(maxt>0 && interface.time()>maxt) done=true;
   fp t_pps;
   if(interface.checkPPS(t_pps)) {

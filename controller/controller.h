@@ -15,9 +15,11 @@ class Controller {
 protected:
   Interface& interface;
 public:
+  virtual void readSensors() {};
   virtual void navigate() {};
   virtual void guide() {};
   virtual void control() {};
+  void loop() {readSensors();navigate();guide();control();};
   Controller(Interface& Linterface):interface(Linterface) {};
   virtual ~Controller() {};
 };

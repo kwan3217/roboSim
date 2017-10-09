@@ -27,6 +27,7 @@ const int roboBrain::wpcount=sizeof(roboBrain::waypoints)/sizeof(waypoint);
 
 void roboBrain::guide(){
   if(nowpoint != 0) {
+    /*
     fp wp_dot=dot((waypoints[nowpoint]- waypoints[nowpoint - 1]),waypoints[nowpoint] - pos);
     if(wp_dot<0) {
       nowpoint += 1;
@@ -37,6 +38,8 @@ void roboBrain::guide(){
     }
     desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
 
+    */
+    desiredHeading=90;
     headingChange = desiredHeading - heading;
     if(headingChange > 180){
       headingChange -= 360;
@@ -44,12 +47,12 @@ void roboBrain::guide(){
       headingChange += 360;
     }
     log.start(Log::Apids::guidance,"Guidance");
-    log.write(nowpoint,"nowpoint");
-    log.write(pos.easting(),"pos_e");
-    log.write(pos.northing(),"pos_n");
-    log.write(waypoints[nowpoint].easting(),"wp_e");
-    log.write(waypoints[nowpoint].northing(),"wp_n");
-    log.write(wp_dot,"wp_dot");
+//    log.write(nowpoint,"nowpoint");
+//    log.write(pos.easting(),"pos_e");
+//    log.write(pos.northing(),"pos_n");
+//    log.write(waypoints[nowpoint].easting(),"wp_e");
+//    log.write(waypoints[nowpoint].northing(),"wp_n");
+//    log.write(wp_dot,"wp_dot");
     log.write(desiredHeading,"desiredHeading");
     log.write(heading,"heading");
     log.write(headingChange,"headingChange");
@@ -62,24 +65,26 @@ void roboBrain::control(){
   if(nowpoint == 0) {
     //Haven't started yet
     mode=0;
-    throttleCmd=150;
-    steeringCmd=150;
+    throttleCmd=1500;
+    steeringCmd=1500;
   } else if(headingChange < 300){
     //In progress
     mode=1;
-    throttleCmd=140;
-    servoCommand = (headingChange * 7 * double(50)/180+155);
-    if(servoCommand > 200) servoCommand = 200;
-    if(servoCommand < 100) servoCommand = 100;
+    throttleCmd=1400;
+    servoCommand = (headingChange * 7 * double(50)/180+1500);
+    if(servoCommand > 2000) servoCommand = 2000;
+    if(servoCommand < 1000) servoCommand = 1000;
     steeringCmd=servoCommand;
   } else {
     //Finished
     mode=2;
-    steeringCmd=150;
-    throttleCmd=150;
+    steeringCmd=1500;
+    throttleCmd=1500;
   }
+  /*
   interface.steering.write(steeringCmd);
   interface.throttle.write(throttleCmd);
+  */
   log.start(Log::Apids::control,"Control");
   log.write(mode,"mode");
   log.write(throttleCmd,"throttleCmd");
@@ -130,61 +135,58 @@ void roboBrain::setOffSet(){
 }
 
 bool roboBrain::navigateCompass(){
-  int16_t g[3];
-  if(!interface.readGyro(g)) return false;
-  fp oldCompassEpochTime=compassEpochTime;
-  compassEpochTime=interface.time();
-  if(oldCompassEpochTime==0) return false; //Don't integrate the compass if this is the first reading
-  fp compassDt=compassEpochTime-oldCompassEpochTime;
-  Vector<3> omega(
-    //Convert from DN, through deg/s
-    //(with assumed sensitivity of +/-250deg/s FS)
-    //to rad/s
-    (fp(g[0])-offSet[0])/0x7FFF * 250 * PI/180,
-    (fp(g[1])-offSet[1])/0x7FFF * 250 * PI/180,
-    (fp(g[2])-offSet[2])/0x7FFF * 250 * PI/180
-  );
-  q.integrate(omega,compassDt);              //Update the quaternion based on this gyro reading
-  Quaternion nose(1,0,0);
-  nose=q.b2r(nose);  //Convert the nose vector from body to world coordinates
-  log.start(Log::Apids::quaternion,"quaternion");
-  log.write(compassEpochTime,"t");
-  log.write(compassDt,"dt");
-  log.write(g[0],"g.x");
-  log.write(g[1],"g.y");
-  log.write(g[2],"g.z");
-  log.write(fp(omega[0]),"omega.x");
-  log.write(fp(omega[1]),"omega.y");
-  log.write(fp(omega[2]),"omega.z");
-  log.write(q.x(),"q.x");
-  log.write(q.y(),"q.y");
-  log.write(q.z(),"q.z");
-  log.write(q.w(),"q.w");
-  log.write(nose.x(),"nose.x");
-  log.write(nose.y(),"nose.y");
-  log.write(nose.z(),"nose.z");
-  log.write(nose.w(),"nose.w");
-  log.end();
-  log.start(Log::Apids::compass,"compass");
-  log.write(compassEpochTime,"t");
-  log.write(nose.x(),"nose.x");
-  log.write(nose.y(),"nose.y");
-  heading=atan2(nose.y(),nose.x())*180/PI;
-  if(heading<0) heading+=360;
-  if(heading>360) heading-=360;
-  log.write(heading,"heading");
-  log.end();
+  if(nowpoint == 0){
+    fillBuffer();
+    if(interface.button()){
+      nowpoint = 1;
+      pos = {0,0};
+      setOffSet();
+    }
+    return false;
+  } else {
+    Vector<3> omega(
+      //Convert from DN, through deg/s
+      //(with assumed sensitivity of +/-250deg/s FS)
+      //to rad/s
+      (fp(g[0])-offSet[0])/0x7FFF * 250 * PI/180,
+      (fp(g[1])-offSet[1])/0x7FFF * 250 * PI/180,
+      (fp(g[2])-offSet[2])/0x7FFF * 250 * PI/180
+    );
+    q.integrate(omega,dt);              //Update the quaternion based on this gyro reading
+    Quaternion nose(1,0,0);
+    nose=q.b2r(nose);  //Convert the nose vector from body to world coordinates
+    log.start(Log::Apids::quaternion,"quaternion");
+    log.write(t,"t");
+    log.write(dt,"dt");
+    log.write(g[0],"g.x");
+    log.write(g[1],"g.y");
+    log.write(g[2],"g.z");
+    log.write(fp(omega[0]),"omega.x");
+    log.write(fp(omega[1]),"omega.y");
+    log.write(fp(omega[2]),"omega.z");
+    log.write(q.x(),"q.x");
+    log.write(q.y(),"q.y");
+    log.write(q.z(),"q.z");
+    log.write(q.w(),"q.w");
+    log.write(nose.x(),"nose.x");
+    log.write(nose.y(),"nose.y");
+    log.write(nose.z(),"nose.z");
+    log.write(nose.w(),"nose.w");
+    log.end();
+    log.start(Log::Apids::compass,"compass");
+    log.write(t,"t");
+    log.write(nose.x(),"nose.x");
+    log.write(nose.y(),"nose.y");
+    heading=atan2(-nose.y(),nose.x())*180/PI;
+    if(heading<0) heading+=360;
+    if(heading>360) heading-=360;
+    log.write(heading,"heading");
+    log.end();
+  }
   return true;
 }
 
-void roboBrain::updateTime(){
-  double oldTime = epochTime;
-  epochTime = interface.time();
-  dt = epochTime - oldTime;
-}
-
 void roboBrain::fillBuffer(){
-  int16_t g[3];
   interface.readGyro(g);
   ofBuffer[bufferSpot][0] = g[0];
   ofBuffer[bufferSpot][1] = g[1];
@@ -206,11 +208,6 @@ void roboBrain::fillBuffer(){
 }
 
 bool roboBrain::navigateOdometer(){
-  oldWheelCount = wheelCount;
-  int32_t tempWheelCount;
-  if(!interface.readOdometer(timeStamp, tempWheelCount, dtOdometer)) return false;
-  int32_t deltaWheelCount = tempWheelCount - oldWheelCount;
-  wheelCount=tempWheelCount;
   odoDeltaPos={sin(heading*PI/180),cos(heading*PI/180)};
   pos+=odoDeltaPos*fp(fp(tickDistance * deltaWheelCount)/4.0);
   return true;
@@ -303,19 +300,29 @@ void roboBrain::navigateGPS(){
   }
 }
 
+void roboBrain::readSensors() {
+  //Get timestamp of sensor readings
+  ot = t;
+  t = interface.time();
+  dt = t - ot;
+  //Read gyroscope
+  gValid=interface.readGyro(g);
+  /*
+  //read odometer
+  oldWheelCount = wheelCount;
+  int32_t tempWheelCount;
+  odoValid=interface.readOdometer(t_odo, wheelCount, dt_odo);
+  if(odoValid) {
+    deltaWheelCount = wheelCount - oldWheelCount;
+  }
+  */
+  //Get timestamp after reading sensors
+  t1=interface.time();
+}
+
 void roboBrain::navigate() {
-  updateTime();
   navigateGPS();
   navigateOdometer();
-  if(nowpoint == 0){
-    fillBuffer();
-    if(interface.button()){
-      nowpoint = 1;
-      pos = {0,0};
-      setOffSet();
-    }
-  } else {
-    navigateCompass();
-  }
+  navigateCompass();
 }
 
