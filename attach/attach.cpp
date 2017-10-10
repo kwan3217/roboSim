@@ -8,3 +8,10 @@ void dumpAttach(Log& pkt, int pktSize) {
     pkt.end();
   }
 }
+
+void dumpParse(Log& pkt) {
+  int dumpSize=_binary____attach_parseYukari_py_end-_binary____attach_parseYukari_py_start;
+  pkt.start(Log::Apids::parse,"parseYukari");
+  pkt.write(_binary____attach_parseYukari_py_start,dumpSize,"python3code");
+  pkt.end();
+}
