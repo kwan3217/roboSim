@@ -5,7 +5,7 @@ void LogCSV::start(Log::Apids apid, const char* pktName) {
   if(ignoreThis) return;
   pktApid=apid;
   firstField=true;
-  if(hasDoc[apid]) {
+  if(apid<Apids::nApid && hasDoc[apid]) {
     //Write directly to the stream
     fbuf=stream;
   } else {
@@ -34,12 +34,12 @@ void LogCSV::end() {
     ignoreThis=false;
     return;
   }
-  if(hasDoc[pktApid]||!inDoc) { //True if the packet was already documented or we didn't have any documentation
+  if((pktApid<Apids::nApid && hasDoc[pktApid])||!inDoc) { //True if the packet was already documented or we didn't have any documentation
     fprintf(stream,"\n"); //Write the linefeed for the packet
   } else {
     fprintf(stream,"\n"); //Write the linefeed for the packet documentation
     fclose(fbuf);         //close the in-memory buffer for the packet data
     if(inDoc) fprintf(stream,"%s\n",buf); //write the packet data to the stream, with its linefeed
   }
-  hasDoc[pktApid]=true; //Either way, our chance to document has ended
+  if(pktApid<Apids::nApid)hasDoc[pktApid]=true; //Either way, our chance to document has ended
 }

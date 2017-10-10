@@ -321,8 +321,8 @@ void roboBrain::readSensors() {
 }
 
 void roboBrain::navigate() {
-  navigateGPS();
-  navigateOdometer();
+//  navigateGPS();
+//  navigateOdometer();
   navigateCompass();
 }
 

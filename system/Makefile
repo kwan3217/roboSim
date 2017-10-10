@@ -139,6 +139,9 @@ html: Doxyfile $(ALLTAR)
 	$(OBJCOPY) -O binary -j .source $< $<.tmp.tbz
 	if [ -s $<.tmp.tbz ] ;then  echo "Source tarball contents:" >> $@ ; tar tvf $<.tmp.tbz >> $@; fi
 	$(RM) -f $<.tmp.tbz 
+	$(OBJCOPY) -O binary -j .python $< $<.tmp.py
+	if [ -s $<.tmp.py ] ;then  echo "Python contents:" >> $@ ; cat $<.tmp.py >> $@; fi
+	$(RM) -f $<.tmp.py
 	$(OBJDUMP) -s                        -j .data $< |c++filt |  tail -n +4 >> $@
 	$(OBJDUMP) -s -j .ARM.exidx -j .ARM.extab -j .glue -j .vtable_lib -j .rtti_info -j .rtti_name -j .rodata_str_lib -j .rodata_lib -j .ctors_lib $< | tail -n +4 >> $@
 	$(OBJDUMP) -t $< | grep ^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f] |  sort | c++filt >> $@

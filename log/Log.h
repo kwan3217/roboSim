@@ -41,7 +41,8 @@ enum Apids {
   odometer,
   quaternion,
   calcOffset,
-  nApid  //Must be the last element
+  parse,
+  nApid  //All packets with a sequence number must be before this element
 };
 protected:
   /** Indicates whether a packet APID has been documented yet. Once

@@ -8,7 +8,7 @@
 
 class LogCCSDS: public LogFile {
 private:
-  static const int maxPktSize=256;
+  static const int maxPktSize=65536;
   char pktBuf[maxPktSize];
   int seq[Apids::nApid];
   char docBuf[maxPktSize];
@@ -30,6 +30,7 @@ private:
   void end(char* buf, int& ptr, Apids apid);
   void metaDoc(const char* text) {start(Apids::metaDoc,"CCSDS self-documentation");write(text);end();};
   void metaDoc(const char* fmtString, int value) {char buf[256];snprintf(buf,256,fmtString,value);metaDoc(buf);};
+  void attachParse();
   void metaDoc();
 public:
   LogCCSDS(const char* basename):LogFile(basename,true) {metaDoc();};
