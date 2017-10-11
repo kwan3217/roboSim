@@ -16,6 +16,20 @@ void HardwarePiServoArduino::write(int n) {
   writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
 }
 
+bool HardwarePiInterface::steerBoth(int16_t steeringCmd, int16_t throttleCmd) {
+  char buf[7];
+  if(steeringCmd<1000) steeringCmd=1000;
+  if(steeringCmd>2000) steeringCmd=2000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  int16_t checksum=steeringCmd ^ throttleCmd ^ 0x3217;
+  buf[0]=0x30;
+  writeBuf_le<int16_t>(buf,1,steeringCmd);
+  writeBuf_le<int16_t>(buf,3,throttleCmd);
+  writeBuf_le<int16_t>(buf,5,checksum);
+  return writeI2C(bus,ODOMETER_ADDRESS,buf,7);
+}
+
 /**
  * @copydoc Interface::checkPPS()
  * \internal

@@ -88,6 +88,7 @@ public:
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& steering, Servo& throttle);
   virtual ~HardwarePiInterface();
+  virtual bool steerBoth(int16_t steeringCmd, int16_t throttleCmd);
 };
 
 /** Hardware interface for Raspberry Pi, using the Arduino servo interface
