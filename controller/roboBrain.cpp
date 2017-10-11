@@ -39,7 +39,11 @@ void roboBrain::guide(){
     desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
 
     */
-    desiredHeading=90;
+    if(t>20) {
+      headingChange=400;
+      return;
+    }
+    desiredHeading=0;
     headingChange = desiredHeading - heading;
     if(headingChange > 180){
       headingChange -= 360;
@@ -53,6 +57,7 @@ void roboBrain::guide(){
 //    log.write(waypoints[nowpoint].easting(),"wp_e");
 //    log.write(waypoints[nowpoint].northing(),"wp_n");
 //    log.write(wp_dot,"wp_dot");
+    log.write(t,"t");
     log.write(desiredHeading,"desiredHeading");
     log.write(heading,"heading");
     log.write(headingChange,"headingChange");
@@ -61,7 +66,6 @@ void roboBrain::guide(){
 }
 
 void roboBrain::control(){
-  int steeringCmd,throttleCmd,mode;
   if(nowpoint == 0) {
     //Haven't started yet
     mode=0;
@@ -70,11 +74,10 @@ void roboBrain::control(){
   } else if(headingChange < 300){
     //In progress
     mode=1;
-    throttleCmd=1400;
-    servoCommand = (headingChange * 7 * double(50)/180+1500);
-    if(servoCommand > 2000) servoCommand = 2000;
-    if(servoCommand < 1000) servoCommand = 1000;
-    steeringCmd=servoCommand;
+    throttleCmd=1420;
+    steeringCmd = (headingChange * 20 * double(50)/180+1500);
+    if(steeringCmd > 2000) steeringCmd = 2000;
+    if(steeringCmd < 1000) steeringCmd = 1000;
   } else {
     //Finished
     mode=2;
@@ -86,10 +89,12 @@ void roboBrain::control(){
   interface.throttle.write(throttleCmd);
   */
   log.start(Log::Apids::control,"Control");
+  log.write(t,"t");
   log.write(mode,"mode");
   log.write(throttleCmd,"throttleCmd");
   log.write(steeringCmd,"steeringCmd");
   log.end();
+  interface.steerBoth(steeringCmd,throttleCmd);
 }
 
 void roboBrain::setOffSet(){
