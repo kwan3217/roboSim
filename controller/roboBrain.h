@@ -86,6 +86,7 @@ public:
   virtual void control();			//give data to servos, which will then be read by the simulation
   fp getHeading() {return heading;};
   fp getSteeringCmd() {return steeringCmd;};
+  fp getT() {return t;};
 };
 
 #endif /* ROBOBRAIN_H_ */

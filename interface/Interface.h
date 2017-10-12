@@ -31,18 +31,6 @@ public:
 
   //GPS Interface
   virtual bool checkPPS(fp& t) = 0;
-  /** Check if a character of GPS data is available
-   * @return true if a character is available, false if not
-   */
-  virtual bool checkNavChar() = 0;
-  /** Get the next character of GPS data. Only call this if checkNavChar() returns true, return value is undefined
-   * if checkNavChar() is false.
-   * @return one character of GPS data in NMEA format
-   */
-  virtual char readChar() = 0;
-  /** Get the current time
-   * @return Current epoch time in seconds
-   */
   virtual fp time()=0;
   /** Check whether a button is pushed
    * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17

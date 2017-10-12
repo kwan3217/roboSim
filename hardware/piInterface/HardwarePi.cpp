@@ -47,41 +47,6 @@ bool HardwarePiInterface::checkPPS(fp& t) {
   return has_new;
 }
 
-/** Makes sure that GPS buffer has data to read. If there is still data in the buffer that hasn't been spooled out, return immediately. If
- * we have read to the end of the buffer, then try to read a full buffer, but set the length of data left to the amount we actually read.
- * The file has been opened with O_NONBLOCK so it should return immediately even if there isn't a full buffer worth of data to read.
- */
-void HardwarePiInterface::fillGpsBuf() {
-  if(gpsPtr<gpsLen) return;
-  gpsLen=fread(gpsBuf,1,sizeof(gpsBuf),gpsf);
-  gpsPtr=0;
-}
-
-/**
- * @copydoc Interface::checkNavChar()
- * \internal
- * Implemented with an internal buffer. First, the buffer is filled if necessary with fillGpsBuf. Then, return true if there is more than 1 byte in the buffer.
- */
-bool HardwarePiInterface::checkNavChar() {
-  fillGpsBuf(); //Make sure the buffer has data in it
-  return gpsLen!=0;
-}
-
-/**
- * @copydoc Interface::readChar()
- * \internal
- * Implemented with an internal buffer. First, the buffer is filled if necessary with
- * fillGpsBuf. Then, return the character pointed to by the buffer read pointer, and
- * increment that pointer. If checkNavChar would return false, this will read the
- * character at index 0 in the buffer, which is old data.
- */
-char HardwarePiInterface::readChar() {
-  fillGpsBuf();
-  char result=gpsBuf[gpsPtr];
-  gpsPtr++;
-  return result;
-}
-
 /**
  * @copydoc Interface::time()
  * \internal
@@ -148,28 +113,6 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
   clock_gettime(CLOCK_REALTIME,&t0);
   //Setup for GPIO (for buttons)
   wiringPiSetupGpio();
-
-  //Open the GPS serial port
-  int igps =open("/dev/ttyAMA0",O_NONBLOCK| O_RDONLY);
-
-  /* set the other settings (in this case, 9600 8N1) */
-//  struct termios settings;
-//  tcgetattr(igps, &settings);
-
-//  cfsetospeed(&settings, B9600); /* baud rate */
-//  cfsetispeed(&settings, B9600); /* baud rate */
-//  settings.c_cflag &= ~PARENB; /* no parity */
-//  settings.c_cflag &= ~CSTOPB; /* 1 stop bit */
-//  settings.c_cflag &= ~CSIZE;
-//  settings.c_cflag |= CS8 | CLOCAL; /* 8 bits */
-//  settings.c_lflag = ICANON; /* canonical mode */
-//  settings.c_oflag &= ~OPOST; /* raw output */
-
-//  tcsetattr(igps, TCSANOW, &settings); /* apply the settings */
-//  tcflush(igps, TCOFLUSH);
-
-  gpsf=fdopen(igps,"r"); //Get a FILE* from the int file descriptor
-  setbuf(gpsf,nullptr);  //Turn off buffering
 
   //Open PPS source
   ppsf=fopen("/dev/pps0","r");

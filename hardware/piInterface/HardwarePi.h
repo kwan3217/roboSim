@@ -61,11 +61,6 @@ private:
    */
   static fp ts2t(struct timespec ts) {return ts.tv_sec+fp(ts.tv_nsec)/1'000'000'000.0;};
   static const int ODOMETER_ADDRESS=0x55; ///< 7-bit I2C address of Arduino used as odometer
-  char gpsBuf[128]; ///< GPS data buffer
-  FILE* gpsf; ///<GPS NMEA stream
-  int gpsLen; ///<Number of bytes in the GPS buffer
-  int gpsPtr; ///<Index of next byte to be read
-  void fillGpsBuf();
 protected:
 public:
   I2C_t bus; ///< I2C bus stream
@@ -74,8 +69,6 @@ public:
   struct timespec get_raw_t0() {return t0;};
   struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);
-  virtual bool checkNavChar();
-  virtual char readChar();
   virtual fp time();
   struct timespec epoch() {return t0;};
   virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
