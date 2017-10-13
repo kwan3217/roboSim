@@ -19,7 +19,26 @@ private:
       the passed-in quaternion as the right-hand operand, and writes
       the result back to the left-hand side, returning a reference to it.
 
+      Stone bridge equation test - i^2==j^2==k^2==ijk==-1
+
+          Quaternion i(1,0,0,0);
+          printf("i: x=%f,y=%f,z=%f,w=%f\n",i.x(),i.y(),i.z(),i.w());
+          Quaternion j(0,1,0,0);
+          printf("j: x=%f,y=%f,z=%f,w=%f\n",j.x(),j.y(),j.z(),j.w());
+          Quaternion k(0,0,1,0);
+          printf("k: x=%f,y=%f,z=%f,w=%f\n",k.x(),k.y(),k.z(),k.w());
+          Quaternion i2=i*i;
+          printf("i^2: x=%f,y=%f,z=%f,w=%f\n",i2.x(),i2.y(),i2.z(),i2.w());
+          Quaternion j2=j*j;
+          printf("j^2: x=%f,y=%f,z=%f,w=%f\n",j2.x(),j2.y(),j2.z(),j2.w());
+          Quaternion k2=k*k;
+          printf("k^2: x=%f,y=%f,z=%f,w=%f\n",k2.x(),k2.y(),k2.z(),k2.w());
+          Quaternion ijk=i*j*k;
+          printf("ijk: x=%f,y=%f,z=%f,w=%f\n",ijk.x(),ijk.y(),ijk.z(),ijk.w());
+
       @param q right-hand side quaternion
+
+
   */
   Quaternion& operator*=(const Quaternion& q) {
     fp rx= w()*q.x()-z()*q.y()+y()*q.z()+x()*q.w();

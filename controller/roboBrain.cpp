@@ -163,9 +163,6 @@ bool roboBrain::navigateCompass(){
     log.start(Log::Apids::quaternion,"quaternion");
     log.write(t,"t");
     log.write(dt,"dt");
-    log.write(g[0],"g.x");
-    log.write(g[1],"g.y");
-    log.write(g[2],"g.z");
     log.write(fp(omega[0]),"omega.x");
     log.write(fp(omega[1]),"omega.y");
     log.write(fp(omega[2]),"omega.z");
@@ -229,8 +226,25 @@ void roboBrain::readSensors() {
   dt = t - ot;
   //Read gyroscope
   gValid=interface.readGyro(g);
+  //Read GPS
+  if(interface.checkPPS(pps)) {
+    log.start(Log::Apids::pps,"PPS");
+    log.write(pps,"pps");
+    log.end();
+    hasFixForPPS=false;
+    processedFixForPPS=false;
+  }
+  if(interface.readGPS(t_gps_valid,lat,lon)) {
+    t_gps_collected=t;
+    log.start(Log::Apids::gpsd,"GPS");
+    log.write(t_gps_collected,"t_gps_collected");
+    log.write(t_gps_valid,"t_gps_valid");
+    log.write(lat,"lat");
+    log.write(lon,"lon");
+    hasFixForPPS=true;
+  }
   /*
-  //read odometer
+  //read odometer - should be done after GPS, or else there will be an unnecessary 1-cycle latency
   oldWheelCount = wheelCount;
   int32_t tempWheelCount;
   odoValid=interface.readOdometer(t_odo, wheelCount, dt_odo);
@@ -240,6 +254,14 @@ void roboBrain::readSensors() {
   */
   //Get timestamp after reading sensors
   t1=interface.time();
+  log.start(Log::Apids::gyro,"gyro");
+  log.write(t,"t");
+  log.write(dt,"dt");
+  log.write(g[0],"gx");
+  log.write(g[0],"gy");
+  log.write(g[0],"gz");
+  log.write(t1,"t1");
+  log.end();
 }
 
 void roboBrain::navigate() {

@@ -8,6 +8,7 @@
 #include "buffer.h"
 #include "I2C.h"
 #include "sensor/MPU.h"
+#include <gps.h>
 
 class HardwarePiServo: public Servo {
 public:
@@ -60,7 +61,10 @@ private:
    * @return equivalent timestamp in double precision count of seconds.
    */
   static fp ts2t(struct timespec ts) {return ts.tv_sec+fp(ts.tv_nsec)/1'000'000'000.0;};
+  static struct timespec t2ts(double t) {struct timespec ts;ts.tv_sec=floor(t);ts.tv_nsec=1'000'000'000*t-ts.tv_sec;return ts;};
   static const int ODOMETER_ADDRESS=0x55; ///< 7-bit I2C address of Arduino used as odometer
+  gps_data_t gps_data;
+  double old_gps_t=-1; ///< Unix time of last fix, used to check if the fix has been updated
 protected:
 public:
   I2C_t bus; ///< I2C bus stream
@@ -69,6 +73,7 @@ public:
   struct timespec get_raw_t0() {return t0;};
   struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);
+  virtual bool readGPS(double& t, double& lat, double& lon);
   virtual fp time();
   struct timespec epoch() {return t0;};
   virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);

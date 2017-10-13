@@ -9,6 +9,7 @@
 #include "controller.h"
 #include "waypoint.h"
 #include "Quaternion.h"
+#include <gps.h>
 
 class roboBrain: public Controller {
 private:
@@ -20,6 +21,14 @@ private:
   //Gyrocompass reading
   bool gValid=false;    ///< True if last gyroscope reading was valid
   int16_t g[3];         ///< gyroscope raw reading
+  //GPS reading
+  fp pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
+  double lat;   ///< Latitude of most recent fix
+  double lon;   ///< Longitude of most recent fix
+  fp t_gps_collected;             ///< Epoch time that GPS fix was updated
+  double t_gps_valid;             ///< Unix time of GPS fix timestamp (probably identical or close to pps)
+  bool hasFixForPPS=false;        ///<true if we have the fix for this PPS
+  bool processedFixForPPS=false;  ///<true if we have incorporated this fix into the position estimate
   //Average G
   fp offSet[3];
   static const int bufferDiscard = 300;
@@ -58,7 +67,6 @@ private:
   static const int wpcount;
   char nmeaReceived[256];	///< NMEA sentence received by robot
   int charsReceived;	///< Number of characters in NMEA sentence currently received
-  fp pps = -1;	///< epoch time of the last PPS in seconds, initialized negative to ensure it is not equal with simulator pps at startup
   bool sentenceStart;	///< begin status of the latest NMEA sentence
   int partCount;		///< number of partitions (commas and asterisk) detected in the current sentence
   int partitions[20];	///< locations of the partitions in the NMEA sentence

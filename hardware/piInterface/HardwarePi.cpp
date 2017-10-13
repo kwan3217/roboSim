@@ -104,6 +104,16 @@ bool HardwarePiInterface::readMag(int16_t b[]) {
   return result;
 }
 
+bool HardwarePiInterface::readGPS(double& t, double& lat, double& lon) {
+  if(gps_read(&gps_data)>0 && old_gps_t!=gps_data.fix.time && gps_data.fix.mode>1) {
+    lat=gps_data.fix.latitude;
+    lon=gps_data.fix.longitude;
+    t=gps_data.fix.time;
+    return true;
+  }
+  return false;
+}
+
 bool HardwarePiInterface::readMPU(int16_t a[], int16_t g[], int16_t& t) {
   return mpu.readMPU(a[0],a[1],a[2],g[0],g[1],g[2],t);
 }
@@ -124,6 +134,10 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
 
   //Initialize the MPU9250
   mpu.begin(bus);
+
+  //Initialize the GPS connection
+  int result=gps_open(GPSD_SHARED_MEMORY,0,&gps_data);
+  printf("Opened connection to gpsd, result %d (should be 0)\n",result);
 }
 
 HardwarePiInterface::~HardwarePiInterface() {

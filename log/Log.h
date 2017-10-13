@@ -43,6 +43,7 @@ enum Apids {
   calcOffset,
   parse,
   gpsd,
+  gyro,
   nApid  //All packets with a sequence number must be before this element
 };
 protected:

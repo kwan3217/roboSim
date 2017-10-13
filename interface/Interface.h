@@ -22,16 +22,28 @@ public:
  */
 class Interface {
 public:
+  //Time interface
+  /** Gets current time in seconds from epoch
+      @return current time in seconds from epoch
+   */
+  virtual fp time()=0;
+  //GPS Interface
   /** Gets time of last PPS in seconds from epoch. You may call this function as often as you like -- it wil
    * only return a new value whenever a new PPS has arrived. This represents the time at which the *next* GPS fix
    * is valid, IE a PPS pulse is generated, then some time later a new position is transmitted.
    * @param t [out] epoch time of the most recent PPS in second
-   * @return true if there is new PPS since the last time this function was called
+   * @return true if there is new PPS since the last time this function was called. Output argument only changed if this returns true.
    */
-
-  //GPS Interface
   virtual bool checkPPS(fp& t) = 0;
-  virtual fp time()=0;
+  /** Reads GPS sensor. You may call this function as often as you like - it will return true
+      when a new GPS fix has arrived.
+
+      @param t [out] UNIX time of the most recent GPS fix
+      @param lat [out] Latitude in degrees North of the Equator
+      @param lon [out] Longitude in degrees East of the prime meridian
+      returns true if there is a new valid GPS fix. Output arguments are only changed if this returns true.
+   */
+  virtual bool readGPS(double& t, double& lat, double& lon)=0;
   /** Check whether a button is pushed
    * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17
    * @return true if the button is pushed (pin is low voltage)
