@@ -4,6 +4,7 @@
 
 void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;
+  if(pktApid>=Apids::nApid) return;
   if(pktApid<Apids::nApid && hasDoc[pktApid]) return;
   start(docBuf,docPtr,Apids::doc);
   write(docBuf,docPtr,(uint16_t)pktApid);
