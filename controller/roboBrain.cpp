@@ -189,7 +189,6 @@ bool roboBrain::navigateCompass(){
 }
 
 void roboBrain::fillBuffer(){
-  interface.readGyro(g);
   ofBuffer[bufferSpot][0] = g[0];
   ofBuffer[bufferSpot][1] = g[1];
   ofBuffer[bufferSpot][2] = g[2];
@@ -225,7 +224,12 @@ void roboBrain::readSensors() {
   t = interface.time();
   dt = t - ot;
   //Read gyroscope
-  gValid=interface.readGyro(g);
+  int16_t a[3];
+  int16_t T;
+  gValid=interface.readMPU(a,g,T);
+  //Read magnetometer. We don't use it, but we want to log it
+  int16_t b[3];
+  bool magValid=interface.readMag(b);
   //Read GPS
   if(interface.checkPPS(pps)) {
     log.start(Log::Apids::pps,"PPS");
@@ -237,10 +241,11 @@ void roboBrain::readSensors() {
   if(interface.readGPS(t_gps_valid,lat,lon)) {
     t_gps_collected=t;
     log.start(Log::Apids::gpsd,"GPS");
-    log.write(t_gps_collected,"t_gps_collected");
+    log.write(t,"t");
     log.write(t_gps_valid,"t_gps_valid");
     log.write(lat,"lat");
     log.write(lon,"lon");
+    log.end();
     hasFixForPPS=true;
   }
   /*
@@ -257,9 +262,17 @@ void roboBrain::readSensors() {
   log.start(Log::Apids::gyro,"gyro");
   log.write(t,"t");
   log.write(dt,"dt");
+  log.write(a[0],"ax");
+  log.write(a[1],"ay");
+  log.write(a[2],"az");
+  log.write(b[0],"bx");
+  log.write(b[1],"by");
+  log.write(b[2],"bz");
   log.write(g[0],"gx");
-  log.write(g[0],"gy");
-  log.write(g[0],"gz");
+  log.write(g[1],"gy");
+  log.write(g[2],"gz");
+  log.write(T,"temperature");
+  log.write(magValid?1:0,"magValid");
   log.write(t1,"t1");
   log.end();
 }
