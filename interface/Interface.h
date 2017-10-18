@@ -43,12 +43,13 @@ public:
       @param lon [out] Longitude in degrees East of the prime meridian
       returns true if there is a new valid GPS fix. Output arguments are only changed if this returns true.
    */
-  virtual bool readGPS(double& t, double& lat, double& lon)=0;
+  virtual bool readGPS(double& t, int& mode, double& lat, double& lon, double& alt, double& course, double& speed, double& climb)=0;
   /** Check whether a button is pushed
    * @param[in] pin WiringPi pin number for the pin to check. The robot will have a button on pin 17
    * @return true if the button is pushed (pin is low voltage)
    */
   virtual bool button(int pin=17)=0;
+  virtual void ppsLight(bool val, int pin=22)=0;
   /**	Read the odometer
    * @param timeStamp [out] time of last time readOdometer was called in microseconds
    * @param wheelCount [out] number of sectors read since the odometer was reset

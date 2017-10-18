@@ -73,7 +73,7 @@ public:
   struct timespec get_raw_t0() {return t0;};
   struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);
-  virtual bool readGPS(double& t, double& lat, double& lon);
+  virtual bool readGPS(double& t, int& mode, double& lat, double& lon, double& alt, double& course, double& speed, double& climb);
   virtual fp time();
   struct timespec epoch() {return t0;};
   virtual bool readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt);
@@ -84,6 +84,7 @@ public:
   virtual bool readGyro(int16_t g[], int16_t& t);
   virtual bool readMPU(int16_t a[], int16_t g[], int16_t& t);
   virtual bool button(int pin=17);
+  virtual void ppsLight(bool value, int pin=22);
   HardwarePiInterface(Servo& steering, Servo& throttle);
   virtual ~HardwarePiInterface();
   virtual bool steerBoth(int16_t steeringCmd, int16_t throttleCmd);

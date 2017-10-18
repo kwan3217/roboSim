@@ -39,7 +39,7 @@ void roboBrain::guide(){
     desiredHeading = static_cast<waypoint>(waypoints[nowpoint]-pos).heading();
 
     */
-    if(t>20) {
+    if(t>tbutton+5) {
       headingChange=400;
       return;
     }
@@ -94,7 +94,10 @@ void roboBrain::control(){
   log.write(throttleCmd,"throttleCmd");
   log.write(steeringCmd,"steeringCmd");
   log.end();
-  interface.steerBoth(steeringCmd,throttleCmd);
+  if(t>tnextodo) {
+    interface.steerBoth(steeringCmd,throttleCmd);
+    tnextodo=t+dtnextodo;
+  }
 }
 
 void roboBrain::setOffSet(){
@@ -142,9 +145,8 @@ void roboBrain::setOffSet(){
 bool roboBrain::navigateCompass(){
   if(nowpoint == 0){
     fillBuffer();
-    if(interface.button()){
+    if(tbutton<9e9) {
       nowpoint = 1;
-      pos = {0,0};
       setOffSet();
     }
     return false;
@@ -202,9 +204,9 @@ void roboBrain::fillBuffer(){
   if(bufferSpot >= 1500) {
     bufferSpot = 0;
     //If button is enabled, don't use the following code
-    nowpoint = 1;
-    pos = {0,0};
-    setOffSet();
+    //nowpoint = 1;
+    //pos = {0,0};
+    //setOffSet();
   }
 }
 
@@ -215,7 +217,49 @@ bool roboBrain::navigateOdometer(){
 }
 
 void roboBrain::navigateGPS(){
-
+  if(hasFixForPPS && !processedFixForPPS) {
+    processedFixForPPS=true;
+    if(0==nowpoint) {
+      //still in average G, keep updating the starting position
+      lat0=lat;
+      lon0=lon;
+      clat0=cos(lat0*PI/180);
+      pos={0,0};
+      lastFix={0,0};
+    } else {
+      //Off to the races! Project our current position based on
+      //traveling at a constant speed through the previous two fixes
+      //to the current point in time.
+      thisFix.northing()=(lat-lat0)*re*PI/180;
+      thisFix.easting()=(lon-lon0)*re*PI/180*clat0;
+      tthisFix=pps;
+      waypoint deltaFix=thisFix-lastFix;
+      fp deltat=tthisFix-tlastFix;
+      waypoint vel=deltaFix*(1.0/deltat);
+      pos=thisFix+vel*(t-tthisFix);
+      log.start(Log::Apids::navGPS,"navGPS");
+      log.write(t,"t");
+      log.write(lat0,"lat0");
+      log.write(lon0,"lon0");
+      log.write(clat0,"clat0");
+      log.write(tlastFix,"tlastFix");
+      log.write(lastFix.easting(),"lastfix.e");
+      log.write(lastFix.northing(),"lastfix.n");
+      log.write(tthisFix,"tthisFix");
+      log.write(thisFix.easting(),"thisfix.e");
+      log.write(thisFix.northing(),"thisfix.n");
+      log.write(deltat,"tthisFix");
+      log.write(deltaFix.easting(),"deltafix.e");
+      log.write(deltaFix.northing(),"deltafix.n");
+      log.write(vel.easting(),"vel.e");
+      log.write(vel.northing(),"vel.n");
+      log.write(pos.easting(),"pos.e");
+      log.write(pos.northing(),"pos.n");
+      log.end();
+      lastFix=thisFix;
+      tlastFix=tthisFix;
+    }
+  }
 }
 
 void roboBrain::readSensors() {
@@ -223,6 +267,10 @@ void roboBrain::readSensors() {
   ot = t;
   t = interface.time();
   dt = t - ot;
+  //read button
+  if(interface.button()) {
+    tbutton=t;
+  }
   //Read gyroscope
   int16_t a[3];
   int16_t T;
@@ -238,25 +286,44 @@ void roboBrain::readSensors() {
     hasFixForPPS=false;
     processedFixForPPS=false;
   }
-  if(interface.readGPS(t_gps_valid,lat,lon)) {
+  double this_t,this_lat,this_lon,alt,course,speed,climb;
+  if(interface.readGPS(this_t,gps_mode,this_lat,this_lon,alt,course,speed,climb)) {
     t_gps_collected=t;
     log.start(Log::Apids::gpsd,"GPS");
     log.write(t,"t");
-    log.write(t_gps_valid,"t_gps_valid");
-    log.write(lat,"lat");
-    log.write(lon,"lon");
+    log.write(this_t,"this_t");
+    log.write(gps_mode,"mode");
+    log.write(this_lat,"lat");
+    log.write(this_lon,"lon");
+    log.write(alt,"alt");
+    log.write(course,"course");
+    log.write(speed,"speed");
+    log.write(climb,"climb");
     log.end();
-    hasFixForPPS=true;
+    if(gps_mode>1) {
+      t_gps_collected=this_t;
+      lat=this_lat;
+      lon=this_lon;
+      hasFixForPPS=true;
+    }
   }
-  /*
   //read odometer - should be done after GPS, or else there will be an unnecessary 1-cycle latency
-  oldWheelCount = wheelCount;
-  int32_t tempWheelCount;
-  odoValid=interface.readOdometer(t_odo, wheelCount, dt_odo);
-  if(odoValid) {
-    deltaWheelCount = wheelCount - oldWheelCount;
+  if(t>tnextodo) {
+    oldWheelCount=wheelCount;
+    odoValid=interface.readOdometer(t_odo, wheelCount, dt_odo);
+    if(odoValid) {
+      deltaWheelCount = wheelCount - oldWheelCount;
+      if(deltaWheelCount>0) {
+        log.start(Log::Apids::odometer,"odometer");
+        log.write(t,"t");
+        log.write(oldWheelCount,"oldWheelCount");
+        log.write(wheelCount,"wheelCount");
+        log.write(t_odo,"t_odo");
+        log.write(dt_odo,"dt_odo");
+        log.end();
+      }
+    }
   }
-  */
   //Get timestamp after reading sensors
   t1=interface.time();
   log.start(Log::Apids::gyro,"gyro");
@@ -278,7 +345,7 @@ void roboBrain::readSensors() {
 }
 
 void roboBrain::navigate() {
-//  navigateGPS();
+  navigateGPS();
 //  navigateOdometer();
   navigateCompass();
 }

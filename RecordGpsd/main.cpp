@@ -17,7 +17,7 @@ char** Argv;
 
 HardwarePiInterfaceArduino interface;
 LogCCSDS pkt("packets.sds");
-roboBrain brain(0,0,0,interface,pkt);
+roboBrain brain(interface,pkt);
 
 static volatile bool done=false;
 
@@ -63,7 +63,7 @@ void loop() {
   static int count=0;
   brain.loop();
   if(count==100) {
-    printf("%f,%f,%f\n",interface.time(),brain.getHeading(),brain.getSteeringCmd());
+    printf("%d,%f,%f,%d,%d\n",interface.button(),interface.time(),brain.getHeading(),brain.getSteeringCmd(),brain.getThrottleCmd());
     count=0;
   }
   count++;
@@ -75,6 +75,7 @@ int main(int argc, char** argv) {
   signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flushing our logs
   Argc=argc;
   Argv=argv;
+  setup();
   while(!done) {
     loop();
   }

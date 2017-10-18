@@ -68,6 +68,15 @@ bool HardwarePiInterface::button(int pin) {
   return 0==digitalRead(pin);
 }
 
+/** @copydoc Interface::button(int)
+ *  \internal
+ *  Since we use WiringPiSetupGpio(), we use the Broadcom numbers. This happens to match the numbers printed
+ *  on our Pi header.
+ */
+void HardwarePiInterface::ppsLight(bool value, int pin) {
+  digitalWrite(pin,value?1:0);
+}
+
 bool HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
   if(ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS)<0) return false;
   char buf[0x10];
@@ -104,13 +113,21 @@ bool HardwarePiInterface::readMag(int16_t b[]) {
   return result;
 }
 
-bool HardwarePiInterface::readGPS(double& t, double& lat, double& lon) {
-  if(gps_read(&gps_data)>0 && old_gps_t!=gps_data.fix.time && gps_data.fix.mode>1) {
+bool HardwarePiInterface::readGPS(double& t, int& mode, double& lat, double& lon, double& alt, double& course, double& speed, double& climb) {
+  if(gps_read(&gps_data)>0 && old_gps_t!=gps_data.fix.time) {
+    t=gps_data.fix.time;
+    mode=gps_data.fix.mode;
+    ppsLight(mode>1);
     lat=gps_data.fix.latitude;
     lon=gps_data.fix.longitude;
-    t=gps_data.fix.time;
+    alt=gps_data.fix.altitude;
+    course=gps_data.fix.track;
+    speed=gps_data.fix.speed;
+    climb=gps_data.fix.climb;
+    old_gps_t=t;
     return true;
   }
+  ppsLight(false);
   return false;
 }
 
