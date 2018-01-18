@@ -34,7 +34,7 @@ void intHandler(int dummy) {
 
 void setup(){
   signal(SIGINT, intHandler); //trap SIGINT (Ctrl-C) so that we exit instead of crashing, thus running the destructors and flushing our logs
-  dumpAttach(dump,0);
+  dumpAttach(dump);
   pinMode(18, INPUT);
   pinMode(22, OUTPUT);
 }

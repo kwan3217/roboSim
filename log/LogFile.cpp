@@ -16,12 +16,14 @@ void LogFile::getRecordPath() {
     readlink("/proc/self/exe",exePath,sizeof(exePath)-1);
     int n=strlen(exePath);
     for(int i=n-1;i>0 && exePath[i]!='/';i--) exePath[i]=0;
+    snprintf(recordPath,sizeof(recordPath)-1,"%s/testOutputData",exePath);
+    mkdir(recordPath,0755);
     snprintf(recordPath,sizeof(recordPath)-1,"%s/testOutputData/%04d%02d%02dT%02d%02d%02d",exePath,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
     mkdir(recordPath,0755);
   }
 }
 
-LogFile::LogFile(const char* basename, bool bufEnabled) {
+LogFile::LogFile(const char* basename, bool bufEnabled):Log() {
   getRecordPath();
   char filename[256];
   snprintf(filename,sizeof(filename)-1,"%s/%s",recordPath,basename);

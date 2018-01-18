@@ -70,6 +70,7 @@ protected:
 public:
   I2C_t bus; ///< I2C bus stream
   MPU9250 mpu;
+  uint32_t cksumSent,cksumCalc;
   struct timespec get_raw_t0() {return t0;};
   struct timespec get_raw_pps() {return last_pps;};
   virtual bool checkPPS(fp& t);
@@ -87,6 +88,7 @@ public:
   virtual bool button(int pin=17);
   HardwarePiInterface(Servo& steering, Servo& throttle);
   virtual ~HardwarePiInterface();
+  virtual bool steerBoth(int16_t steeringCmd, int16_t throttleCmd);
 };
 
 /** Hardware interface for Raspberry Pi, using the Arduino servo interface

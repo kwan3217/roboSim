@@ -1,8 +1,10 @@
 #include "LogCCSDS.h"
+#include <stdio.h> //for file reading in attachParse
+#include "attach.h"
 
 void LogCCSDS::writeDoc(int type, const char* fieldName) {
   if(fieldName==nullptr) return;
-  if(hasDoc[pktApid]) return;
+  if(pktApid<Apids::nApid && hasDoc[pktApid]) return;
   start(docBuf,docPtr,Apids::doc);
   write(docBuf,docPtr,(uint16_t)pktApid);
   write(docBuf,docPtr,(uint16_t)pktPtr);
@@ -13,14 +15,20 @@ void LogCCSDS::writeDoc(int type, const char* fieldName) {
 
 void LogCCSDS::start(char* buf, int& ptr, Apids apid) {
   writeBuf_be<uint16_t>(buf,0,apid);
-  writeBuf_be<uint16_t>(buf,2,0xC000 | seq[apid]);
-  seq[apid]++;
-  if(seq[apid]>=0xC000) seq[apid]=0;
+  uint16_t seqword;
+  if(apid<Apids::nApid) {
+    seqword=0xC000 | seq[apid];
+    seq[apid]++;
+    if(seq[apid]>=0xC000) seq[apid]=0;
+  } else {
+    seqword=0x2020;
+  }
+  writeBuf_be<uint16_t>(buf,2,seqword);
   ptr=6;
 }
 
 void LogCCSDS::end(char* buf, int& ptr, Apids apid) {
-  hasDoc[apid]=true;
+  if(apid<Apids::nApid) hasDoc[apid]=true;
   writeBuf_be<uint16_t>(buf,4,ptr-7);
   fwrite(buf,ptr,1,stream);
 }
@@ -41,6 +49,9 @@ void LogCCSDS::metaDoc() {
 		   "wraps in 14 bits.");
   metaDoc("Next 16-bit number is length of packet minus 7 since every packet "
 		   "has a 6-byte header and must have at least 1 byte of payload.");
+  metaDoc("Packets of apid %d encapsulates a python 3 script which can decode this stream into "
+                   "separate CSV streams for each apid. The apid and length are correct for this "
+                   "type of packet, but other flags may not be.",Apids::parse);
   metaDoc("Packets of apid %d contain this English meta-documentation. ",Apids::metaDoc);
   metaDoc("Packets of apid %d describe the detailed format of the other packets.",Apids::doc);
   metaDoc("In those packets, the first field in the payload is a 16-bit number, the "
@@ -66,7 +77,7 @@ void LogCCSDS::metaDoc() {
   metaDoc("0x%02x: t_double (64-bit IEEE-754 floating point)",t_double);
   metaDoc("0x%02x: t_string (UTF-8 text)",t_string);
   metaDoc("0x%02x: t_binary (unformatted data dump)",t_binary);
-  metaDoc("The fourth field is a UTF-8 text string with the name of the field");
+  metaDoc("The fourth field is a UTF-8 text string with the name of the field.");
   metaDoc("For all strings and binary data, no length information is included.");
   metaDoc("If the string or binary is the only such field in the packet, its "
 		  "length can be deduced from the packet length.");
@@ -86,4 +97,5 @@ void LogCCSDS::metaDoc() {
   metaDoc("This stream contains the source code for the program used to write this "
           "packet stream, along with all other files the authors felt necessary to "
           "make a \"self-documenting robot\"");
+  dumpParse(*this);
 }

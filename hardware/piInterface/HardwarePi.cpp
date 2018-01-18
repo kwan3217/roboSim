@@ -16,6 +16,20 @@ void HardwarePiServoArduino::write(int n) {
   writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
 }
 
+bool HardwarePiInterface::steerBoth(int16_t steeringCmd, int16_t throttleCmd) {
+  char buf[7];
+  if(steeringCmd<1000) steeringCmd=1000;
+  if(steeringCmd>2000) steeringCmd=2000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  int16_t checksum=steeringCmd ^ throttleCmd ^ 0x3217;
+  buf[0]=0x30;
+  writeBuf_le<int16_t>(buf,1,steeringCmd);
+  writeBuf_le<int16_t>(buf,3,throttleCmd);
+  writeBuf_le<int16_t>(buf,5,checksum);
+  return writeI2C(bus,ODOMETER_ADDRESS,buf,7);
+}
+
 /**
  * @copydoc Interface::checkPPS()
  * \internal
@@ -91,14 +105,16 @@ bool HardwarePiInterface::button(int pin) {
 
 bool HardwarePiInterface::readOdometer(uint32_t &timeStamp, int32_t &wheelCount, uint32_t &dt) {
   if(ioctl(bus,I2C_SLAVE,ODOMETER_ADDRESS)<0) return false;
-  char buf[0x0C];
+  char buf[0x10];
   buf[0]=0x00;
   if(1!=write(bus,buf,1)) return false;
-  if(12!=read(bus,buf,12)) return false;
+  if(16!=read(bus,buf,16)) return false;
   wheelCount=readBuf_le<int32_t>(buf,0);
   dt        =readBuf_le<uint32_t>(buf,4);
   timeStamp =readBuf_le<uint32_t>(buf,8);
-  return true;
+  cksumSent =readBuf_le<uint32_t>(buf,12);
+  cksumCalc=wheelCount^dt^timeStamp^0x32171836;
+  return cksumSent==cksumCalc;
 }
 
 bool HardwarePiInterface::readAcc(int16_t a[]) {

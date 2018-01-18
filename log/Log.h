@@ -39,7 +39,10 @@ enum Apids {
   compass,
   averageG,
   odometer,
-  nApid  //Must be the last element
+  quaternion,
+  calcOffset,
+  parse,
+  nApid  //All packets with a sequence number must be before this element
 };
 protected:
   /** Indicates whether a packet APID has been documented yet. Once
@@ -50,7 +53,7 @@ protected:
   bool hasDoc[Apids::nApid];
 public:
   Log() {};
-  virtual ~Log() {};
+  virtual ~Log() {}
   /** Start a packet with a particular APID
    \param[in] apid APID to use for this packet
    \param[in] ptkName Name of this packet, used for self-documentation purposes.

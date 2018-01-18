@@ -8,7 +8,7 @@ SATTACH=$(sort $(ATTACH))
 DDATTACH=$(addprefix $(TARGETBASE)/,$(SATTACH))
 TARBALL = attach.tbz
 ATTACHOBJ = $(TARBALL).o
-EXTRAOBJ+=$(ATTACHOBJ)
+EXTRAOBJ+=$(ATTACHOBJ) ../attach/parseYukari.py.o
 EXTRACLEAN+=$(TARBALL)
 $(TARBALL): $(SATTACH)
 	tar chv -C .. $(DDATTACH) | bzip2 -9 > $@
@@ -28,5 +28,8 @@ endif
 
 $(ATTACHOBJ): $(TARBALL)
 	$(OBJCOPY) -I binary -O $(BFDO) $< $@ --rename-section .data=.source -B $(BFDB)
+
+../attach/parseYukari.py.o: ../attach/parseYukari.py
+	$(OBJCOPY) -I binary -O $(BFDO) $< $@ --rename-section .data=.python -B $(BFDB)
 
 

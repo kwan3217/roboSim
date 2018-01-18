@@ -114,6 +114,7 @@ public:
    * for any class which has virtual methods.
    */
   virtual ~Interface() {};
+  virtual bool steerBoth(int16_t steeringCmd, int16_t throttleCmd) {steering.write(steeringCmd);throttle.write(throttleCmd);return true;};
 };
 
 #endif /* ROBOT_H_ */

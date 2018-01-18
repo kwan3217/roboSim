@@ -1,6 +1,6 @@
 LIBMAKE+=../hardware/piInterface/Makefile
 CPPSRC+=../hardware/piInterface/HardwarePi.cpp
-ATTACH+=../hardware/piInterface/DownloadDatasheet.sh $(wildcard ../hardware/piInterface/*.brd) $(wildcard ../hardware/piInterface/*.sch) ../hardware/piInterface/Yukari.fzz
+ATTACH+=../hardware/piInterface/DownloadDatasheet.sh $(wildcard ../hardware/piInterface/*.brd) $(wildcard ../hardware/piInterface/*.sch)
 
 EXTRAINCDIRS +=../hardware/piInterface/
 EXTRA_LIBS+=wiringPi
