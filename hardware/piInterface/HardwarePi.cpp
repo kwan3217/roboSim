@@ -1,7 +1,6 @@
 #include <time.h>
 #include "HardwarePi.h"
 #include <wiringPi.h>
-#include <fcntl.h>
 #include <termios.h>
 
 /**
@@ -14,6 +13,20 @@ void HardwarePiServoArduino::write(int n) {
   if(n<100) n=100;
   if(n>200) n=200;
   writeI2Creg_le<uint16_t>(bus,ADDRESS,0x2C+2*channel,n);
+}
+
+bool HardwarePiInterface::steerBoth(int16_t steeringCmd, int16_t throttleCmd) {
+  char buf[7];
+  if(steeringCmd<1000) steeringCmd=1000;
+  if(steeringCmd>2000) steeringCmd=2000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  if(throttleCmd<1000) throttleCmd=1000;
+  int16_t checksum=steeringCmd ^ throttleCmd ^ 0x3217;
+  buf[0]=0x30;
+  writeBuf_le<int16_t>(buf,1,steeringCmd);
+  writeBuf_le<int16_t>(buf,3,throttleCmd);
+  writeBuf_le<int16_t>(buf,5,checksum);
+  return writeI2C(bus,ODOMETER_ADDRESS,buf,7);
 }
 
 /**
@@ -162,7 +175,7 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
   time_pps_create(fileno(ppsf), &pps);
 
   //Open the I2C bus
-  bus=open("/dev/i2c-1",O_RDWR);
+  bus=openI2C(1);
   if(bus<0) printf("Couldn't open bus: errno %d",errno);
 
   //Initialize the MPU9250
@@ -172,7 +185,7 @@ HardwarePiInterface::HardwarePiInterface(Servo& Lsteering, Servo& Lthrottle):Int
 HardwarePiInterface::~HardwarePiInterface() {
   time_pps_destroy(pps);
   fclose(ppsf);
-  close(bus);
+  closeI2C(bus);
 }
 
 HardwarePiInterfaceArduino::HardwarePiInterfaceArduino():
