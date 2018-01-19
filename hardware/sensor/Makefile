@@ -10,4 +10,5 @@ EXTRAINCDIRS +=../hardware/sensor/
 
 include ../hardware/Makefile
 include ../bits/Makefile
+include ../math/Makefile
 

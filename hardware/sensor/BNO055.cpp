@@ -39,14 +39,22 @@ bool BNO055::begin() {
   if(!write(PWR_MODE,0)) {errno=__LINE__; return false;}
   usleep(10000); //delay 10ms
     
-  //Commented out code to set units
-  
+  //Set units to SI
+  if(!write(UNIT_SEL,
+        (0 << 0) | //  * Acceleration in m/s^2
+                   //  * Magnetic in uT (no other choice)
+        (1 << 1) | //  * Rotation in rad/s
+        (1 << 2) | //  * Euler angles in rad
+        (0 << 4)   //  * Temperature in degC
+        )) {errno=__LINE__;return false;}
+  usleep(10000);
+    
   //commented out code to set axis mapping
   
-  //Clear all sys_trigger bits
-  if(!write(SYS_TRIGGER,0)) {errno=__LINE__; return false;}
-  usleep(10000); //delay 10ms
-  
+  //Set appropriate system trigger bits to enable the external crystal
+  //if(!write(SYS_TRIGGER,(1<<7))) {errno=__LINE__; return false;}
+  //usleep(10000); //delay 10ms
+ 
   //Put the processor into NDOF mode. This should tell the fusion
   //processor to do whatever it wants to the sensors.
   if(!write(OPR_MODE,0x0C)) {errno=__LINE__; return false;}
@@ -80,6 +88,7 @@ bool BNO055::readConfig(char buf[]) {
   if(!readConfig(buf,0x28,0x2F)) {errno=__LINE__; return false;}
   if(!readConfig(buf,0x30,0x3B)) {errno=__LINE__; return false;}
   if(!readConfig(buf,0x3D,0x42)) {errno=__LINE__; return false;}
+  if(!readConfig(buf,0x43,0x54)) {errno=__LINE__; return false;}
   if(!readConfig(buf,0x55,0x6A)) {errno=__LINE__; return false;}
   if(!setPage(1)) {errno=__LINE__; return false;}
   if(!readConfig(buf+0x80,0x07,0x0D)) {errno=__LINE__; return false;}

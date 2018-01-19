@@ -29,6 +29,10 @@ void LogCCSDS::start(char* buf, int& ptr, Apids apid) {
 
 void LogCCSDS::end(char* buf, int& ptr, Apids apid) {
   if(apid<Apids::nApid) hasDoc[apid]=true;
+  if(ptr<=7) {
+	printf("Problem with packet: Apid %03x, no data written\n",apid);
+//	exit();
+  }
   writeBuf_be<uint16_t>(buf,4,ptr-7);
   fwrite(buf,ptr,1,stream);
 }

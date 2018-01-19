@@ -18,12 +18,11 @@ if __name__ == '__main__':
                 #   u8  i16  i32  f32  f64    str       bin    u16   u32
     lookupType=['','B','>h','>i','>f','>d','','s','','','c','','>H','>I']
     lookupSize=[ 0, 1,   2,   4,   4,   8,  0, 0,  0, 0, 0,  0,  2,   4 ]
-    if len(sys.argv)>1:
-        infn=sys.argv[1]
-    else:
-        infn="/Users/jeppesen/QuaternionCompass/testOutputData/20171004T230307/packets.sds"
+    infn=sys.argv[1]
     print("infn: "+infn)
     base=os.path.dirname(infn)
+    if base=="":
+        base="./"
     with open(infn,"rb") as inf:
         done=False
         pktdesc=OrderedDict() #Dictionary of packet descriptions keyed on apid (numeric)
@@ -42,7 +41,7 @@ if __name__ == '__main__':
                 for k,v in pkt.items():
                     if k!='apid':
                         print(str(v)+",",file=ouf,end='')
-                print("",file=ouf)                    
+                print("",file=ouf)
         def dump(pkt):
             oufn=base+'/'+pktdesc[pkt['apid']]['name']+".dump"
             with open(oufn,"ab" if pkt['apid'] in apidfirst else "wb") as ouf:
@@ -76,6 +75,7 @@ if __name__ == '__main__':
             pktlen=struct.unpack(">H",header[4:6])[0]+1
             body=inf.read(pktlen)
             pkt={'apid':apid}
+            print(apid,pktlen)
             for k,v in pktdesc[apid]['fields'].items():
                 typ =lookupType[pktdesc[apid]['fields'][k]['type']]
                 pos =pktdesc[apid]['fields'][k]['pos' ]
@@ -88,4 +88,4 @@ if __name__ == '__main__':
                     pkt[k]=struct.unpack(typ,body[pos-6:pos-6+size])[0]
             if pktdesc[apid]['handler'] is not None:
                 pktdesc[apid]['handler'](pkt)
-                
+
