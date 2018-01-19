@@ -7,7 +7,7 @@
 #include "roboBrain.h"
 #include <iostream>
 #include <signal.h>
-
+#include <libgpsmm.h>
 int bandwidth,samplerate,maxt;
 int Argc;
 char** Argv;
@@ -34,6 +34,8 @@ LogCCSDS& dump=pkt;
 LogCCSDS& pps=pkt;
 //LogMulti<6> logall({&pkt,&quaternionCSV,&averagegCSV,&calcOffsetCSV,&setOffsetCSV,&compassCSV});
 LogCCSDS& logall=pkt;
+gpsmm gps_rec("localhost", DEFAULT_GPSD_PORT);
+
 roboBrain brain(0,0,0,interface,pkt);
 
 static volatile bool done=false;
@@ -72,8 +74,11 @@ void setup() {
     mpuconfig.write(reg+i,16,"registers");
     mpuconfig.end();
   }
-
   dumpAttach(dump,64);
+  if (gps_rec.stream(WATCH_ENABLE|WATCH_JSON) == NULL) {
+    printf("No GPSD running.\n");
+    done=true;
+  }
 }
 
 void loop() {

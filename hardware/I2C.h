@@ -26,8 +26,22 @@
 #include <sys/ioctl.h>     //For ioctl()
 #include <unistd.h>        //for read() and write()
 #include "buffer.h"
+//#include <sys/types.h>
+//#include <sys/stat.h>
+#include <fcntl.h>         //for open()
+#include <stdio.h>          //for snprintf()
 
 typedef int I2C_t;
+
+inline I2C_t openI2C(int port=1) {
+  char buf[16];
+  snprintf(buf,sizeof(buf),"/dev/i2c-%d",port);
+  return open(buf,O_RDWR);
+}
+
+inline bool closeI2C(I2C_t port) {
+  return 0==close(port);
+}
 
 /** Write a buffer to the I2C bus
  * \param bus stream representing I2C bus
