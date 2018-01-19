@@ -64,9 +64,7 @@ private:
   int partitions[20];	///< locations of the partitions in the NMEA sentence
   int32_t oldWheelCount,deltaWheelCount;
   waypoint odoDeltaPos;
-  int16_t zDN,steerCmd;
   fp yawRate;
-  int servoCommand;
   int32_t wheelCount; ///< count of sector changes taken last time by the odometer
   uint32_t timeStamp; ///< epoch time(CURRENTLY IN MILLISECONDS) of last time readOdometer() was used
   uint32_t dtOdometer;	///< time between most recent call of readOdometer() and the call of readOdometer() previous to that.
@@ -74,6 +72,8 @@ private:
   Quaternion q;       ///< Current robot orientaiton estimate
   waypoint pos;       ///< Current robot position estimate
   Log& log;
+  //Control Variables
+  uint16_t steeringCmd,throttleCmd,mode;
 public:
   roboBrain(fp h, fp e, fp n, Interface& Linterface, Log& Llog):
     Controller(Linterface), t(0), ot(0), dt(0), heading(h), pos(e, n),log(Llog) { }
@@ -85,6 +85,7 @@ public:
   virtual void guide();
   virtual void control();			//give data to servos, which will then be read by the simulation
   fp getHeading() {return heading;};
+  fp getSteeringCmd() {return steeringCmd;};
 };
 
 #endif /* ROBOBRAIN_H_ */

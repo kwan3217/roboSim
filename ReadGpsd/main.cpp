@@ -80,7 +80,7 @@ void loop() {
   static int count=0;
   brain.loop();
   if(count==100) {
-    printf("%f,%f,%f\n",interface.time(),brain.getHeading(),brain.getSteeringCmd());
+    printf("%f,%f\n",interface.time(),brain.getHeading());
     count=0;
   }
   count++;
@@ -97,7 +97,7 @@ void loop() {
     pps.write(t_pps,"t_pps");
     pps.end();
   }
-  usleep(6000);
+  usleep(5000);
 }
 
 int main(int argc, char** argv) {
