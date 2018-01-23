@@ -38,7 +38,8 @@ bool BNO055::begin() {
   //Set to normal power mode
   if(!write(PWR_MODE,0)) {errno=__LINE__; return false;}
   usleep(10000); //delay 10ms
-    
+  
+  /*  
   //Set units to SI
   if(!write(UNIT_SEL,
         (0 << 0) | //  * Acceleration in m/s^2
@@ -47,6 +48,7 @@ bool BNO055::begin() {
         (1 << 2) | //  * Euler angles in rad
         (0 << 4)   //  * Temperature in degC
         )) {errno=__LINE__;return false;}
+  */
   usleep(10000);
     
   //commented out code to set axis mapping
@@ -75,27 +77,22 @@ bool BNO055::readConfig(char buf[],char first, char last) {
     so that register 0x75 (whoami) is found at index 0x75
  \return true if all reads are successful, false otherwise.
 */
-bool BNO055::readConfig(char buf[]) {
-  bool result;
-  char page=getPage(result);
-  if(!result) {errno=__LINE__; return false;}
+bool BNO055::readConfig() {
   if(!setPage(0)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x00,0x07)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x08,0x0F)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x10,0x17)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x18,0x1F)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x20,0x27)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x28,0x2F)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x30,0x3B)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x3D,0x42)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x43,0x54)) {errno=__LINE__; return false;}
-  if(!readConfig(buf,0x55,0x6A)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x00,0x07)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x08,0x0F)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x10,0x17)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x18,0x1F)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x20,0x27)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x28,0x2F)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x30,0x3B)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x3D,0x42)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x43,0x54)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf,0x55,0x6A)) {errno=__LINE__; return false;}
   if(!setPage(1)) {errno=__LINE__; return false;}
-  if(!readConfig(buf+0x80,0x07,0x0D)) {errno=__LINE__; return false;}
-  if(!readConfig(buf+0x80,0x0F,0x1F)) {errno=__LINE__; return false;}
-  if(!readConfig(buf+0x80,0x50,0x5F)) {errno=__LINE__; return false;}
-  if(page!=1) {
-	  if(!setPage(page)) {errno=__LINE__; return false;}
-  }
+  if(!readConfig(configBuf+0x80,0x07,0x0D)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf+0x80,0x0F,0x1F)) {errno=__LINE__; return false;}
+  if(!readConfig(configBuf+0x80,0x50,0x5F)) {errno=__LINE__; return false;}
+  if(!setPage(0)) {errno=__LINE__; return false;}
   return true;
 }

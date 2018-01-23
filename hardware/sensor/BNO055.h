@@ -271,8 +271,6 @@ class BNO055 {
 /* reserved 0xFF*/
 
   static const int CHIP_ID_DAPAT=0xA0;
-public:
-  bool readConfig(char buf[]);
 private:
   I2C_t bus;
   bool begin();
@@ -285,19 +283,23 @@ private:
   bool readConfig(char buf[], char first, char last);
   void readVecRaw(int addr, int n, int16_t val[]) {
 	for(int i=0;i<n;i++) {
-	  val[i]=readBuf_le<int16_t>(sampleBuf,addr-ACC_DATA_X_LSB+i*2);
+	  val[i]=readBuf_le<int16_t>(sampleBuf,addr-SAMPLE_BUF_BEGIN+i*2);
 	}
   };
   void readVec(int addr, fp scale, int n, fp val[]) {
 	for(int i=0;i<n;i++) {
-	  val[i]=fp(readBuf_le<int16_t>(sampleBuf,addr-ACC_DATA_X_LSB+i*2))/scale;
+	  val[i]=fp(readBuf_le<int16_t>(sampleBuf,addr-SAMPLE_BUF_BEGIN+i*2))/scale;
 	}
   };
-  char sampleBuf[TEMP-ACC_DATA_X_LSB+1];
+  static const int SAMPLE_BUF_BEGIN=PAGE_ID0;
+  static const int SAMPLE_BUF_END  =TEMP;
+  char sampleBuf[SAMPLE_BUF_END-SAMPLE_BUF_BEGIN+1];
 public:
+  char configBuf[256];
   static const int ADDRESS=0x28;///< 7-bit I2C address of BNO055
   bool begin(I2C_t Lbus) {bus=Lbus;return begin();}
-  bool sample() {return read(ACC_DATA_X_LSB,sampleBuf,sizeof(sampleBuf));};
+  bool readConfig();
+  bool sample() {return read(SAMPLE_BUF_BEGIN,sampleBuf,sizeof(sampleBuf));};
   /** Return total acceleration in body frame in m/s^2 */
   void readAcc     (fp      val[]) {readVec   (ACC_DATA_X_LSB ,100.0,3,val);};
   void readAccRaw  (int16_t val[]) {readVecRaw(ACC_DATA_X_LSB ,      3,val);};
@@ -305,8 +307,8 @@ public:
   void readMag     (fp      val[]) {readVec   (MAG_DATA_X_LSB , 16.0,3,val);};
   void readMagRaw  (int16_t val[]) {readVecRaw(MAG_DATA_X_LSB ,      3,val);};
   /** Return rotation rate in body frame in rad/s */
-  void readGyro    (fp      val[]) {readVec   (MAG_DATA_X_LSB ,900.0,3,val);};
-  void readGyroRaw (int16_t val[]) {readVecRaw(MAG_DATA_X_LSB ,      3,val);};
+  void readGyro    (fp      val[]) {readVec   (GYR_DATA_X_LSB ,900.0,3,val);};
+  void readGyroRaw (int16_t val[]) {readVecRaw(GYR_DATA_X_LSB ,      3,val);};
   /** Return Euler angles heading, pitch, roll in radians */
   void readEuler   (fp      val[]) {readVec   (EUL_HEADING_LSB,900.0,3,val);};
   void readEulerRaw(int16_t val[]) {readVecRaw(EUL_HEADING_LSB,      3,val);};
@@ -320,7 +322,7 @@ public:
   void readGrv     (fp      val[]) {readVec   (GRV_DATA_X_LSB ,100.0,3,val);};
   void readGrvRaw  (int16_t val[]) {readVecRaw(GRV_DATA_X_LSB ,      3,val);};
   /** Return temperature */
-  int8_t readTempRaw() {return int8_t(sampleBuf[TEMP-ACC_DATA_X_LSB]);};
+  int8_t readTempRaw() {return int8_t(sampleBuf[TEMP-SAMPLE_BUF_BEGIN]);};
   fp readTemp() {return fp(readTempRaw());};
   /** Return all values (say for stuffing in a packet) */
   void readAllRaw(char buf[]) {for(int i=0;i<sizeof(sampleBuf);i++) buf[i]=sampleBuf[i];};

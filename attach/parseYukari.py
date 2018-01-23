@@ -68,13 +68,13 @@ if __name__ == '__main__':
                                'descType':{'pos':10,'type':t_u8},
                                'descName':{'pos':11,'type':t_string}})}
         pktdesc[12]={'name':'CCSDS self-documentation','handler':print,'fields':{'Documentation':{'pos': 6,'type':t_string}}}
-        pktdesc[0x123]={'name':'Packet parser','handler':print,'fields':{'python':{'pos': 6,'type':t_string}}}
+#        pktdesc[0x123]={'name':'Packet parser','handler':print,'fields':{'python':{'pos': 6,'type':t_string}}}
         while not done:
             header=inf.read(6)
             apid=struct.unpack(">H",header[0:2])[0] & ((1<<11)-1)
             pktlen=struct.unpack(">H",header[4:6])[0]+1
             body=inf.read(pktlen)
-            pkt={'apid':apid}
+            pkt=OrderedDict({'apid':apid})
             print(apid,pktlen)
             for k,v in pktdesc[apid]['fields'].items():
                 typ =lookupType[pktdesc[apid]['fields'][k]['type']]
